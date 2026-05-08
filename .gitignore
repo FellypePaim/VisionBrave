@@ -1,7 +1,5 @@
-# Superpowers brainstorming server files
-.superpowers/brainstorm/**/.server-info
-.superpowers/brainstorm/**/.server.pid
-.superpowers/brainstorm/**/.events
+# Superpowers (local tooling)
+.superpowers/
 
 # Node
 node_modules/

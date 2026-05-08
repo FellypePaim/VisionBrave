@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VisionBrave — Create Without Limits. Powered by AI.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --y: #FBBF24;
+  --y2: #FCD34D;
+  --y3: #D49B16;
+  --yg: #FBBF2440;
+  --bg: #000000;
+  --bg2: #0A0A0A;
+  --card: #111111;
+  --card2: #161616;
+  --b1: #1F1F1F;
+  --b2: #2A2A2A;
+  --t1: #FFFFFF;
+  --t2: #A3A3A3;
+  --t3: #6B6B6B;
+  --t4: #3A3A3A;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--t1);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+
+/* ══ PAGE WRAPPER ══ */
+.page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 22px 28px 28px;
+}
+
+/* ══ NAV ══ */
+.nav {
+  background: var(--bg2);
+  border: 1px solid var(--b1);
+  border-radius: 18px;
+  padding: 14px 22px;
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 16px;
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  margin-right: 22px;
+}
+.fox-icon {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.fox-icon svg { width: 100%; height: 100%; }
+.nav-name { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -.4px; }
+
+.nav-links {
+  display: flex; align-items: center; gap: 4px;
+  flex: 1;
+}
+.nav-link {
+  padding: 8px 16px;
+  font-size: 14px; font-weight: 500;
+  color: var(--t2);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: color .15s, background .15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.nav-link:hover { color: #fff; background: #ffffff08; }
+.nav-link svg { width: 12px; height: 12px; opacity: .7; }
+
+.nav-actions { display: flex; align-items: center; gap: 10px; }
+.btn-login {
+  padding: 9px 18px;
+  background: transparent;
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+  font-size: 13.5px; font-weight: 600;
+  color: #fff; cursor: pointer;
+  font-family: inherit;
+  transition: border-color .15s, background .15s;
+}
+.btn-login:hover { border-color: #4a4a4a; background: #ffffff05; }
+.btn-cta {
+  padding: 9px 18px;
+  background: var(--y);
+  border: none;
+  border-radius: 10px;
+  font-size: 13.5px; font-weight: 700;
+  color: #1a0e00; cursor: pointer;
+  font-family: inherit;
+  letter-spacing: -.1px;
+  transition: background .15s, box-shadow .2s;
+  box-shadow: 0 2px 16px var(--yg);
+}
+.btn-cta:hover { background: var(--y2); box-shadow: 0 4px 24px #FBBF2455; }
+
+/* ══ HERO ══ */
+.hero {
+  background: var(--bg2);
+  border: 1px solid var(--b1);
+  border-radius: 22px;
+  padding: 46px 56px 40px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 50px;
+  align-items: center;
+}
+
+.hero-image-wrap {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  max-width: 540px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 60%, #1a1208 0%, #050202 80%);
+}
+
+.hero-image-wrap svg.tiger { width: 100%; height: 100%; display: block; }
+
+/* Splash drops */
+.hero-water {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 30%;
+  background: linear-gradient(to bottom, transparent, #050810 50%, #020608 100%);
+  pointer-events: none;
+}
+
+.hero-badge {
+  position: absolute;
+  bottom: 18px; left: 18px;
+  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid #ffffff10;
+  border-radius: 10px;
+  padding: 9px 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.hero-badge .hb-fox {
+  width: 24px; height: 24px;
+}
+.hero-badge .hb-text {
+  display: flex; flex-direction: column;
+  font-size: 11px; line-height: 1.3;
+}
+.hero-badge .hb-l1 { color: #888; }
+.hero-badge .hb-l1 b { color: var(--y); font-weight: 600; }
+.hero-badge .hb-l2 { color: #fff; font-weight: 600; font-size: 11.5px; }
+
+/* Right column */
+.hero-content {}
+
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 14px;
+  background: #ffffff05;
+  border: 1px solid var(--b1);
+  border-radius: 100px;
+  font-size: 12.5px; font-weight: 500;
+  color: #d4d4d4;
+  margin-bottom: 22px;
+}
+.hero-tag svg { width: 13px; height: 13px; color: var(--y); }
+
+.hero-title {
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -2px;
+  color: #fff;
+  margin-bottom: 22px;
+}
+.hero-title .hl { color: var(--y); }
+
+.hero-desc {
+  font-size: 16.5px;
+  line-height: 1.55;
+  color: #999;
+  max-width: 520px;
+  margin-bottom: 30px;
+}
+
+.hero-buttons {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 32px;
+}
+
+.btn-primary-lg {
+  padding: 17px 30px;
+  background: var(--y);
+  border: none;
+  border-radius: 13px;
+  font-size: 15.5px; font-weight: 700;
+  color: #1a0e00; cursor: pointer;
+  font-family: inherit;
+  letter-spacing: -.2px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 4px 28px var(--yg);
+  transition: background .15s, box-shadow .2s, transform .15s;
+}
+.btn-primary-lg:hover { background: var(--y2); box-shadow: 0 6px 36px #FBBF2466; transform: translateY(-1px); }
+.btn-primary-lg svg { width: 16px; height: 16px; }
+
+.btn-secondary-lg {
+  padding: 17px 28px;
+  background: var(--card);
+  border: 1px solid var(--b2);
+  border-radius: 13px;
+  font-size: 15.5px; font-weight: 600;
+  color: #fff; cursor: pointer;
+  font-family: inherit;
+  display: flex; align-items: center; gap: 12px;
+  transition: border-color .15s, background .15s;
+}
+.btn-secondary-lg:hover { border-color: #4a4a4a; background: #1a1a1a; }
+.demo-play {
+  width: 28px; height: 28px;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.demo-play svg { width: 11px; height: 11px; fill: #fff; margin-left: 1.5px; }
+
+/* Mini features */
+.mini-features {
+  display: flex; align-items: center; gap: 28px;
+}
+.mini-feat {
+  display: flex; align-items: center; gap: 12px;
+}
+.mini-feat-icon {
+  width: 36px; height: 36px;
+  background: #1a1408;
+  border: 1px solid #2a1f08;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+}
+.mini-feat-icon svg { width: 16px; height: 16px; color: var(--y); }
+.mini-feat-text { display: flex; flex-direction: column; }
+.mini-feat-title { font-size: 13.5px; font-weight: 600; color: #fff; }
+.mini-feat-sub { font-size: 12px; color: #666; }
+
+/* ══ FEATURES GRID ══ */
+.features {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.feature {
+  background: var(--bg2);
+  border: 1px solid var(--b1);
+  border-radius: 18px;
+  padding: 22px 22px 0;
+  cursor: pointer;
+  transition: border-color .2s, transform .2s, background .2s;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  min-height: 240px;
+  position: relative;
+}
+.feature:hover { border-color: #FBBF2440; background: #0F0B05; transform: translateY(-3px); }
+
+.feat-icon {
+  width: 38px; height: 38px;
+  background: #1a1408;
+  border: 1px solid #2a1f08;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 16px;
+}
+.feat-icon svg { width: 18px; height: 18px; color: var(--y); }
+
+.feat-title { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 8px; letter-spacing: -.3px; }
+.feat-desc { font-size: 13px; line-height: 1.5; color: #777; margin-bottom: 18px; max-width: 200px; }
+
+.feat-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; color: var(--y);
+  margin-bottom: 18px;
+  transition: gap .15s;
+}
+.feat-link:hover { gap: 10px; }
+.feat-link svg { width: 12px; height: 12px; }
+
+.feat-image {
+  margin: 0 -22px -1px;
+  height: 90px;
+  border-radius: 0;
+  overflow: hidden;
+  position: relative;
+  margin-top: auto;
+}
+
+/* Image gradients per category */
+.fi-images { background: linear-gradient(135deg, #4a2510, #1a0a04); }
+.fi-videos { background: linear-gradient(135deg, #2a1810, #100804); }
+.fi-anim { background: linear-gradient(135deg, #4a3520, #1a0e04); }
+.fi-edit { background: linear-gradient(135deg, #2a1238, #100418); }
+
+.fi-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ══ STATS BAR ══ */
+.stats {
+  background: var(--bg2);
+  border: 1px solid var(--b1);
+  border-radius: 18px;
+  padding: 20px 28px;
+  display: flex; align-items: center; gap: 28px;
+}
+
+.stats-trust {
+  display: flex; align-items: center; gap: 14px;
+  padding-right: 28px;
+  border-right: 1px solid var(--b1);
+}
+.stars-row { display: flex; gap: 2px; }
+.star { color: var(--y); font-size: 14px; }
+.trust-text { font-size: 12.5px; color: #999; line-height: 1.35; }
+
+.avatars {
+  display: flex;
+}
+.avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 2px solid #050505;
+  margin-left: -10px;
+  background-size: cover; background-position: center;
+}
+.avatar:first-child { margin-left: 0; }
+.av1 { background: linear-gradient(135deg, #d4a574, #8b5e3c); }
+.av2 { background: linear-gradient(135deg, #f4c2a5, #c08866); }
+.av3 { background: linear-gradient(135deg, #a08070, #604030); }
+.av4 { background: linear-gradient(135deg, #e8b890, #a87858); }
+
+.stat {
+  display: flex; flex-direction: column;
+  flex: 1;
+  align-items: center;
+  text-align: center;
+}
+.stat-num {
+  font-size: 22px; font-weight: 800; color: var(--y);
+  letter-spacing: -.5px;
+  margin-bottom: 2px;
+}
+.stat-label { font-size: 12.5px; color: #888; }
+
+/* ══ Responsive (mockup quality) ══ */
+@media (max-width: 1180px) {
+  .hero-title { font-size: 48px; }
+  .features { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ════════ NAV ════════ -->
+  <nav class="nav">
+    <div class="nav-logo">
+      <div class="fox-icon">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="foxGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FFD45C"/>
+              <stop offset="100%" stop-color="#E89A12"/>
+            </linearGradient>
+          </defs>
+          <!-- Ears -->
+          <path d="M8 6 L14 18 L4 18 Z" fill="url(#foxGrad)"/>
+          <path d="M32 6 L36 18 L26 18 Z" fill="url(#foxGrad)"/>
+          <path d="M9 8 L13 16 L7 16 Z" fill="#1a0e00" opacity=".4"/>
+          <path d="M31 8 L33 16 L27 16 Z" fill="#1a0e00" opacity=".4"/>
+          <!-- Head -->
+          <ellipse cx="20" cy="22" rx="14" ry="13" fill="url(#foxGrad)"/>
+          <!-- Cheek mask -->
+          <path d="M5 22 Q8 18 14 19 L14 28 Q8 29 5 24 Z" fill="#fff" opacity=".95"/>
+          <path d="M35 22 Q32 18 26 19 L26 28 Q32 29 35 24 Z" fill="#fff" opacity=".95"/>
+          <!-- Eyes -->
+          <ellipse cx="14.5" cy="22" rx="1.8" ry="2.4" fill="#0a0a0a"/>
+          <ellipse cx="25.5" cy="22" rx="1.8" ry="2.4" fill="#0a0a0a"/>
+          <ellipse cx="14.8" cy="21.2" rx=".6" ry=".8" fill="#fff"/>
+          <ellipse cx="25.8" cy="21.2" rx=".6" ry=".8" fill="#fff"/>
+          <!-- Snout -->
+          <path d="M16 27 Q20 30 24 27 L22 30 Q20 31.5 18 30 Z" fill="#fff" opacity=".95"/>
+          <ellipse cx="20" cy="27" rx="1.4" ry="1" fill="#0a0a0a"/>
+        </svg>
+      </div>
+      <span class="nav-name">VisionBrave</span>
+    </div>
+
+    <div class="nav-links">
+      <span class="nav-link">Features</span>
+      <span class="nav-link">Use Cases</span>
+      <span class="nav-link">How It Works</span>
+      <span class="nav-link">Pricing</span>
+      <span class="nav-link">Resources
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </span>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn-login">Log In</button>
+      <button class="btn-cta">Start Creating</button>
+    </div>
+  </nav>
+
+  <!-- ════════ HERO ════════ -->
+  <section class="hero">
+    <div class="hero-grid">
+
+      <!-- Tiger Image -->
+      <div class="hero-image-wrap">
+        <svg class="tiger" viewBox="0 0 540 540" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <radialGradient id="bgRad" cx="50%" cy="60%" r="80%">
+              <stop offset="0%" stop-color="#1a1208"/>
+              <stop offset="60%" stop-color="#0a0604"/>
+              <stop offset="100%" stop-color="#000"/>
+            </radialGradient>
+            <linearGradient id="orange" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FFC845"/>
+              <stop offset="50%" stop-color="#FF8C00"/>
+              <stop offset="100%" stop-color="#D4500A"/>
+            </linearGradient>
+            <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#FFD700" stop-opacity="1"/>
+              <stop offset="40%" stop-color="#FF8800" stop-opacity=".9"/>
+              <stop offset="100%" stop-color="#FF4400" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="glowF" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="6" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+
+          <rect width="540" height="540" fill="url(#bgRad)"/>
+
+          <!-- Ambient orange glow -->
+          <ellipse cx="200" cy="280" rx="220" ry="160" fill="url(#orange)" opacity=".06"/>
+
+          <!-- Ground reflection -->
+          <ellipse cx="270" cy="490" rx="200" ry="20" fill="#FF8C00" opacity=".15"/>
+
+          <!-- ============ TIGER BODY ============ -->
+          <!-- Hind quarters -->
+          <path d="M380 320 Q430 290 460 310 Q480 330 470 380 Q450 410 410 405 Q380 395 380 320 Z"
+                fill="#1a1410" stroke="#2a1f10" stroke-width="1.5"/>
+          <!-- Body main -->
+          <path d="M150 290 Q200 240 290 250 Q380 260 420 310 Q430 360 380 380 Q280 400 200 380 Q140 360 150 290 Z"
+                fill="#15100c" stroke="#2a1f10" stroke-width="2"/>
+
+          <!-- Body stripes (orange neon) -->
+          <g filter="url(#glowF)" opacity=".9">
+            <path d="M180 260 Q190 320 195 380" stroke="url(#orange)" stroke-width="6" fill="none" stroke-linecap="round"/>
+            <path d="M215 252 Q225 320 230 385" stroke="url(#orange)" stroke-width="7" fill="none" stroke-linecap="round"/>
+            <path d="M250 250 Q258 320 262 388" stroke="url(#orange)" stroke-width="7" fill="none" stroke-linecap="round"/>
+            <path d="M285 252 Q290 320 295 388" stroke="url(#orange)" stroke-width="6" fill="none" stroke-linecap="round"/>
+            <path d="M320 258 Q325 320 330 385" stroke="url(#orange)" stroke-width="7" fill="none" stroke-linecap="round"/>
+            <path d="M355 268 Q360 320 365 380" stroke="url(#orange)" stroke-width="6" fill="none" stroke-linecap="round"/>
+            <path d="M390 285 Q400 330 410 380" stroke="url(#orange)" stroke-width="7" fill="none" stroke-linecap="round"/>
+            <path d="M425 305 Q440 340 450 375" stroke="url(#orange)" stroke-width="5" fill="none" stroke-linecap="round"/>
+          </g>
+
+          <!-- Legs -->
+          <path d="M195 380 Q190 420 200 460 Q215 480 225 470 L225 410 Q220 390 215 380 Z" fill="#0d0805" stroke="#2a1f10" stroke-width="1.5"/>
+          <path d="M260 390 Q255 430 265 465 Q280 480 290 470 L290 415 Q285 395 280 388 Z" fill="#0d0805" stroke="#2a1f10" stroke-width="1.5"/>
+          <path d="M330 390 Q325 430 335 465 Q350 480 360 470 L360 415 Q355 395 350 388 Z" fill="#0d0805" stroke="#2a1f10" stroke-width="1.5"/>
+          <path d="M395 390 Q400 430 410 465 Q425 480 435 470 L435 415 Q420 395 410 388 Z" fill="#0d0805" stroke="#2a1f10" stroke-width="1.5"/>
+
+          <!-- Leg neon accents -->
+          <g filter="url(#glowF)" opacity=".85">
+            <path d="M210 395 L218 460" stroke="url(#orange)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M275 405 L283 465" stroke="url(#orange)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M345 405 L353 465" stroke="url(#orange)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M415 405 L425 460" stroke="url(#orange)" stroke-width="3" stroke-linecap="round"/>
+          </g>
+
+          <!-- ============ HEAD ============ -->
+          <!-- Neck -->
+          <path d="M150 280 Q120 270 110 240 Q120 220 145 230 Q170 250 175 280 Z"
+                fill="#15100c" stroke="#2a1f10" stroke-width="1.5"/>
+
+          <!-- Head shape -->
+          <path d="M50 230 Q60 170 110 160 Q160 165 175 210 Q175 260 145 280 Q90 285 60 270 Q35 255 50 230 Z"
+                fill="#1a1410" stroke="#2a1f10" stroke-width="2"/>
+
+          <!-- Ears -->
+          <path d="M70 175 L62 130 L92 165 Z" fill="#15100c" stroke="#2a1f10" stroke-width="1.5"/>
+          <path d="M140 165 L160 125 L165 170 Z" fill="#15100c" stroke="#2a1f10" stroke-width="1.5"/>
+          <path d="M73 168 L70 145 L86 162 Z" fill="url(#orange)" opacity=".5"/>
+          <path d="M147 162 L155 140 L160 167 Z" fill="url(#orange)" opacity=".5"/>
+
+          <!-- Head stripes -->
+          <g filter="url(#glowF)" opacity=".9">
+            <path d="M65 195 Q70 220 75 255" stroke="url(#orange)" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M88 185 Q92 215 95 260" stroke="url(#orange)" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <path d="M115 180 Q118 215 120 262" stroke="url(#orange)" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <path d="M142 185 Q140 215 138 258" stroke="url(#orange)" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M158 200 Q160 225 162 250" stroke="url(#orange)" stroke-width="3" fill="none" stroke-linecap="round"/>
+          </g>
+
+          <!-- Eyes -->
+          <ellipse cx="85" cy="220" rx="14" ry="10" fill="url(#eyeGlow)" filter="url(#glowF)"/>
+          <ellipse cx="135" cy="220" rx="14" ry="10" fill="url(#eyeGlow)" filter="url(#glowF)"/>
+          <ellipse cx="85" cy="220" rx="6" ry="7" fill="#FFE066"/>
+          <ellipse cx="135" cy="220" rx="6" ry="7" fill="#FFE066"/>
+          <ellipse cx="85" cy="218" rx="2" ry="4" fill="#000"/>
+          <ellipse cx="135" cy="218" rx="2" ry="4" fill="#000"/>
+
+          <!-- Snout / muzzle -->
+          <path d="M88 245 Q110 260 132 245 L130 268 Q110 282 90 268 Z" fill="#0d0805" stroke="#2a1f10" stroke-width="1"/>
+          <ellipse cx="110" cy="252" rx="6" ry="4" fill="#0a0604"/>
+
+          <!-- Forehead V mark -->
+          <path d="M95 195 L110 175 L125 195 L120 200 L110 188 L100 200 Z"
+                fill="url(#orange)" opacity=".95" filter="url(#glowF)"/>
+
+          <!-- ============ WATER SPLASH ============ -->
+          <g opacity=".55">
+            <ellipse cx="100" cy="490" rx="60" ry="8" fill="#3a4a5a"/>
+            <ellipse cx="250" cy="500" rx="100" ry="10" fill="#3a4a5a"/>
+            <ellipse cx="420" cy="495" rx="80" ry="9" fill="#3a4a5a"/>
+
+            <!-- Splash drops -->
+            <circle cx="80" cy="470" r="3" fill="#5a7090" opacity=".7"/>
+            <circle cx="120" cy="465" r="2" fill="#5a7090" opacity=".6"/>
+            <circle cx="180" cy="460" r="4" fill="#5a7090" opacity=".7"/>
+            <circle cx="240" cy="450" r="3" fill="#5a7090" opacity=".6"/>
+            <circle cx="290" cy="475" r="2" fill="#5a7090" opacity=".5"/>
+            <circle cx="350" cy="460" r="3" fill="#5a7090" opacity=".7"/>
+            <circle cx="400" cy="465" r="4" fill="#5a7090" opacity=".7"/>
+            <circle cx="460" cy="470" r="2" fill="#5a7090" opacity=".5"/>
+
+            <!-- Vertical splash lines -->
+            <path d="M150 480 L155 440" stroke="#5a7090" stroke-width="2" opacity=".5" stroke-linecap="round"/>
+            <path d="M210 485 L208 445" stroke="#5a7090" stroke-width="2" opacity=".5" stroke-linecap="round"/>
+            <path d="M380 485 L385 445" stroke="#5a7090" stroke-width="2" opacity=".5" stroke-linecap="round"/>
+          </g>
+
+          <!-- Bottom water reflection of orange -->
+          <ellipse cx="270" cy="510" rx="180" ry="15" fill="#FF8C00" opacity=".18" filter="url(#glowF)"/>
+
+          <!-- Background light particles -->
+          <g opacity=".4">
+            <circle cx="50" cy="80" r="1" fill="#FFC845"/>
+            <circle cx="120" cy="60" r="1.5" fill="#FFC845"/>
+            <circle cx="450" cy="90" r="1" fill="#FFC845"/>
+            <circle cx="500" cy="160" r="2" fill="#FFC845"/>
+            <circle cx="380" cy="50" r="1" fill="#FFC845"/>
+            <circle cx="200" cy="40" r="1.5" fill="#FFC845"/>
+            <circle cx="20" cy="200" r="1" fill="#FFC845"/>
+            <circle cx="510" cy="320" r="1" fill="#FFC845"/>
+          </g>
+        </svg>
+
+        <!-- Generated badge -->
+        <div class="hero-badge">
+          <div class="hb-fox">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="hbFoxGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#FFD45C"/>
+                  <stop offset="100%" stop-color="#E89A12"/>
+                </linearGradient>
+              </defs>
+              <path d="M8 6 L14 18 L4 18 Z" fill="url(#hbFoxGrad)"/>
+              <path d="M32 6 L36 18 L26 18 Z" fill="url(#hbFoxGrad)"/>
+              <ellipse cx="20" cy="22" rx="14" ry="13" fill="url(#hbFoxGrad)"/>
+              <path d="M5 22 Q8 18 14 19 L14 28 Q8 29 5 24 Z" fill="#fff" opacity=".95"/>
+              <path d="M35 22 Q32 18 26 19 L26 28 Q32 29 35 24 Z" fill="#fff" opacity=".95"/>
+              <ellipse cx="14.5" cy="22" rx="1.8" ry="2.4" fill="#0a0a0a"/>
+              <ellipse cx="25.5" cy="22" rx="1.8" ry="2.4" fill="#0a0a0a"/>
+              <path d="M16 27 Q20 30 24 27 L22 30 Q20 31.5 18 30 Z" fill="#fff" opacity=".95"/>
+              <ellipse cx="20" cy="27" rx="1.4" ry="1" fill="#0a0a0a"/>
+            </svg>
+          </div>
+          <div class="hb-text">
+            <span class="hb-l1">Generated in <b>VisionBrave</b></span>
+            <span class="hb-l2">Cyberfang Tiger</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Content -->
+      <div class="hero-content">
+        <div class="hero-tag">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          Next-Gen AI Creative Studio
+        </div>
+
+        <h1 class="hero-title">
+          Create Without Limits.<br>
+          Powered by <span class="hl">AI.</span>
+        </h1>
+
+        <p class="hero-desc">
+          VisionBrave is your all-in-one AI creative studio for generating stunning images, videos, animations, and more. Unlock your imagination with powerful tools built for creators, by creators.
+        </p>
+
+        <div class="hero-buttons">
+          <button class="btn-primary-lg">
+            Start Creating
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor"/>
+            </svg>
+          </button>
+          <button class="btn-secondary-lg">
+            <span class="demo-play">
+              <svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+            </span>
+            See Demo
+          </button>
+        </div>
+
+        <div class="mini-features">
+          <div class="mini-feat">
+            <div class="mini-feat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+              </svg>
+            </div>
+            <div class="mini-feat-text">
+              <span class="mini-feat-title">No Credit Card</span>
+              <span class="mini-feat-sub">Get started for free</span>
+            </div>
+          </div>
+          <div class="mini-feat">
+            <div class="mini-feat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="mini-feat-text">
+              <span class="mini-feat-title">Lightning Fast</span>
+              <span class="mini-feat-sub">Generate in seconds</span>
+            </div>
+          </div>
+          <div class="mini-feat">
+            <div class="mini-feat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+            </div>
+            <div class="mini-feat-text">
+              <span class="mini-feat-title">Commercial Use</span>
+              <span class="mini-feat-sub">Your creations, your rights</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ════════ FEATURES ════════ -->
+  <section class="features">
+
+    <div class="feature">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+      </div>
+      <h3 class="feat-title">Images</h3>
+      <p class="feat-desc">Generate ultra-detailed AI images in any style you imagine.</p>
+      <a class="feat-link">Explore Images
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="feat-image fi-images">
+        <svg viewBox="0 0 200 90" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%">
+          <defs>
+            <radialGradient id="g1" cx="50%" cy="50%"><stop offset="0%" stop-color="#FF8800"/><stop offset="100%" stop-color="#1a0a04"/></radialGradient>
+          </defs>
+          <rect width="200" height="90" fill="url(#g1)" opacity=".4"/>
+          <ellipse cx="100" cy="50" rx="40" ry="30" fill="#FF8800" opacity=".4"/>
+          <ellipse cx="100" cy="35" rx="20" ry="22" fill="#FFB05A" opacity=".7"/>
+          <path d="M85 35 Q100 30 115 35 Q120 50 105 60 Q90 60 85 50 Z" fill="#fff" opacity=".15"/>
+          <ellipse cx="92" cy="32" rx="3" ry="3" fill="#000"/>
+          <ellipse cx="108" cy="32" rx="3" ry="3" fill="#000"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="23 7 16 12 23 17 23 7"/>
+          <rect x="1" y="5" width="15" height="14" rx="2"/>
+        </svg>
+      </div>
+      <h3 class="feat-title">Videos</h3>
+      <p class="feat-desc">Create cinematic videos from text or images with AI magic.</p>
+      <a class="feat-link">Explore Videos
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="feat-image fi-videos">
+        <svg viewBox="0 0 200 90" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%">
+          <rect width="200" height="90" fill="#1a0e04"/>
+          <circle cx="160" cy="20" r="12" fill="#7090C0" opacity=".3"/>
+          <ellipse cx="100" cy="80" rx="120" ry="20" fill="#3a4a5a" opacity=".5"/>
+          <!-- Person silhouette -->
+          <circle cx="60" cy="50" r="14" fill="#5a3a2a"/>
+          <path d="M40 70 Q60 60 80 70 L80 90 L40 90 Z" fill="#3a2a1a"/>
+          <!-- Mountains -->
+          <path d="M0 80 L40 50 L70 70 L120 40 L160 60 L200 50 L200 90 L0 90 Z" fill="#2a3040"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+      </div>
+      <h3 class="feat-title">Animation</h3>
+      <p class="feat-desc">Animate your ideas with stunning motion and style.</p>
+      <a class="feat-link">Explore Animation
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="feat-image fi-anim">
+        <svg viewBox="0 0 200 90" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%">
+          <defs>
+            <radialGradient id="g3" cx="60%" cy="40%"><stop offset="0%" stop-color="#FFA830"/><stop offset="100%" stop-color="#1a0e04"/></radialGradient>
+          </defs>
+          <rect width="200" height="90" fill="url(#g3)" opacity=".5"/>
+          <!-- Person with beanie -->
+          <ellipse cx="120" cy="35" rx="18" ry="20" fill="#d4a574"/>
+          <path d="M102 30 Q120 18 138 30 L138 38 L102 38 Z" fill="#a08070"/>
+          <ellipse cx="115" cy="37" rx="2" ry="2.5" fill="#000"/>
+          <ellipse cx="125" cy="37" rx="2" ry="2.5" fill="#000"/>
+          <path d="M118 44 Q120 46 122 44" stroke="#000" stroke-width=".8" fill="none"/>
+          <!-- Coat -->
+          <path d="M95 60 Q120 50 145 60 L150 90 L90 90 Z" fill="#c84020"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      </div>
+      <h3 class="feat-title">AI Editing</h3>
+      <p class="feat-desc">Edit, enhance, and transform with powerful AI tools.</p>
+      <a class="feat-link">Explore AI Tools
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="feat-image fi-edit">
+        <svg viewBox="0 0 200 90" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%">
+          <defs>
+            <linearGradient id="g4" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FF00AA"/>
+              <stop offset="50%" stop-color="#7700FF"/>
+              <stop offset="100%" stop-color="#00AAFF"/>
+            </linearGradient>
+          </defs>
+          <rect width="200" height="90" fill="url(#g4)" opacity=".5"/>
+          <ellipse cx="100" cy="40" rx="22" ry="26" fill="#f4c2a5"/>
+          <path d="M82 28 Q100 12 118 28 L120 38 L80 38 Z" fill="#FF55BB"/>
+          <ellipse cx="93" cy="40" rx="2.5" ry="3" fill="#000"/>
+          <ellipse cx="107" cy="40" rx="2.5" ry="3" fill="#000"/>
+          <path d="M70 90 Q100 60 130 90 Z" fill="#aa3388"/>
+          <line x1="100" y1="0" x2="100" y2="90" stroke="#fff" stroke-width=".8" stroke-dasharray="3 3" opacity=".5"/>
+        </svg>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ════════ STATS ════════ -->
+  <section class="stats">
+
+    <div class="stats-trust">
+      <div class="avatars">
+        <div class="avatar av1"></div>
+        <div class="avatar av2"></div>
+        <div class="avatar av3"></div>
+        <div class="avatar av4"></div>
+      </div>
+      <div>
+        <div class="stars-row">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+        </div>
+        <div class="trust-text">Trusted by 50,000+ creators<br>worldwide</div>
+      </div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-num">50K+</div>
+      <div class="stat-label">Active Creators</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">1M+</div>
+      <div class="stat-label">AI Creations</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">4.9/5</div>
+      <div class="stat-label">User Rating</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">100+</div>
+      <div class="stat-label">Countries</div>
+    </div>
+
+  </section>
+
+</div>
+
+</body>
+</html>

@@ -2,17 +2,19 @@
 
 Plataforma SaaS de criação com IA — geração de Imagens, Vídeos e Áudio.
 
-> Design system inspirado no NeuroFox, com identidade visual própria (preto + dourado).
+> Design system próprio: preto puro + dourado (`#FBBF24`), Inter font, logo raposa.
 
-## Telas planejadas
+## Telas
 
-| Tela | Status |
-|------|--------|
-| Home / Dashboard | ✅ Mockup |
-| Gerar Imagens | ✅ Mockup |
-| Gerar Vídeos | 🔜 Em breve |
-| Gerar Áudio | 🔜 Em breve |
-| Login / Cadastro | 🔜 Em breve |
+| Tela | Status | Arquivo |
+|------|--------|---------|
+| Landing Page | ✅ Mockup | `mockups/landing.html` |
+| Sign Up / Log In | ✅ Mockup | `mockups/signup.html` |
+| Home / Dashboard | ✅ Mockup | `mockups/home.html` |
+| Generate Images | ✅ Mockup | `mockups/generate-images.html` |
+| Generate Videos / Editor | ✅ Mockup | `mockups/generate-videos.html` |
+| Gallery | ✅ Mockup | `mockups/gallery.html` |
+| Generate Audio | 🔜 Pendente | — |
 
 ## Stack (planejado)
 
@@ -23,4 +25,11 @@ Plataforma SaaS de criação com IA — geração de Imagens, Vídeos e Áudio.
 
 ## Mockups
 
-Os mockups HTML estão em `/mockups` — abra diretamente no navegador para visualizar.
+Os mockups HTML estão em `/mockups`. Para visualizar:
+
+```bash
+npx serve mockups
+# abre http://localhost:3000/index.html
+```
+
+O `index.html` lista todas as telas com previews navegáveis.

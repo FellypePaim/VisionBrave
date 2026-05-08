@@ -1,29 +1,29 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BraveStudio — Gerar Imagens</title>
+<title>VisionBrave — Generate Images</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 :root {
-  --y: #F5A623;
-  --y2: #FFB84D;
-  --y3: #D4891A;
-  --yg: #F5A62340;
-  --bg: #111111;
-  --sb: #161616;
-  --card: #1C1C1C;
-  --card2: #222222;
-  --b1: #2A2A2A;
-  --b2: #333333;
+  --y: #FBBF24;
+  --y2: #FCD34D;
+  --y3: #D49B16;
+  --yg: #FBBF2440;
+  --bg: #000000;
+  --sb: #0A0A0A;
+  --card: #111111;
+  --card2: #161616;
+  --b1: #1F1F1F;
+  --b2: #2A2A2A;
   --t1: #FFFFFF;
-  --t2: #8A8A8A;
-  --t3: #4A4A4A;
-  --t4: #2E2E2E;
+  --t2: #A3A3A3;
+  --t3: #6B6B6B;
+  --t4: #3A3A3A;
 }
 html, body { height: 100%; overflow: hidden; }
 body {
@@ -34,563 +34,608 @@ body {
   height: 100vh;
   font-size: 13px;
 }
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-thumb { background: #2e2e2e; border-radius: 2px; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+::-webkit-scrollbar-track { background: transparent; }
 
 /* ══ SIDEBAR ══ */
 .sb {
-  width: 220px; min-width: 220px;
+  width: 232px; min-width: 232px;
   background: var(--sb);
-  border-right: 1px solid #202020;
+  border-right: 1px solid var(--b1);
   display: flex; flex-direction: column;
-  padding: 14px 0 10px;
+  padding: 16px 0 12px;
   overflow-y: auto;
 }
 .sb-logo {
-  display: flex; align-items: center; gap: 9px;
-  padding: 2px 14px 15px;
-  border-bottom: 1px solid #202020;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 18px 16px;
+  border-bottom: 1px solid var(--b1);
   margin-bottom: 12px;
 }
-.sb-logo-icon {
-  width: 34px; height: 34px;
-  background: var(--y);
-  border-radius: 9px;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 16px var(--yg);
-  flex-shrink: 0;
-}
-.sb-logo-icon svg { width: 19px; height: 19px; fill: #1a0e00; }
-.sb-logo-name { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -.3px; }
+.fox-icon { width: 32px; height: 32px; flex-shrink: 0; }
+.fox-icon svg { width: 100%; height: 100%; }
+.sb-name { font-size: 16px; font-weight: 700; color: #fff; letter-spacing: -.4px; }
 
 .sb-search {
-  margin: 0 10px 13px;
-  background: #1e1e1e;
-  border: 1px solid #252525;
-  border-radius: 9px;
-  padding: 8px 11px;
-  display: flex; align-items: center; gap: 8px;
+  margin: 0 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 10px;
+  padding: 9px 12px;
+  display: flex; align-items: center; gap: 9px;
   cursor: pointer;
 }
-.sb-search svg { width: 13px; height: 13px; color: #3a3a3a; flex-shrink: 0; }
-.sb-search span { font-size: 12.5px; color: #343434; }
+.sb-search svg { width: 14px; height: 14px; color: var(--t4); flex-shrink: 0; }
+.sb-search-txt { font-size: 13px; color: var(--t4); flex: 1; }
+.sb-search-kbd { font-size: 11px; color: var(--t4); }
 
-.sb-sec {
-  font-size: 10px; font-weight: 700;
-  letter-spacing: .9px; text-transform: uppercase;
-  color: #3a3a3a;
-  padding: 5px 16px 6px;
-  display: flex; align-items: center; justify-content: space-between;
-}
-.sb-sec-plus {
-  width: 16px; height: 16px;
-  color: #3a3a3a; font-size: 16px; line-height: 1;
-  cursor: pointer; transition: color .15s;
-}
-.sb-sec-plus:hover { color: var(--y); }
-
-.nav {
-  display: flex; align-items: center; gap: 9px;
-  margin: 1px 8px;
-  padding: 8.5px 9px;
+.nav-item {
+  display: flex; align-items: center; gap: 11px;
+  margin: 1px 10px;
+  padding: 9px 11px;
   border-radius: 9px;
   color: var(--t2);
   cursor: pointer;
-  font-size: 13.5px; font-weight: 400;
-  transition: background .12s, color .12s;
+  font-size: 13.5px;
   position: relative;
+  transition: background .12s, color .12s;
 }
-.nav:hover { background: #1e1e1e; color: #ccc; }
-.nav.active {
-  background: #2a1f0a;
+.nav-item:hover { background: #ffffff05; color: #ddd; }
+.nav-item.active {
+  background: #1f1608;
   color: var(--y);
   font-weight: 500;
 }
-.nav svg { width: 15px; height: 15px; flex-shrink: 0; color: inherit; opacity: .7; }
-.nav.active svg { opacity: 1; }
+.nav-item.active::before {
+  content: ''; position: absolute; left: -10px;
+  top: 8px; bottom: 8px; width: 3px;
+  background: var(--y); border-radius: 0 3px 3px 0;
+}
+.nav-item svg { width: 17px; height: 17px; flex-shrink: 0; opacity: .85; }
+
+.sb-section {
+  font-size: 10.5px; font-weight: 600; letter-spacing: 1px;
+  color: var(--t4); text-transform: uppercase;
+  padding: 16px 22px 8px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sb-section-plus { font-size: 14px; color: var(--t4); cursor: pointer; }
+
 .nb {
   margin-left: auto;
-  font-size: 11px; color: #3e3e3e;
-  background: #1e1e1e; border-radius: 9px;
-  padding: 1px 7px; min-width: 22px; text-align: center;
+  font-size: 11px; color: var(--t3);
+  font-weight: 500;
 }
 
-.sb-div { height: 1px; background: #202020; margin: 9px 0; }
+.sb-foot { margin-top: auto; padding: 12px 12px 0; }
 
-.sb-foot { margin-top: auto; padding: 0 10px; }
-.boost {
-  background: linear-gradient(145deg, #1e1505, #181005);
-  border: 1px solid #2c1e08;
-  border-radius: 12px;
-  padding: 13px 13px 13px;
-  margin-bottom: 8px;
+.upgrade-card {
+  background: linear-gradient(145deg, #1a1208 0%, #0f0904 100%);
+  border: 1px solid #2a1f08;
+  border-radius: 13px;
+  padding: 14px;
+  margin-bottom: 10px;
 }
-.boost-title {
-  font-size: 13px; font-weight: 700; color: #fff;
-  display: flex; align-items: center; gap: 6px;
-  margin-bottom: 4px;
-}
-.boost-title svg { width: 13px; height: 13px; color: var(--y); }
-.boost-desc { font-size: 11.5px; color: #515151; line-height: 1.45; margin-bottom: 10px; }
-.btn-boost {
-  width: 100%; background: var(--y); border: none; border-radius: 8px;
-  padding: 8.5px; font-size: 13px; font-weight: 700;
-  color: #1a0e00; cursor: pointer; font-family: 'Inter', sans-serif;
-  box-shadow: 0 2px 16px var(--yg); transition: background .15s;
-}
-.btn-boost:hover { background: var(--y2); }
-.user-row {
-  display: flex; align-items: center; gap: 9px;
-  padding: 9px 7px; border-radius: 9px; cursor: pointer;
-  transition: background .12s;
-}
-.user-row:hover { background: #1e1e1e; }
-.user-ava {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: linear-gradient(135deg, #e8720c, #c45a08);
+.uc-icon {
+  width: 30px; height: 30px;
+  background: var(--y);
+  border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
-  overflow: hidden;
+  box-shadow: 0 2px 12px var(--yg);
+  margin-bottom: 10px;
 }
-.user-ava img { width: 100%; height: 100%; object-fit: cover; }
-.u-info { flex: 1; overflow: hidden; }
-.u-name { font-size: 12.5px; font-weight: 600; color: #d0d0d0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.u-mail { font-size: 11px; color: #404040; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.u-arr svg { width: 14px; height: 14px; color: #333; }
+.uc-icon svg { width: 14px; height: 14px; color: #1a0e00; }
+.uc-title { font-size: 13.5px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.uc-desc { font-size: 12px; color: var(--t3); line-height: 1.4; margin-bottom: 12px; }
+.btn-upgrade {
+  width: 100%;
+  background: var(--y);
+  border: none; border-radius: 9px;
+  padding: 9px 0;
+  font-size: 13px; font-weight: 700;
+  color: #1a0e00; cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 2px 14px var(--yg);
+}
+.btn-upgrade:hover { background: var(--y2); }
 
-/* ══ MAIN WRAPPER ══ */
+.user-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.user-row:hover { background: #ffffff05; }
+.user-ava {
+  width: 36px; height: 36px; border-radius: 50%;
+  flex-shrink: 0; overflow: hidden;
+  background: linear-gradient(135deg, #d4a574 30%, #8b5e3c 100%);
+  position: relative;
+}
+.user-ava::after {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 50% 38%, #e8c0a0 0 18%, transparent 19%),
+    radial-gradient(ellipse at 50% 90%, #5a3520 0 60%, transparent 61%);
+}
+.user-info { flex: 1; overflow: hidden; }
+.user-name { font-size: 13px; font-weight: 600; color: #e0e0e0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-mail { font-size: 11.5px; color: var(--t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-caret svg { width: 14px; height: 14px; color: var(--t4); }
+
+/* ══ MAIN ══ */
 .main {
   flex: 1; display: flex; flex-direction: column;
   overflow: hidden; background: var(--bg);
 }
 
-/* Topbar */
 .topbar {
-  height: 56px; flex-shrink: 0;
-  border-bottom: 1px solid #1e1e1e;
+  height: 60px; flex-shrink: 0;
+  border-bottom: 1px solid var(--b1);
   display: flex; align-items: center;
-  padding: 0 20px; gap: 10px;
+  padding: 0 24px; gap: 12px;
 }
-.tb-title { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -.5px; flex: 1; }
+.tb-title { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -.5px; flex: 1; }
+
 .theme-toggle {
   display: flex; align-items: center;
-  background: #1e1e1e; border: 1px solid #2a2a2a;
-  border-radius: 9px; padding: 4px; gap: 2px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 10px;
+  padding: 4px;
+  gap: 2px;
 }
 .tt-btn {
-  width: 30px; height: 28px;
-  border-radius: 6px;
+  width: 32px; height: 30px;
+  border-radius: 7px;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 14px;
-  color: #555; transition: all .15s;
+  cursor: pointer; color: var(--t3);
+  transition: all .15s;
 }
 .tt-btn.active {
   background: var(--y);
   color: #1a0e00;
-  box-shadow: 0 2px 8px var(--yg);
 }
 .tt-btn svg { width: 14px; height: 14px; }
 
-/* ══ BODY ROW ══ */
+.tb-btn {
+  width: 36px; height: 36px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--t2);
+}
+.tb-btn svg { width: 15px; height: 15px; }
+.tb-btn:hover { color: #fff; border-color: var(--b2); }
+
+/* Body */
 .body-row {
   flex: 1; display: flex; overflow: hidden;
 }
 
-/* ══ CENTER ══ */
 .center {
   flex: 1; display: flex; flex-direction: column;
-  overflow: hidden; border-right: 1px solid #1e1e1e;
+  overflow: hidden;
+  border-right: 1px solid var(--b1);
 }
 
-/* Tags bar */
+/* Tags row */
 .tags-bar {
   flex-shrink: 0;
-  display: flex; align-items: center; gap: 7px;
-  padding: 12px 20px;
-  border-bottom: 1px solid #1e1e1e;
-  overflow-x: auto;
+  display: flex; align-items: center; gap: 8px;
+  padding: 14px 24px;
 }
-.tags-bar::-webkit-scrollbar { height: 0; }
 .tag {
-  padding: 6px 13px;
-  background: #1e1e1e; border: 1px solid #282828;
-  border-radius: 20px; font-size: 12.5px; font-weight: 500;
-  color: #888; cursor: pointer; white-space: nowrap;
-  transition: border-color .15s, color .15s;
+  padding: 8px 16px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 100px;
+  font-size: 12.5px; font-weight: 500;
+  color: var(--t2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
 }
-.tag:hover { border-color: #F5A62340; color: #bbb; }
-.tag.active { background: #2a1f0a; border-color: #F5A62355; color: var(--y); }
+.tag:hover { color: #fff; border-color: var(--b2); }
+.tag.active {
+  background: #1f1608;
+  border-color: var(--y);
+  color: var(--y);
+}
 .tag-more {
-  width: 30px; height: 30px;
-  background: #1e1e1e; border: 1px solid #282828;
-  border-radius: 8px; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: #555; font-size: 16px; flex-shrink: 0;
   margin-left: auto;
+  width: 36px; height: 32px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--t2);
+  font-size: 16px;
 }
 
-/* Prompt row */
-.prompt-row {
+/* Prompt overlay text */
+.prompt-overlay {
   flex-shrink: 0;
-  display: flex; align-items: flex-start; gap: 10px;
-  padding: 12px 20px;
-  border-bottom: 1px solid #1e1e1e;
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 0 24px 14px;
 }
 .prompt-icon {
-  width: 28px; height: 28px; flex-shrink: 0;
-  background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 7px;
-  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  width: 30px; height: 30px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
 }
-.prompt-icon svg { width: 13px; height: 13px; color: #555; }
+.prompt-icon svg { width: 13px; height: 13px; color: var(--t2); }
 .prompt-text {
-  font-size: 12.5px; line-height: 1.55; color: #888;
-  padding-top: 4px;
+  font-size: 13px; color: var(--t2); line-height: 1.55;
+  padding-top: 5px;
 }
-.prompt-text em { color: #aaa; font-style: normal; }
 
 /* Canvas */
 .canvas {
   flex: 1;
   display: flex; align-items: center; justify-content: center;
   position: relative; overflow: hidden;
-  background: #111;
+  padding: 20px;
+  min-height: 0;
 }
 
-/* Image cards fan */
 .cards-fan {
   position: relative;
-  width: 360px; height: 340px;
+  width: 640px; height: 380px;
 }
+
 .img-card {
   position: absolute;
-  border-radius: 14px;
+  border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 20px 60px #000000aa;
+  box-shadow: 0 30px 80px #000000bb, 0 0 0 1px #ffffff05;
   cursor: pointer;
 }
-.img-card .ic-bg {
-  width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-  position: relative;
-}
-.img-card .ic-label {
-  position: absolute; bottom: 8px; left: 10px;
-  font-size: 11px; font-weight: 500; color: rgba(255,255,255,.7);
-  background: rgba(0,0,0,.5); backdrop-filter: blur(4px);
-  padding: 3px 8px; border-radius: 5px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: calc(100% - 50px);
-}
-.ic-ver {
-  position: absolute; bottom: 8px; right: 10px;
-  background: var(--y); color: #1a0e00;
-  font-size: 10.5px; font-weight: 700;
-  padding: 3px 8px; border-radius: 5px;
-}
-.ic-dl {
-  position: absolute; top: 10px; right: 10px;
-  width: 26px; height: 26px;
-  background: rgba(0,0,0,.5); backdrop-filter: blur(4px);
-  border-radius: 6px; display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-}
-.ic-dl svg { width: 12px; height: 12px; color: #fff; }
+.img-card svg.art { width: 100%; height: 100%; display: block; }
 
-/* Card 1 — back left (wolf) */
+.ic-dl {
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 32px; height: 32px;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(10px);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 4;
+}
+.ic-dl svg { width: 14px; height: 14px; color: #fff; }
+
+.ic-label {
+  position: absolute;
+  bottom: 14px; left: 14px;
+  font-size: 12px; font-weight: 500;
+  color: rgba(255,255,255,.85);
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(10px);
+  padding: 5px 11px;
+  border-radius: 7px;
+  white-space: nowrap;
+}
+.ic-version {
+  position: absolute;
+  bottom: 14px; right: 14px;
+  background: var(--y);
+  color: #1a0e00;
+  font-size: 11px; font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 6px;
+  z-index: 4;
+}
+
+/* Card 1 - Raven (left back) */
 .card-1 {
-  width: 280px; height: 280px;
-  top: 10px; left: 20px;
-  transform: rotate(-5deg);
+  width: 230px; height: 270px;
+  top: 30px; left: 30px;
+  transform: rotate(-9deg);
   z-index: 1;
 }
-.card-1 .ic-bg {
-  background: radial-gradient(ellipse at 30% 40%, #2a3a4a, #0d1520);
-}
-.card-1 .ic-bg::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='80' r='55' fill='%23334455' opacity='.4'/%3E%3Cellipse cx='100' cy='160' rx='70' ry='30' fill='%23223344' opacity='.3'/%3E%3C/svg%3E") center/cover;
-}
 
-/* Simulated creature shapes */
-.wolf-shape {
-  width: 160px; height: 160px;
-  position: relative;
-  display: flex; align-items: center; justify-content: center;
-}
-.wolf-body {
-  width: 90px; height: 110px;
-  background: linear-gradient(160deg, #8a9aaa, #4a5a6a, #2a3540);
-  border-radius: 45px 45px 30px 30px;
-  position: relative;
-  box-shadow: 0 0 30px #aabbcc44, inset 0 -10px 20px #00000060;
-}
-.wolf-body::before {
-  content: '';
-  position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
-  width: 60px; height: 60px;
-  background: linear-gradient(160deg, #9aaabb, #5a6a7a);
-  border-radius: 50%;
-  box-shadow: 0 0 20px #aabbcc44;
-}
-.wolf-eye {
-  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-  width: 16px; height: 10px;
-  background: #ff6600;
-  border-radius: 50%;
-  box-shadow: 0 0 10px #ff6600, 0 0 20px #ff4400;
-}
-
-/* Card 2 — front right (tiger) */
+/* Card 2 - Wolf (right back) */
 .card-2 {
-  width: 280px; height: 260px;
-  bottom: 0; right: 0;
-  transform: rotate(3deg);
+  width: 240px; height: 270px;
+  top: 30px; right: 30px;
+  transform: rotate(8deg);
   z-index: 2;
 }
-.card-2 .ic-bg {
-  background: radial-gradient(ellipse at 60% 50%, #1a2a18, #0a1008);
-}
-.tiger-shape {
-  width: 160px; height: 130px; position: relative;
-  display: flex; align-items: center; justify-content: center;
-}
-.tiger-body {
-  width: 130px; height: 80px;
-  background: linear-gradient(130deg, #1a1a1a, #2a2a2a);
-  border-radius: 20px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 0 20px #F5A62322;
-}
-.tiger-stripe {
-  position: absolute;
-  width: 4px; height: 100%;
-  background: linear-gradient(90deg, #F5A623, #ff8c00);
-  opacity: .6;
-  box-shadow: 0 0 8px #F5A62380;
-}
-.tiger-stripe:nth-child(1) { left: 20%; transform: rotate(15deg); }
-.tiger-stripe:nth-child(2) { left: 40%; transform: rotate(10deg); }
-.tiger-stripe:nth-child(3) { left: 60%; transform: rotate(-10deg); }
-.tiger-stripe:nth-child(4) { left: 78%; transform: rotate(-15deg); }
-.tiger-glow {
-  position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(245,166,35,.08), transparent);
+
+/* Card 3 - Panther (front center) */
+.card-3 {
+  width: 280px; height: 320px;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  z-index: 3;
 }
 
 /* Bottom bar */
 .bottom-bar {
   flex-shrink: 0;
-  border-top: 1px solid #1e1e1e;
-  padding: 10px 20px;
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center;
+  padding: 14px 24px;
+  border-top: 1px solid var(--b1);
 }
+
 .gen-more {
-  padding: 8px 16px;
-  background: #1e1e1e; border: 1px solid #2a2a2a;
-  border-radius: 20px; font-size: 13px; font-weight: 500;
-  color: #888; cursor: pointer;
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 18px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 100px;
+  font-size: 13px; font-weight: 500;
+  color: #d0d0d0;
+  cursor: pointer;
+  margin: 0 auto;
   transition: border-color .15s, color .15s;
 }
-.gen-more:hover { border-color: #F5A62340; color: #bbb; }
-.gen-more span { font-size: 16px; color: var(--y); }
+.gen-more:hover { border-color: var(--y); color: var(--y); }
+.gen-more svg { width: 13px; height: 13px; color: var(--y); }
 
-.tool-sep { flex: 1; }
+.bottom-tools {
+  display: flex; gap: 6px;
+  position: absolute; bottom: 14px; left: 50%;
+  transform: translateX(-50%);
+  margin-top: 12px;
+}
 
+/* Center bottom tools (separate row) */
 .tools-row {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; justify-content: center; gap: 6px;
+  padding: 0 24px 18px;
+  flex-shrink: 0;
 }
 .tool-btn {
-  width: 34px; height: 34px;
-  background: #1e1e1e; border: 1px solid #2a2a2a;
-  border-radius: 9px; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: #555; transition: all .15s;
+  width: 38px; height: 38px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--t2);
+  transition: all .15s;
 }
-.tool-btn:hover { border-color: #F5A62340; color: var(--y); }
-.tool-btn.active { background: #2a1f0a; border-color: #F5A62355; color: var(--y); }
-.tool-btn svg { width: 14px; height: 14px; }
+.tool-btn:hover { color: #fff; border-color: var(--b2); }
+.tool-btn.active {
+  background: #1f1608;
+  border-color: var(--y);
+  color: var(--y);
+}
+.tool-btn svg { width: 15px; height: 15px; }
 
-/* ══ RIGHT PANEL ══ */
-.rpanel {
-  width: 280px; min-width: 280px;
+/* ═══ RIGHT PANEL ═══ */
+.rp {
+  width: 320px; min-width: 320px;
   background: var(--sb);
   display: flex; flex-direction: column;
   overflow-y: auto;
-  padding: 14px;
+  padding: 18px;
 }
 
 .rp-prompt {
   background: var(--card);
-  border: 1px solid #252525;
-  border-radius: 11px;
-  padding: 12px 13px;
-  margin-bottom: 4px;
+  border: 1px solid var(--b1);
+  border-radius: 12px;
+  padding: 14px;
+  position: relative;
+  margin-bottom: 16px;
 }
 .rp-prompt-text {
-  font-size: 12.5px; line-height: 1.6; color: #8a8a8a;
-  margin-bottom: 12px;
+  font-size: 12.5px; line-height: 1.6; color: #c0c0c0;
+  margin-bottom: 14px;
 }
-.rp-char-row {
+.rp-bottom {
   display: flex; align-items: center; justify-content: space-between;
 }
-.rp-char { font-size: 12.5px; color: #3e3e3e; }
+.rp-char { font-size: 11.5px; color: var(--t3); }
 .rp-wand {
-  width: 28px; height: 28px;
-  background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 7px;
-  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  width: 30px; height: 30px;
+  background: #1a1208;
+  border: 1px solid #2a1f08;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--y);
 }
-.rp-wand svg { width: 13px; height: 13px; color: #444; }
+.rp-wand svg { width: 13px; height: 13px; }
 
-.rp-div { height: 1px; background: #222; margin: 12px 0; }
-
-/* Settings rows */
+/* Setting rows */
 .rp-row {
   display: flex; align-items: center;
-  padding: 10px 0; gap: 10px;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 11px;
+  margin-bottom: 8px;
   cursor: pointer;
-  border-bottom: 1px solid #1e1e1e;
+  transition: border-color .15s;
 }
-.rp-row:last-of-type { border-bottom: none; }
-.rp-row-icon {
-  width: 32px; height: 32px; flex-shrink: 0;
-  background: var(--card); border: 1px solid #252525;
-  border-radius: 8px; display: flex; align-items: center; justify-content: center;
-  overflow: hidden;
-}
-.rp-row-icon svg { width: 14px; height: 14px; color: #555; }
-.rp-row-img {
+.rp-row:hover { border-color: var(--b2); }
+.rp-row-thumb {
   width: 32px; height: 32px;
-  border-radius: 8px; overflow: hidden;
-  background: linear-gradient(135deg, #2a3a4a, #1a2a3a);
+  border-radius: 8px;
+  margin-right: 11px;
+  flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   font-size: 16px;
+  background: linear-gradient(135deg, #5a3520, #2a1410);
+  overflow: hidden;
 }
-.rp-row-label { flex: 1; font-size: 13px; font-weight: 500; color: #ccc; }
-.rp-row-val { font-size: 12px; color: #4a4a4a; }
-.rp-row-chevron svg { width: 14px; height: 14px; color: #3a3a3a; }
+.rp-row-icon {
+  width: 32px; height: 32px;
+  background: var(--card2);
+  border: 1px solid var(--b1);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  margin-right: 11px;
+  flex-shrink: 0;
+}
+.rp-row-icon svg { width: 14px; height: 14px; color: var(--t2); }
+.rp-row-label { flex: 1; font-size: 13px; font-weight: 500; color: #d8d8d8; }
+.rp-row-val {
+  font-size: 12.5px; color: var(--t2);
+  margin-right: 8px;
+}
+.rp-row-arr svg { width: 13px; height: 13px; color: var(--t3); }
 .rp-row-plus {
-  width: 22px; height: 22px;
-  background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 6px;
-  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  width: 24px; height: 24px;
+  background: #1a1208;
+  border: 1px solid #2a1f08;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--y);
+  margin-left: 6px;
 }
-.rp-row-plus svg { width: 11px; height: 11px; color: #555; }
+.rp-row-plus svg { width: 12px; height: 12px; }
 
-/* Slider */
+/* Slider section */
+.rp-section {
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 11px;
+  padding: 14px;
+  margin-bottom: 8px;
+}
 .rp-section-title {
-  font-size: 13px; font-weight: 600; color: #ccc;
   display: flex; align-items: center; gap: 8px;
-  margin-bottom: 10px;
+  font-size: 13px; font-weight: 600; color: #d8d8d8;
+  margin-bottom: 14px;
 }
-.rp-section-title svg { width: 14px; height: 14px; color: #555; }
+.rp-section-title svg { width: 14px; height: 14px; color: var(--t2); }
 
-.slider-wrap { margin-bottom: 6px; }
-.slider-track {
-  height: 5px; background: #2a2a2a; border-radius: 3px;
-  position: relative; margin-bottom: 8px;
+.slider {
+  position: relative;
+  height: 6px;
+  background: #2a2a2a;
+  border-radius: 3px;
+  margin-bottom: 9px;
 }
 .slider-fill {
   position: absolute; left: 0; top: 0; bottom: 0;
-  background: var(--y); border-radius: 3px;
-  width: 82%;
+  width: 92%;
+  background: linear-gradient(90deg, var(--y3), var(--y));
+  border-radius: 3px;
 }
 .slider-thumb {
-  position: absolute; top: 50%; right: 18%;
-  transform: translate(50%, -50%);
-  width: 14px; height: 14px;
+  position: absolute; left: 92%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px; height: 16px;
   background: var(--y);
-  border: 2px solid #fff;
+  border: 2.5px solid #fff;
   border-radius: 50%;
-  box-shadow: 0 2px 8px var(--yg);
-  cursor: pointer;
+  box-shadow: 0 2px 10px var(--yg);
 }
 .slider-labels {
   display: flex; justify-content: space-between;
-  font-size: 11px; color: #3a3a3a;
+  font-size: 11.5px; color: var(--t3);
 }
 
-/* Num grid */
+/* Numbers grid */
 .num-grid {
   display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 7px; margin-top: 10px;
+  gap: 7px;
+  margin-top: 14px;
 }
 .num-btn {
-  height: 36px; border-radius: 8px;
-  background: #1e1e1e; border: 1px solid #272727;
+  height: 42px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 13.5px; font-weight: 500; color: #555;
-  cursor: pointer; transition: all .15s;
+  font-size: 14px; font-weight: 600;
+  color: var(--t2);
+  cursor: pointer;
+  transition: all .15s;
 }
-.num-btn:hover { border-color: #F5A62340; color: #aaa; }
+.num-btn:hover { border-color: var(--b2); color: #fff; }
 .num-btn.active {
   background: var(--y);
   border-color: var(--y);
   color: #1a0e00;
-  font-weight: 700;
-  box-shadow: 0 2px 12px var(--yg);
+  box-shadow: 0 2px 14px var(--yg);
 }
 
 .btn-generate {
-  width: 100%; background: var(--y);
-  border: none; border-radius: 11px;
-  padding: 13px; font-size: 15px; font-weight: 700;
+  width: 100%;
+  background: var(--y);
+  border: none; border-radius: 12px;
+  padding: 14px;
+  font-size: 14.5px; font-weight: 700;
   color: #1a0e00; cursor: pointer;
-  font-family: 'Inter', sans-serif; letter-spacing: -.2px;
+  font-family: inherit;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
   box-shadow: 0 4px 24px var(--yg);
-  transition: background .15s, box-shadow .2s;
-  margin-top: 16px;
+  margin-top: 14px;
+  transition: background .15s;
 }
-.btn-generate:hover { background: var(--y2); box-shadow: 0 4px 32px #F5A62360; }
-
-.rp-adv {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 11px 0; cursor: pointer;
-  border-top: 1px solid #1e1e1e;
-  border-bottom: 1px solid #1e1e1e;
-  margin: 2px 0;
-}
-.rp-adv-label {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 13px; font-weight: 500; color: #888;
-}
-.rp-adv-label svg { width: 14px; height: 14px; color: #555; }
-.rp-adv svg.arr { width: 14px; height: 14px; color: #3a3a3a; }
+.btn-generate:hover { background: var(--y2); }
+.btn-generate svg { width: 14px; height: 14px; }
 </style>
 </head>
 <body>
 
-<!-- ══════ SIDEBAR ══════ -->
+<!-- ════════ SIDEBAR ════════ -->
 <aside class="sb">
   <div class="sb-logo">
-    <div class="sb-logo-icon">
-      <svg viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H11L10 22L19.5 10.5H13L13 2Z"/></svg>
+    <div class="fox-icon">
+      <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="foxGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFD45C"/>
+            <stop offset="100%" stop-color="#E89A12"/>
+          </linearGradient>
+        </defs>
+        <path d="M8 6 L14 18 L4 18 Z" fill="url(#foxGrad)"/>
+        <path d="M32 6 L36 18 L26 18 Z" fill="url(#foxGrad)"/>
+        <ellipse cx="20" cy="22" rx="14" ry="13" fill="url(#foxGrad)"/>
+        <path d="M5 22 Q8 18 14 19 L14 28 Q8 29 5 24 Z" fill="#fff" opacity=".95"/>
+        <path d="M35 22 Q32 18 26 19 L26 28 Q32 29 35 24 Z" fill="#fff" opacity=".95"/>
+        <ellipse cx="14.5" cy="22" rx="1.8" ry="2.4" fill="#0a0a0a"/>
+        <ellipse cx="25.5" cy="22" rx="1.8" ry="2.4" fill="#0a0a0a"/>
+        <path d="M16 27 Q20 30 24 27 L22 30 Q20 31.5 18 30 Z" fill="#fff" opacity=".95"/>
+        <ellipse cx="20" cy="27" rx="1.4" ry="1" fill="#0a0a0a"/>
+      </svg>
     </div>
-    <span class="sb-logo-name">BraveStudio</span>
+    <span class="sb-name">VisionBrave</span>
   </div>
 
   <div class="sb-search">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
     </svg>
-    <span>Pesquisar...</span>
+    <span class="sb-search-txt">Search anything...</span>
+    <span class="sb-search-kbd">⌘K</span>
   </div>
 
-  <div class="sb-sec">Principal</div>
-
-  <div class="nav active">
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    Home
+  </div>
+  <div class="nav-item active">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="3" y="3" width="18" height="18" rx="2"/>
-      <circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+      <circle cx="8.5" cy="8.5" r="1.5"/>
+      <polyline points="21 15 16 10 5 21"/>
     </svg>
-    Imagens
+    Images
   </div>
-  <div class="nav">
+  <div class="nav-item">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>
+      <polygon points="23 7 16 12 23 17 23 7"/>
+      <rect x="1" y="5" width="15" height="14" rx="2"/>
     </svg>
-    Vídeos
+    Videos
   </div>
-  <div class="nav">
+  <div class="nav-item">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M12 19l7-7 3 3-7 7-3-3z"/>
       <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
@@ -598,78 +643,77 @@ body {
     </svg>
     Sketch
   </div>
-  <div class="nav">
+  <div class="nav-item">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
       <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
     </svg>
-    Galeria
+    Gallery
   </div>
-  <div class="nav">
+  <div class="nav-item">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="12" cy="12" r="10"/>
       <polyline points="10 15 15 12 10 9 10 15"/>
     </svg>
-    Animação
+    Animation
   </div>
 
-  <div class="sb-div"></div>
-  <div class="sb-sec">Chats <span class="sb-sec-plus">+</span></div>
+  <div class="sb-section">CHAT <span class="sb-section-plus">+</span></div>
 
-  <div class="nav">
+  <div class="nav-item">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
     </svg>
-    Último
-    <span class="nb">2</span>
+    Today
+    <span class="nb">3</span>
   </div>
-  <div class="nav">
+  <div class="nav-item">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
     </svg>
-    Favoritos
-    <span class="nb">4</span>
+    Favorites
+    <span class="nb">7</span>
   </div>
-  <div class="nav">
+  <div class="nav-item">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/>
+      <polyline points="21 8 21 21 3 21 3 8"/>
+      <rect x="1" y="3" width="22" height="5"/>
       <line x1="10" y1="12" x2="14" y2="12"/>
     </svg>
-    Arquivados
-    <span class="nb">33</span>
+    Archived
+    <span class="nb">24</span>
   </div>
 
-  <div class="sb-div"></div>
   <div class="sb-foot">
-    <div class="boost">
-      <div class="boost-title">
+    <div class="upgrade-card">
+      <div class="uc-icon">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4.5 13.5H11L10 22L19.5 10.5H13L13 2Z"/></svg>
-        Boost com IA
       </div>
-      <div class="boost-desc">Desbloqueie mais poder com ferramentas avançadas de IA.</div>
-      <button class="btn-boost">Fazer Upgrade Pro</button>
+      <div class="uc-title">Upgrade to Pro</div>
+      <div class="uc-desc">Unlock more power with advanced AI tools.</div>
+      <button class="btn-upgrade">Upgrade Now</button>
     </div>
     <div class="user-row">
-      <div class="user-ava">F</div>
-      <div class="u-info">
-        <div class="u-name">Fellype P.</div>
-        <div class="u-mail">fellype@paim.cloud</div>
+      <div class="user-ava"></div>
+      <div class="user-info">
+        <div class="user-name">Ethan Walker</div>
+        <div class="user-mail">ethan.walker@email.com</div>
       </div>
-      <span class="u-arr">
+      <span class="user-caret">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="6 9 12 15 18 9"/>
+          <polyline points="18 15 12 9 6 15"/>
         </svg>
       </span>
     </div>
   </div>
 </aside>
 
-<!-- ══════ MAIN ══════ -->
+<!-- ════════ MAIN ════════ -->
 <main class="main">
 
   <!-- Topbar -->
   <div class="topbar">
-    <span class="tb-title">Gerar Imagens</span>
+    <span class="tb-title">Generate Images</span>
     <div class="theme-toggle">
       <div class="tt-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -681,221 +725,359 @@ body {
         </svg>
       </div>
       <div class="tt-btn active">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
         </svg>
       </div>
     </div>
+    <div class="tb-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+    </div>
+    <div class="user-ava" style="width:36px;height:36px"></div>
   </div>
 
   <!-- Body -->
   <div class="body-row">
 
-    <!-- CENTER -->
     <div class="center">
 
       <!-- Tags -->
       <div class="tags-bar">
-        <div class="tag active">Texto-para-Imagem</div>
+        <div class="tag active">Text-to-Image</div>
         <div class="tag">3D Render</div>
         <div class="tag">Stable Diffusion XL</div>
-        <div class="tag">Vibrante</div>
+        <div class="tag">Vibrant</div>
         <div class="tag">1:1</div>
         <div class="tag-more">⋯</div>
       </div>
 
-      <!-- Prompt -->
-      <div class="prompt-row">
+      <!-- Prompt overlay -->
+      <div class="prompt-overlay">
         <div class="prompt-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <rect x="9" y="9" width="13" height="13" rx="2"/>
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
           </svg>
         </div>
         <div class="prompt-text">
-          <em>Renders 3D altamente detalhados de animais robóticos futuristas com partes neon brilhantes e estética cyberpunk.</em> Estilo de arte em concept sci-fi, texturas metálicas de superfície dura, iluminação cinematográfica, fundo gradiente escuro.
+          Highly detailed 3D renders of futuristic robotic animals with glowing neon parts and cyberpunk aesthetics. Sci-fi concept art style, hard surface metallic textures, cinematic lighting, dark gradient background.
         </div>
       </div>
 
-      <!-- Canvas -->
+      <!-- Canvas with fan cards -->
       <div class="canvas">
         <div class="cards-fan">
 
-          <!-- Card 1: Wolf (back) -->
+          <!-- Card 1: Cyber Raven -->
           <div class="img-card card-1">
-            <div class="ic-bg">
-              <!-- Wolf silhouette -->
-              <div style="width:100%;height:100%;background:radial-gradient(ellipse at 35% 35%,#2a4060,#0d1825);display:flex;align-items:center;justify-content:center;position:relative;">
-                <!-- Simple wolf shape -->
-                <svg width="160" height="160" viewBox="0 0 160 160" style="opacity:.85">
-                  <!-- Body -->
-                  <ellipse cx="80" cy="105" rx="45" ry="38" fill="#4a6080"/>
-                  <!-- Head -->
-                  <ellipse cx="80" cy="65" rx="35" ry="30" fill="#5a7090"/>
-                  <!-- Ears -->
-                  <polygon points="55,45 45,20 68,42" fill="#4a6080"/>
-                  <polygon points="105,45 115,20 92,42" fill="#4a6080"/>
-                  <!-- Inner ears -->
-                  <polygon points="57,43 50,26 66,41" fill="#8a4060" opacity=".6"/>
-                  <polygon points="103,43 110,26 94,41" fill="#8a4060" opacity=".6"/>
-                  <!-- Eye glow -->
-                  <ellipse cx="68" cy="62" rx="7" ry="5" fill="#ff5500"/>
-                  <ellipse cx="92" cy="62" rx="7" ry="5" fill="#ff5500"/>
-                  <ellipse cx="68" cy="62" rx="4" ry="3" fill="#ff8800"/>
-                  <ellipse cx="92" cy="62" rx="4" ry="3" fill="#ff8800"/>
-                  <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                  <!-- Metal sheen -->
-                  <ellipse cx="80" cy="55" rx="20" ry="10" fill="white" opacity=".06"/>
-                  <!-- Arm/arm mechanical -->
-                  <rect x="35" y="95" width="18" height="35" rx="6" fill="#3a5070"/>
-                  <rect x="107" y="95" width="18" height="35" rx="6" fill="#3a5070"/>
-                  <!-- Chest plate -->
-                  <rect x="55" y="88" width="50" height="38" rx="8" fill="#3a5570" opacity=".8"/>
-                  <rect x="63" y="95" width="34" height="4" rx="2" fill="#6a8aaa" opacity=".6"/>
-                  <rect x="63" y="103" width="34" height="4" rx="2" fill="#6a8aaa" opacity=".4"/>
-                </svg>
-                <div style="position:absolute;inset:0;background:radial-gradient(circle at 35% 35%,rgba(100,150,220,.15),transparent 60%);"></div>
-              </div>
-              <div class="ic-dl">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-              </div>
-              <div class="ic-label">Neon Glow • Techno Ro...</div>
+            <svg class="art" viewBox="0 0 230 270" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <radialGradient id="ravBg" cx="50%" cy="55%"><stop offset="0%" stop-color="#1a1410"/><stop offset="100%" stop-color="#000"/></radialGradient>
+                <linearGradient id="ravO" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#FFC845"/>
+                  <stop offset="100%" stop-color="#D4500A"/>
+                </linearGradient>
+                <filter id="ravG" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="3" result="b"/>
+                  <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
+              <rect width="230" height="270" fill="url(#ravBg)"/>
+              <!-- Body -->
+              <ellipse cx="115" cy="170" rx="75" ry="50" fill="#0a0805"/>
+              <!-- Head -->
+              <ellipse cx="100" cy="105" rx="40" ry="38" fill="#0a0805"/>
+              <!-- Beak -->
+              <polygon points="60,100 30,95 65,115" fill="#FFAA40" filter="url(#ravG)"/>
+              <polygon points="60,100 30,95 65,115" fill="url(#ravO)"/>
+              <!-- Eye -->
+              <circle cx="105" cy="100" r="6" fill="#FFD060" filter="url(#ravG)"/>
+              <circle cx="105" cy="100" r="3" fill="#FF8800"/>
+              <!-- Wing details -->
+              <g stroke="url(#ravO)" stroke-width="2" fill="none" opacity=".8" filter="url(#ravG)">
+                <path d="M70 140 Q90 160 110 165"/>
+                <path d="M85 155 Q105 175 130 180"/>
+                <path d="M100 170 Q125 190 155 195"/>
+                <path d="M120 195 Q145 205 175 200"/>
+              </g>
+              <!-- Beak segment -->
+              <line x1="40" y1="100" x2="60" y2="105" stroke="url(#ravO)" stroke-width="1.5" filter="url(#ravG)"/>
+              <!-- Tail feathers -->
+              <path d="M180 180 L210 200 L195 220 Z" fill="#0a0805"/>
+              <path d="M180 180 L210 200" stroke="url(#ravO)" stroke-width="1.5" filter="url(#ravG)"/>
+              <!-- Feet -->
+              <line x1="120" y1="220" x2="115" y2="245" stroke="url(#ravO)" stroke-width="2" filter="url(#ravG)"/>
+              <line x1="140" y1="220" x2="145" y2="245" stroke="url(#ravO)" stroke-width="2" filter="url(#ravG)"/>
+              <!-- Glow -->
+              <ellipse cx="115" cy="160" rx="100" ry="50" fill="#FF8800" opacity=".05"/>
+            </svg>
+
+            <div class="ic-dl">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
             </div>
+            <div class="ic-label">Neon Glow · Cyber Raven</div>
+            <div class="ic-version">V1</div>
           </div>
 
-          <!-- Card 2: Tiger (front) -->
+          <!-- Card 2: Cyber Wolf -->
           <div class="img-card card-2">
-            <div class="ic-bg">
-              <div style="width:100%;height:100%;background:radial-gradient(ellipse at 60% 55%,#1e2a10,#080e04);display:flex;align-items:center;justify-content:center;position:relative;">
-                <svg width="220" height="160" viewBox="0 0 220 160" style="opacity:.9">
-                  <!-- Tiger body -->
-                  <ellipse cx="110" cy="100" rx="75" ry="40" fill="#1a1a1a"/>
-                  <!-- Stripes -->
-                  <line x1="65" y1="70" x2="75" y2="130" stroke="#F5A623" stroke-width="5" opacity=".7"/>
-                  <line x1="88" y1="66" x2="95" y2="132" stroke="#F5A623" stroke-width="4" opacity=".6"/>
-                  <line x1="110" y1="65" x2="110" y2="133" stroke="#F5A623" stroke-width="4" opacity=".5"/>
-                  <line x1="132" y1="66" x2="125" y2="132" stroke="#F5A623" stroke-width="4" opacity=".6"/>
-                  <line x1="155" y1="70" x2="145" y2="130" stroke="#F5A623" stroke-width="5" opacity=".7"/>
-                  <!-- Head -->
-                  <ellipse cx="30" cy="90" rx="28" ry="24" fill="#1a1a1a"/>
-                  <line x1="18" y1="75" x2="22" y2="110" stroke="#F5A623" stroke-width="3" opacity=".6"/>
-                  <line x1="30" y1="72" x2="30" y2="112" stroke="#F5A623" stroke-width="3" opacity=".5"/>
-                  <line x1="42" y1="75" x2="38" y2="110" stroke="#F5A623" stroke-width="3" opacity=".6"/>
-                  <!-- Eyes -->
-                  <ellipse cx="20" cy="85" rx="5" ry="4" fill="#88cc22"/>
-                  <ellipse cx="40" cy="85" rx="5" ry="4" fill="#88cc22"/>
-                  <ellipse cx="20" cy="85" rx="2" ry="3" fill="#000"/>
-                  <ellipse cx="40" cy="85" rx="2" ry="3" fill="#000"/>
-                  <!-- Legs -->
-                  <rect x="65" y="130" width="16" height="25" rx="5" fill="#111" stroke="#F5A623" stroke-width="1.5" stroke-opacity=".4"/>
-                  <rect x="95" y="130" width="16" height="25" rx="5" fill="#111" stroke="#F5A623" stroke-width="1.5" stroke-opacity=".4"/>
-                  <rect x="125" y="130" width="16" height="25" rx="5" fill="#111" stroke="#F5A623" stroke-width="1.5" stroke-opacity=".4"/>
-                  <rect x="155" y="130" width="16" height="25" rx="5" fill="#111" stroke="#F5A623" stroke-width="1.5" stroke-opacity=".4"/>
-                  <!-- Glow overlay -->
-                  <ellipse cx="110" cy="100" rx="75" ry="40" fill="url(#tglow)" opacity=".3"/>
-                  <defs>
-                    <radialGradient id="tglow" cx="50%" cy="50%">
-                      <stop offset="0%" stop-color="#F5A623" stop-opacity=".3"/>
-                      <stop offset="100%" stop-color="transparent"/>
-                    </radialGradient>
-                  </defs>
-                </svg>
-                <div style="position:absolute;inset:0;background:radial-gradient(circle at 60% 55%,rgba(245,166,35,.08),transparent 60%);"></div>
-              </div>
-              <div class="ic-dl">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-              </div>
-              <div class="ic-label">Neon Glow • Cyberfang Tiger</div>
-              <div class="ic-ver">V2</div>
+            <svg class="art" viewBox="0 0 240 270" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <radialGradient id="wlfBg" cx="50%" cy="55%"><stop offset="0%" stop-color="#1a1a1a"/><stop offset="100%" stop-color="#000"/></radialGradient>
+                <linearGradient id="wlfO" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#FFC845"/>
+                  <stop offset="100%" stop-color="#D4500A"/>
+                </linearGradient>
+                <filter id="wlfG" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="3" result="b"/>
+                  <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
+              <rect width="240" height="270" fill="url(#wlfBg)"/>
+              <!-- Body -->
+              <ellipse cx="120" cy="170" rx="90" ry="55" fill="#3a3a3a"/>
+              <!-- Head -->
+              <ellipse cx="160" cy="100" rx="55" ry="45" fill="#5a5a5a"/>
+              <!-- Ears -->
+              <polygon points="130,55 110,30 150,65" fill="#3a3a3a"/>
+              <polygon points="190,55 210,30 175,65" fill="#3a3a3a"/>
+              <!-- Inner ears -->
+              <polygon points="135,55 120,38 145,60" fill="#FFAA40" filter="url(#wlfG)" opacity=".7"/>
+              <polygon points="185,55 200,38 175,60" fill="#FFAA40" filter="url(#wlfG)" opacity=".7"/>
+              <!-- Eyes -->
+              <ellipse cx="145" cy="100" rx="7" ry="5" fill="#FFAA40" filter="url(#wlfG)"/>
+              <ellipse cx="180" cy="100" rx="7" ry="5" fill="#FFAA40" filter="url(#wlfG)"/>
+              <ellipse cx="145" cy="100" rx="3" ry="3.5" fill="#FFE066"/>
+              <ellipse cx="180" cy="100" rx="3" ry="3.5" fill="#FFE066"/>
+              <!-- Snout -->
+              <path d="M200 110 Q225 115 220 130 Q215 140 200 135 Z" fill="#3a3a3a"/>
+              <ellipse cx="218" cy="125" rx="4" ry="3" fill="#000"/>
+              <!-- Body plates -->
+              <g stroke="url(#wlfO)" stroke-width="1.5" fill="none" opacity=".7" filter="url(#wlfG)">
+                <path d="M80 145 Q90 165 100 180"/>
+                <path d="M70 165 Q80 185 90 200"/>
+                <path d="M60 185 Q75 205 85 215"/>
+                <path d="M100 175 Q120 190 140 200"/>
+                <path d="M120 190 Q145 205 170 210"/>
+                <path d="M150 200 Q175 215 195 215"/>
+                <!-- Head plates -->
+                <path d="M120 80 L140 90"/>
+                <path d="M180 80 L200 90"/>
+                <path d="M155 70 L155 90"/>
+                <path d="M125 110 L135 125"/>
+              </g>
+              <!-- Legs -->
+              <rect x="50" y="215" width="18" height="35" rx="3" fill="#2a2a2a"/>
+              <rect x="90" y="220" width="18" height="30" rx="3" fill="#2a2a2a"/>
+              <rect x="140" y="220" width="18" height="30" rx="3" fill="#2a2a2a"/>
+              <rect x="180" y="215" width="18" height="35" rx="3" fill="#2a2a2a"/>
+              <!-- Leg neon -->
+              <line x1="59" y1="220" x2="62" y2="245" stroke="url(#wlfO)" stroke-width="1.5" filter="url(#wlfG)"/>
+              <line x1="99" y1="225" x2="102" y2="245" stroke="url(#wlfO)" stroke-width="1.5" filter="url(#wlfG)"/>
+              <line x1="149" y1="225" x2="152" y2="245" stroke="url(#wlfO)" stroke-width="1.5" filter="url(#wlfG)"/>
+              <line x1="189" y1="220" x2="192" y2="245" stroke="url(#wlfO)" stroke-width="1.5" filter="url(#wlfG)"/>
+            </svg>
+
+            <div class="ic-dl">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
             </div>
+            <div class="ic-label">Neon Glow · Cyber Wolf</div>
+            <div class="ic-version">V2</div>
           </div>
 
-          <!-- V3 badge on card 1 -->
-          <div style="position:absolute;bottom:145px;right:8px;z-index:3;background:var(--y);color:#1a0e00;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:5px;">V3</div>
+          <!-- Card 3: Cyber Panther (front, larger) -->
+          <div class="img-card card-3">
+            <svg class="art" viewBox="0 0 280 320" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <radialGradient id="pntBg" cx="50%" cy="55%"><stop offset="0%" stop-color="#0a1825"/><stop offset="100%" stop-color="#000"/></radialGradient>
+                <linearGradient id="pntC" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#22d8ff"/>
+                  <stop offset="100%" stop-color="#0080c0"/>
+                </linearGradient>
+                <filter id="pntG" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="4" result="b"/>
+                  <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
+              <rect width="280" height="320" fill="url(#pntBg)"/>
+
+              <!-- Body -->
+              <ellipse cx="140" cy="200" rx="120" ry="60" fill="#0a0a0a"/>
+              <!-- Head -->
+              <ellipse cx="80" cy="170" rx="55" ry="45" fill="#0a0a0a"/>
+              <!-- Ears -->
+              <polygon points="60,130 50,100 75,135" fill="#0a0a0a"/>
+              <polygon points="110,130 120,100 95,135" fill="#0a0a0a"/>
+              <polygon points="62,128 55,108 73,133" fill="url(#pntC)" filter="url(#pntG)" opacity=".7"/>
+              <polygon points="108,128 115,108 97,133" fill="url(#pntC)" filter="url(#pntG)" opacity=".7"/>
+
+              <!-- Body cyan stripes -->
+              <g stroke="url(#pntC)" stroke-width="3.5" fill="none" opacity=".95" filter="url(#pntG)" stroke-linecap="round">
+                <path d="M60 195 Q70 220 75 250"/>
+                <path d="M85 195 Q95 220 100 250"/>
+                <path d="M110 195 Q120 220 125 250"/>
+                <path d="M140 195 Q145 220 150 250"/>
+                <path d="M170 195 Q175 220 180 250"/>
+                <path d="M200 195 Q205 220 210 245"/>
+                <path d="M225 195 Q225 215 225 240"/>
+                <path d="M250 195 Q245 215 240 235"/>
+                <!-- Spine -->
+                <path d="M50 175 Q140 145 230 165" stroke-width="2"/>
+              </g>
+
+              <!-- Head stripes -->
+              <g stroke="url(#pntC)" stroke-width="2.5" fill="none" opacity=".95" filter="url(#pntG)" stroke-linecap="round">
+                <path d="M55 145 Q60 165 65 195"/>
+                <path d="M75 138 Q78 165 80 200"/>
+                <path d="M95 140 Q98 165 100 195"/>
+                <path d="M115 145 Q113 168 110 195"/>
+              </g>
+
+              <!-- Eyes (bright cyan) -->
+              <ellipse cx="65" cy="170" rx="9" ry="6" fill="#22d8ff" filter="url(#pntG)"/>
+              <ellipse cx="100" cy="170" rx="9" ry="6" fill="#22d8ff" filter="url(#pntG)"/>
+              <ellipse cx="65" cy="170" rx="3.5" ry="4" fill="#aaffff"/>
+              <ellipse cx="100" cy="170" rx="3.5" ry="4" fill="#aaffff"/>
+              <ellipse cx="65" cy="172" rx="1.5" ry="3" fill="#000"/>
+              <ellipse cx="100" cy="172" rx="1.5" ry="3" fill="#000"/>
+
+              <!-- Snout -->
+              <path d="M60 195 Q80 215 105 195 L100 220 Q80 230 65 220 Z" fill="#050505"/>
+              <ellipse cx="82" cy="200" rx="6" ry="4" fill="#000"/>
+
+              <!-- Forehead V mark -->
+              <path d="M70 145 L82 130 L96 145" stroke="url(#pntC)" stroke-width="3" fill="none" filter="url(#pntG)"/>
+
+              <!-- Legs -->
+              <rect x="70" y="245" width="20" height="40" rx="4" fill="#050505"/>
+              <rect x="115" y="250" width="20" height="35" rx="4" fill="#050505"/>
+              <rect x="170" y="250" width="20" height="35" rx="4" fill="#050505"/>
+              <rect x="215" y="245" width="20" height="40" rx="4" fill="#050505"/>
+
+              <!-- Leg neon accents -->
+              <g stroke="url(#pntC)" stroke-width="2" filter="url(#pntG)">
+                <line x1="80" y1="250" x2="83" y2="280"/>
+                <line x1="125" y1="255" x2="128" y2="280"/>
+                <line x1="180" y1="255" x2="183" y2="280"/>
+                <line x1="225" y1="250" x2="228" y2="280"/>
+              </g>
+
+              <!-- Tail -->
+              <path d="M250 200 Q280 195 285 215" stroke="#0a0a0a" stroke-width="14" fill="none" stroke-linecap="round"/>
+              <path d="M250 200 Q280 195 285 215" stroke="url(#pntC)" stroke-width="2" fill="none" filter="url(#pntG)"/>
+
+              <!-- Bottom glow -->
+              <ellipse cx="140" cy="295" rx="120" ry="10" fill="#22d8ff" opacity=".15" filter="url(#pntG)"/>
+            </svg>
+
+            <div class="ic-dl">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </div>
+            <div class="ic-label">Neon Glow · Cyber Panther</div>
+            <div class="ic-version">V3</div>
+          </div>
 
         </div>
       </div>
 
-      <!-- Bottom bar -->
-      <div class="bottom-bar">
-        <div class="gen-more">Gerar Mais <span>+</span></div>
-        <div class="tool-sep"></div>
-        <div class="tools-row">
-          <div class="tool-btn active">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="4 7 4 4 20 4 20 7"/>
-              <line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>
-            </svg>
-          </div>
-          <div class="tool-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 20H7L3 3h18"/><path d="m7 20 4-8.5"/><path d="M20 8c0 2-2 4-4 4s-4-2-4-4 2-4 4-4 4 2 4 4z"/>
-            </svg>
-          </div>
-          <div class="tool-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/>
-              <path d="m13 13 6 6"/>
-            </svg>
-          </div>
-          <div class="tool-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="15 3 21 3 21 9"/>
-              <polyline points="9 21 3 21 3 15"/>
-              <line x1="21" y1="3" x2="14" y2="10"/>
-              <line x1="3" y1="21" x2="10" y2="14"/>
-            </svg>
-          </div>
-          <div class="tool-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-            </svg>
-          </div>
-          <div class="tool-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
-              <line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/>
-              <line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/>
-              <line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/>
-              <line x1="17" y1="7" x2="22" y2="7"/>
-            </svg>
-          </div>
+      <!-- Generate more -->
+      <div style="display:flex;justify-content:center;padding:0 24px 14px;flex-shrink:0">
+        <div class="gen-more">
+          Generate More
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
         </div>
       </div>
 
-    </div><!-- /center -->
+      <!-- Tools row -->
+      <div class="tools-row">
+        <div class="tool-btn active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="4 7 4 4 20 4 20 7"/>
+            <line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>
+          </svg>
+        </div>
+        <div class="tool-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 20H7L3 3h18"/><path d="m7 20 4-8.5"/>
+          </svg>
+        </div>
+        <div class="tool-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </div>
+        <div class="tool-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 3 21 3 21 9"/>
+            <polyline points="9 21 3 21 3 15"/>
+            <line x1="21" y1="3" x2="14" y2="10"/>
+            <line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+        </div>
+        <div class="tool-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+        </div>
+        <div class="tool-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </div>
+      </div>
 
-    <!-- RIGHT PANEL -->
-    <div class="rpanel">
+    </div>
 
-      <!-- Prompt card -->
+    <!-- ═══ RIGHT PANEL ═══ -->
+    <div class="rp">
+
       <div class="rp-prompt">
         <div class="rp-prompt-text">
-          Renders 3D altamente detalhados de animais robóticos futuristas com partes neon brilhantes e estética cyberpunk. Estilo art concept sci-fi, texturas metálicas de superfície dura, iluminação cinematográfica, fundo gradiente escuro.
+          Highly detailed 3D renders of futuristic robotic animals with glowing neon parts and cyberpunk aesthetics. Sci-fi concept art style, hard surface metallic textures, cinematic lighting, dark gradient background.
         </div>
-        <div class="rp-char-row">
+        <div class="rp-bottom">
           <span class="rp-char">35/500</span>
           <div class="rp-wand">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="m15 4-1 1 5 5 1-1-5-5zM3 17.25V21h3.75L17 10.75l-3.75-3.75L3 17.25z"/>
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
           </div>
         </div>
       </div>
-
-      <div class="rp-div"></div>
 
       <!-- Style row -->
       <div class="rp-row">
-        <div class="rp-row-img" style="background:radial-gradient(135deg,#2a3a4a,#1a2a3a);">🐺</div>
-        <span class="rp-row-label">Estilo 3D Render</span>
-        <span class="rp-row-chevron">
+        <div class="rp-row-thumb">
+          <svg viewBox="0 0 32 32">
+            <defs>
+              <radialGradient id="thS"><stop offset="0%" stop-color="#FFC845"/><stop offset="100%" stop-color="#1a0e00"/></radialGradient>
+            </defs>
+            <rect width="32" height="32" fill="url(#thS)" opacity=".6"/>
+            <ellipse cx="16" cy="20" rx="10" ry="6" fill="#1a1410"/>
+            <line x1="10" y1="14" x2="11" y2="22" stroke="#FFAA00" stroke-width="1.5"/>
+            <line x1="16" y1="13" x2="16" y2="23" stroke="#FFAA00" stroke-width="1.5"/>
+            <line x1="22" y1="14" x2="21" y2="22" stroke="#FFAA00" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <span class="rp-row-label">AI Render Style</span>
+        <span class="rp-row-arr">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </span>
         <div class="rp-row-plus">
@@ -905,92 +1087,101 @@ body {
         </div>
       </div>
 
-      <!-- Model row -->
+      <!-- Model -->
       <div class="rp-row">
         <div class="rp-row-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+            <rect x="2" y="3" width="20" height="14" rx="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
           </svg>
         </div>
-        <span class="rp-row-label">Modelo</span>
+        <span class="rp-row-label">Model</span>
         <span class="rp-row-val">Stable Diffusion XL</span>
-        <span class="rp-row-chevron">
+        <span class="rp-row-arr">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </span>
       </div>
 
-      <!-- Effects row -->
+      <!-- Effects -->
       <div class="rp-row">
         <div class="rp-row-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
           </svg>
         </div>
-        <span class="rp-row-label">Efeitos</span>
+        <span class="rp-row-label">Effects</span>
         <span class="rp-row-val">Neon Glow</span>
-        <span class="rp-row-chevron">
+        <span class="rp-row-arr">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </span>
       </div>
 
-      <div class="rp-div"></div>
-
-      <!-- Image Detail -->
-      <div class="rp-section-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
-        </svg>
-        Detalhe da Imagem
-      </div>
-      <div class="slider-wrap">
-        <div class="slider-track">
+      <!-- Image Detail Slider -->
+      <div class="rp-section">
+        <div class="rp-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+          </svg>
+          Image Detail
+        </div>
+        <div class="slider">
           <div class="slider-fill"></div>
           <div class="slider-thumb"></div>
         </div>
         <div class="slider-labels">
-          <span>Baixo</span><span>Médio</span><span>Alto</span>
+          <span>Low</span>
+          <span>Medium</span>
+          <span>High</span>
         </div>
       </div>
 
       <!-- Advanced Settings -->
-      <div class="rp-adv">
-        <div class="rp-adv-label">
+      <div class="rp-row">
+        <div class="rp-row-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"/>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
           </svg>
-          Configurações Avançadas
         </div>
-        <svg class="arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="rp-row-label">Advanced Settings</span>
+        <span class="rp-row-arr">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </span>
       </div>
 
-      <div class="rp-div"></div>
+      <!-- Number of Images -->
+      <div class="rp-section">
+        <div class="rp-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          Number of Images
+        </div>
+        <div class="num-grid">
+          <div class="num-btn">1</div>
+          <div class="num-btn">2</div>
+          <div class="num-btn">3</div>
+          <div class="num-btn active">4</div>
+          <div class="num-btn">5</div>
+          <div class="num-btn">6</div>
+          <div class="num-btn">7</div>
+          <div class="num-btn">8</div>
+        </div>
+      </div>
 
-      <!-- Number of images -->
-      <div class="rp-section-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      <button class="btn-generate">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
         </svg>
-        Número de Imagens
-      </div>
-      <div class="num-grid">
-        <div class="num-btn">1</div>
-        <div class="num-btn">2</div>
-        <div class="num-btn">3</div>
-        <div class="num-btn active">4</div>
-        <div class="num-btn">5</div>
-        <div class="num-btn">6</div>
-        <div class="num-btn">7</div>
-        <div class="num-btn">8</div>
-      </div>
+        Generate
+      </button>
 
-      <button class="btn-generate">Gerar</button>
+    </div>
 
-    </div><!-- /rpanel -->
-
-  </div><!-- /body-row -->
+  </div>
 </main>
 
 </body>

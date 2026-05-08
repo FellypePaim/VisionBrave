@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VisionBrave — Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --y: #FBBF24;
+  --y2: #FCD34D;
+  --y3: #D49B16;
+  --yg: #FBBF2440;
+  --bg: #000000;
+  --sb: #0A0A0A;
+  --card: #111111;
+  --card2: #161616;
+  --b1: #1F1F1F;
+  --b2: #2A2A2A;
+  --t1: #FFFFFF;
+  --t2: #A3A3A3;
+  --t3: #6B6B6B;
+  --t4: #3A3A3A;
+}
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--t1);
+  display: flex;
+  height: 100vh;
+  font-size: 13px;
+}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ══ SIDEBAR ══ */
+.sb {
+  width: 232px; min-width: 232px;
+  background: var(--sb);
+  border-right: 1px solid var(--b1);
+  display: flex; flex-direction: column;
+  padding: 16px 0 12px;
+  overflow-y: auto;
+}
+.sb-logo {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 18px 16px;
+  border-bottom: 1px solid var(--b1);
+  margin-bottom: 12px;
+}
+.fox-icon { width: 32px; height: 32px; flex-shrink: 0; }
+.fox-icon svg { width: 100%; height: 100%; }
+.sb-name { font-size: 16px; font-weight: 700; color: #fff; letter-spacing: -.4px; }
+
+.sb-search {
+  margin: 0 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 10px;
+  padding: 9px 12px;
+  display: flex; align-items: center; gap: 9px;
+  cursor: pointer;
+}
+.sb-search svg { width: 14px; height: 14px; color: var(--t4); flex-shrink: 0; }
+.sb-search-txt { font-size: 13px; color: var(--t4); flex: 1; }
+.sb-search-kbd { font-size: 11px; color: var(--t4); }
+
+.nav-item {
+  display: flex; align-items: center; gap: 11px;
+  margin: 1px 10px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  color: var(--t2);
+  cursor: pointer;
+  font-size: 13.5px;
+  position: relative;
+  transition: background .12s, color .12s;
+}
+.nav-item:hover { background: #ffffff05; color: #ddd; }
+.nav-item.active {
+  background: #1f1608;
+  color: var(--y);
+  font-weight: 500;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: -10px;
+  top: 8px; bottom: 8px; width: 3px;
+  background: var(--y); border-radius: 0 3px 3px 0;
+}
+.nav-item svg { width: 17px; height: 17px; flex-shrink: 0; opacity: .85; }
+
+.sb-section {
+  font-size: 10.5px; font-weight: 600; letter-spacing: 1px;
+  color: var(--t4); text-transform: uppercase;
+  padding: 16px 22px 8px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sb-section-plus {
+  font-size: 14px; color: var(--t4);
+  cursor: pointer; transition: color .15s;
+}
+.sb-section-plus:hover { color: var(--y); }
+
+.proj-item {
+  display: flex; align-items: center; gap: 11px;
+  margin: 1px 10px;
+  padding: 8px 11px;
+  border-radius: 9px;
+  color: var(--t2);
+  cursor: pointer;
+  font-size: 13px;
+  transition: background .12s, color .12s;
+}
+.proj-item:hover { background: #ffffff05; color: #ddd; }
+.proj-item svg { width: 15px; height: 15px; color: var(--t3); }
+.proj-item.show-more { color: var(--t3); font-style: italic; font-size: 12.5px; }
+.proj-item.show-more svg { width: 13px; height: 13px; }
+
+.nb {
+  margin-left: auto;
+  font-size: 11px; color: var(--t3);
+  font-weight: 500;
+}
+
+/* Footer */
+.sb-foot { margin-top: auto; padding: 12px 12px 0; }
+
+.upgrade-card {
+  background: linear-gradient(145deg, #1a1208 0%, #0f0904 100%);
+  border: 1px solid #2a1f08;
+  border-radius: 13px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+.uc-icon {
+  width: 30px; height: 30px;
+  background: var(--y);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 12px var(--yg);
+  margin-bottom: 10px;
+}
+.uc-icon svg { width: 14px; height: 14px; color: #1a0e00; }
+.uc-title {
+  font-size: 13.5px; font-weight: 700; color: #fff;
+  margin-bottom: 4px;
+}
+.uc-desc { font-size: 12px; color: var(--t3); line-height: 1.4; margin-bottom: 12px; }
+.btn-upgrade {
+  width: 100%;
+  background: var(--y);
+  border: none; border-radius: 9px;
+  padding: 9px 0;
+  font-size: 13px; font-weight: 700;
+  color: #1a0e00; cursor: pointer;
+  font-family: inherit;
+  transition: background .15s;
+  box-shadow: 0 2px 14px var(--yg);
+}
+.btn-upgrade:hover { background: var(--y2); }
+
+.user-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.user-row:hover { background: #ffffff05; }
+.user-ava {
+  width: 36px; height: 36px; border-radius: 50%;
+  flex-shrink: 0; overflow: hidden;
+  background: linear-gradient(135deg, #d4a574 30%, #8b5e3c 100%);
+  position: relative;
+}
+.user-ava::after {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 50% 38%, #e8c0a0 0 18%, transparent 19%),
+    radial-gradient(ellipse at 50% 90%, #5a3520 0 60%, transparent 61%);
+}
+.user-info { flex: 1; overflow: hidden; }
+.user-name { font-size: 13px; font-weight: 600; color: #e0e0e0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-mail { font-size: 11.5px; color: var(--t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-caret svg { width: 14px; height: 14px; color: var(--t4); }
+
+/* ══ MAIN ══ */
+.main {
+  flex: 1; display: flex; flex-direction: column;
+  overflow: hidden; background: var(--bg);
+}
+
+.topbar {
+  flex-shrink: 0;
+  display: flex; align-items: center;
+  padding: 18px 28px 16px; gap: 20px;
+}
+.tb-titles {}
+.tb-title { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -.5px; line-height: 1.1; }
+.tb-sub { font-size: 13px; color: var(--t3); margin-top: 4px; }
+
+.tb-spacer { flex: 1; }
+
+.tb-search {
+  width: 320px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 10px;
+  padding: 9px 14px;
+  display: flex; align-items: center; gap: 9px;
+}
+.tb-search svg { width: 14px; height: 14px; color: var(--t3); }
+.tb-search input {
+  flex: 1; background: transparent; border: none; outline: none;
+  font-size: 13px; color: #ddd; font-family: inherit;
+}
+.tb-search input::placeholder { color: var(--t4); }
+
+.tb-filter {
+  width: 38px; height: 38px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--t2);
+}
+.tb-filter svg { width: 15px; height: 15px; }
+
+/* Body */
+.body-row {
+  flex: 1; display: flex; overflow: hidden;
+}
+
+.center {
+  flex: 1; display: flex; flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--b1);
+}
+
+/* Tabs row */
+.tabs-row {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 28px 18px;
+}
+.tab {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--b1);
+  border-radius: 100px;
+  font-size: 13px; color: var(--t2);
+  cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.tab:hover { color: #fff; border-color: var(--b2); }
+.tab.active {
+  background: var(--y);
+  border-color: var(--y);
+  color: #1a0e00;
+  font-weight: 600;
+}
+.tab .count {
+  font-size: 11px;
+  background: rgba(0,0,0,.15);
+  padding: 1px 7px;
+  border-radius: 9px;
+  font-weight: 600;
+}
+.tab:not(.active) .count {
+  background: var(--card2);
+  color: var(--t3);
+}
+
+.tabs-spacer { flex: 1; }
+
+.tab-sort {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 14px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 100px;
+  font-size: 13px; color: #d0d0d0;
+  cursor: pointer;
+}
+.tab-sort svg { width: 12px; height: 12px; color: var(--t3); }
+
+.view-toggle {
+  display: flex;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 9px;
+  padding: 3px;
+  gap: 2px;
+}
+.vt-btn {
+  width: 30px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 6px;
+  cursor: pointer; color: var(--t3);
+  transition: background .12s, color .12s;
+}
+.vt-btn.active {
+  background: var(--y);
+  color: #1a0e00;
+}
+.vt-btn svg { width: 13px; height: 13px; }
+
+.tab-newest {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 14px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 9px;
+  font-size: 13px; color: #d0d0d0;
+  cursor: pointer;
+}
+.tab-newest svg { width: 13px; height: 13px; color: var(--t3); }
+
+/* Grid */
+.grid-wrap {
+  flex: 1; overflow-y: auto;
+  padding: 0 28px 24px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.gc {
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 13px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color .18s, transform .18s;
+  position: relative;
+}
+.gc:hover { border-color: #FBBF2440; transform: translateY(-2px); }
+.gc.selected {
+  border-color: var(--y);
+  box-shadow: 0 0 0 1px var(--y);
+}
+
+.gc-thumb {
+  height: 195px;
+  position: relative;
+  overflow: hidden;
+}
+.gc-thumb svg.art { width: 100%; height: 100%; display: block; }
+
+.gc-fav {
+  position: absolute; top: 12px; left: 12px;
+  width: 28px; height: 28px;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: #fff;
+}
+.gc-fav.active { color: var(--y); }
+.gc-fav svg { width: 14px; height: 14px; fill: currentColor; }
+
+.gc-heart {
+  position: absolute; top: 12px; right: 12px;
+  width: 28px; height: 28px;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.gc-heart svg { width: 14px; height: 14px; color: #fff; }
+
+.gc-play {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px; height: 48px;
+  background: rgba(255,255,255,.15);
+  backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(255,255,255,.4);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.gc-play svg { width: 16px; height: 16px; fill: #fff; margin-left: 2px; }
+
+.gc-time {
+  position: absolute; bottom: 12px; right: 12px;
+  background: rgba(0,0,0,.7);
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-size: 11px; color: #fff;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.gc-body {
+  padding: 12px 14px 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.gc-info { flex: 1; overflow: hidden; }
+.gc-name {
+  font-size: 14px; font-weight: 600; color: #fff;
+  margin-bottom: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.gc-meta {
+  font-size: 12px; color: var(--t3);
+}
+
+.gc-version {
+  background: var(--y);
+  color: #1a0e00;
+  font-size: 10.5px; font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+  margin-right: 4px;
+}
+
+.gc-dots {
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--t3);
+  font-size: 16px; line-height: 1;
+}
+
+/* ═══ DETAIL PANEL ═══ */
+.dp {
+  width: 320px; min-width: 320px;
+  background: var(--sb);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+  padding: 18px 18px 18px;
+}
+
+.dp-nav {
+  display: flex; align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.dp-nav-btn {
+  width: 30px; height: 30px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--t2);
+}
+.dp-nav-btn svg { width: 13px; height: 13px; }
+.dp-nav-spacer { flex: 1; }
+
+.dp-thumb {
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  height: 220px;
+  background: #000;
+}
+.dp-thumb svg { width: 100%; height: 100%; display: block; }
+
+.dp-title-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px;
+}
+.dp-title {
+  font-size: 17px; font-weight: 700; color: #fff;
+  letter-spacing: -.3px;
+}
+.dp-spacer { flex: 1; }
+.dp-version {
+  background: var(--y);
+  color: #1a0e00;
+  font-size: 10.5px; font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+}
+.dp-star {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--y);
+}
+.dp-star svg { width: 16px; height: 16px; fill: currentColor; }
+.dp-dots-btn {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--t3);
+  font-size: 16px;
+}
+
+.dp-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--b1);
+  margin-bottom: 16px;
+}
+.dp-tab {
+  padding: 10px 0; margin-right: 22px;
+  font-size: 13px; color: var(--t3);
+  cursor: pointer; font-weight: 500;
+  position: relative;
+  display: flex; align-items: center; gap: 5px;
+}
+.dp-tab.active { color: var(--y); }
+.dp-tab.active::after {
+  content: ''; position: absolute;
+  bottom: -1px; left: 0; right: 0;
+  height: 2px; background: var(--y);
+}
+.dp-tab .count {
+  font-size: 11px;
+  color: var(--t3);
+}
+.dp-tab.active .count { color: var(--y); }
+
+.dp-detail-row {
+  display: flex; align-items: center;
+  padding: 8px 0;
+  font-size: 13px;
+}
+.dp-detail-row svg { width: 14px; height: 14px; color: var(--t3); margin-right: 8px; }
+.dp-detail-label { color: var(--t2); flex: 1; }
+.dp-detail-val { color: #d0d0d0; font-weight: 500; }
+
+.dp-section-title {
+  font-size: 12.5px; color: var(--t2);
+  margin: 16px 0 8px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.dp-section-title-icon {
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--t3);
+}
+.dp-section-title-icon svg { width: 13px; height: 13px; }
+
+.dp-prompt {
+  font-size: 12.5px; line-height: 1.55;
+  color: #c0c0c0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--b1);
+}
+
+.dp-collection-title {
+  font-size: 12.5px; color: var(--t2);
+  margin: 16px 0 8px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.dp-coll-add {
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--t2);
+}
+.dp-coll-add svg { width: 14px; height: 14px; }
+
+.dp-collection {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 100px;
+  font-size: 12.5px; color: #d0d0d0;
+  width: fit-content;
+}
+.dp-collection svg { width: 13px; height: 13px; color: var(--t3); }
+.dp-collection-x {
+  width: 14px; height: 14px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--t3);
+  cursor: pointer;
+}
+
+.btn-open-editor {
+  margin-top: 18px;
+  width: 100%;
+  background: var(--y);
+  border: none; border-radius: 11px;
+  padding: 13px;
+  font-size: 14px; font-weight: 700;
+  color: #1a0e00; cursor: pointer;
+  font-family: inherit;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 4px 22px var(--yg);
+}
+.btn-open-editor svg { width: 13px; height: 13px; }
+
+.dp-actions {
+  display: flex; gap: 8px;
+  margin-top: 10px;
+}
+.dp-action {
+  flex: 1;
+  height: 38px;
+  background: var(--card);
+  border: 1px solid var(--b1);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--t2);
+  transition: border-color .15s, color .15s;
+}
+.dp-action:hover { border-color: var(--b2); color: #fff; }
+.dp-action svg { width: 14px; height: 14px; }
+.dp-action.danger:hover { color: #ef4444; border-color: #ef444450; }
+</style>
+</head>
+<body>
+
+<!-- ════════ SIDEBAR ════════ -->
+<aside class="sb">
+  <div class="sb-logo">
+    <div class="fox-icon">
+      <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="foxGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFD45C"/>
+            <stop offset="100%" stop-color="#E89A12"/>
+          </linearGradient>
+        </defs>
+        <path d="M8 6 L14 18 L4 18 Z" fill="url(#foxGrad)"/>
+        <path d="M32 6 L36 18 L26 18 Z" fill="url(#foxGrad)"/>
+        <ellipse cx="20" cy="22" rx="14" ry="13" fill="url(#foxGrad)"/>
+        <path d="M5 22 Q8 18 14 19 L14 28 Q8 29 5 24 Z" fill="#fff" opacity=".95"/>
+        <path d="M35 22 Q32 18 26 19 L26 28 Q32 29 35 24 Z" fill="#fff" opacity=".95"/>
+        <ellipse cx="14.5" cy="22" rx="1.8" ry="2.4" fill="#0a0a0a"/>
+        <ellipse cx="25.5" cy="22" rx="1.8" ry="2.4" fill="#0a0a0a"/>
+        <path d="M16 27 Q20 30 24 27 L22 30 Q20 31.5 18 30 Z" fill="#fff" opacity=".95"/>
+        <ellipse cx="20" cy="27" rx="1.4" ry="1" fill="#0a0a0a"/>
+      </svg>
+    </div>
+    <span class="sb-name">VisionBrave</span>
+  </div>
+
+  <div class="sb-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <span class="sb-search-txt">Search anything...</span>
+    <span class="sb-search-kbd">⌘K</span>
+  </div>
+
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    Home
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <circle cx="8.5" cy="8.5" r="1.5"/>
+      <polyline points="21 15 16 10 5 21"/>
+    </svg>
+    Images
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polygon points="23 7 16 12 23 17 23 7"/>
+      <rect x="1" y="5" width="15" height="14" rx="2"/>
+    </svg>
+    Videos
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 19l7-7 3 3-7 7-3-3z"/>
+      <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+      <path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>
+    </svg>
+    Sketch
+  </div>
+  <div class="nav-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+      <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+    </svg>
+    Gallery
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="10 15 15 12 10 9 10 15"/>
+    </svg>
+    Animation
+  </div>
+
+  <div class="sb-section">PROJECTS <span class="sb-section-plus">+</span></div>
+
+  <div class="proj-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+    </svg>
+    Cyber Animals
+    <span class="nb">24</span>
+  </div>
+  <div class="proj-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+    </svg>
+    Neon World
+    <span class="nb">18</span>
+  </div>
+  <div class="proj-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+    </svg>
+    Product Visuals
+    <span class="nb">12</span>
+  </div>
+  <div class="proj-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+    </svg>
+    Animations
+    <span class="nb">16</span>
+  </div>
+  <div class="proj-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+    </svg>
+    Concept Art
+    <span class="nb">9</span>
+  </div>
+  <div class="proj-item show-more">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+    Show More
+  </div>
+
+  <div class="sb-foot">
+    <div class="upgrade-card">
+      <div class="uc-icon">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4.5 13.5H11L10 22L19.5 10.5H13L13 2Z"/></svg>
+      </div>
+      <div class="uc-title">Upgrade to Pro</div>
+      <div class="uc-desc">Unlock more power with advanced AI tools.</div>
+      <button class="btn-upgrade">Upgrade Now</button>
+    </div>
+    <div class="user-row">
+      <div class="user-ava"></div>
+      <div class="user-info">
+        <div class="user-name">Ethan Walker</div>
+        <div class="user-mail">ethan.walker@email.com</div>
+      </div>
+      <span class="user-caret">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="18 15 12 9 6 15"/><polyline points="6 9 12 15 18 9" transform="translate(0 0)"/>
+        </svg>
+      </span>
+    </div>
+  </div>
+</aside>
+
+<!-- ════════ MAIN ════════ -->
+<main class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="tb-titles">
+      <div class="tb-title">Gallery</div>
+      <div class="tb-sub">Your AI creations, all in one place.</div>
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="tb-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" placeholder="Search your projects..."/>
+    </div>
+    <div class="tb-filter">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="body-row">
+
+    <div class="center">
+
+      <!-- Tabs -->
+      <div class="tabs-row">
+        <div class="tab active">All <span class="count">128</span></div>
+        <div class="tab">Images <span class="count">86</span></div>
+        <div class="tab">Videos <span class="count">19</span></div>
+        <div class="tab">Sketches <span class="count">14</span></div>
+        <div class="tab">Favorites <span class="count">23</span></div>
+        <div class="tab">Recent
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:11px;height:11px;color:var(--t3)"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="tabs-spacer"></div>
+        <div class="view-toggle">
+          <div class="vt-btn active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+            </svg>
+          </div>
+          <div class="vt-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+          </div>
+        </div>
+        <div class="tab-newest">
+          Newest
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+        </div>
+      </div>
+
+      <!-- Grid -->
+      <div class="grid-wrap">
+        <div class="grid">
+
+          <!-- Card 1: Cyberfang Tiger (selected) -->
+          <div class="gc selected">
+            <div class="gc-thumb">
+              <svg class="art" viewBox="0 0 300 195" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                  <radialGradient id="gT1" cx="50%" cy="55%"><stop offset="0%" stop-color="#1a1208"/><stop offset="100%" stop-color="#000"/></radialGradient>
+                </defs>
+                <rect width="300" height="195" fill="url(#gT1)"/>
+                <ellipse cx="150" cy="110" rx="110" ry="55" fill="#1a1410"/>
+                <ellipse cx="60" cy="100" rx="35" ry="30" fill="#1a1410"/>
+                <g stroke="#FF8800" stroke-width="3" stroke-linecap="round" opacity=".9" fill="none">
+                  <path d="M75 80 L80 130"/>
+                  <path d="M100 75 L102 135"/>
+                  <path d="M130 70 L132 138"/>
+                  <path d="M160 70 L162 140"/>
+                  <path d="M190 72 L192 138"/>
+                  <path d="M220 78 L218 132"/>
+                  <path d="M50 90 L52 115"/>
+                  <path d="M65 85 L67 120"/>
+                </g>
+                <ellipse cx="50" cy="95" rx="4" ry="3" fill="#FFE066"/>
+                <ellipse cx="70" cy="95" rx="4" ry="3" fill="#FFE066"/>
+                <rect x="80" y="160" width="14" height="20" rx="3" fill="#0a0604"/>
+                <rect x="120" y="160" width="14" height="20" rx="3" fill="#0a0604"/>
+                <rect x="170" y="160" width="14" height="20" rx="3" fill="#0a0604"/>
+                <rect x="210" y="160" width="14" height="20" rx="3" fill="#0a0604"/>
+              </svg>
+              <div class="gc-fav active">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <div class="gc-heart">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="gc-body">
+              <div class="gc-info">
+                <div class="gc-name">Cyberfang Tiger</div>
+                <div class="gc-meta">Text-to-Image · 4K</div>
+              </div>
+              <span class="gc-version">V1</span>
+              <div class="gc-dots">⋯</div>
+            </div>
+          </div>
+
+          <!-- Card 2: Urban Motion -->
+          <div class="gc">
+            <div class="gc-thumb">
+              <svg class="art" viewBox="0 0 300 195" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                  <linearGradient id="gT2" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#5a3520"/>
+                    <stop offset="100%" stop-color="#1a0e08"/>
+                  </linearGradient>
+                </defs>
+                <rect width="300" height="195" fill="url(#gT2)"/>
+                <rect x="0" y="40" width="300" height="60" fill="#3a2515" opacity=".7"/>
+                <rect x="50" y="50" width="60" height="40" fill="#5a3520" opacity=".5"/>
+                <rect x="180" y="55" width="80" height="35" fill="#5a3520" opacity=".5"/>
+                <ellipse cx="150" cy="100" rx="40" ry="50" fill="#f4d4b0"/>
+                <path d="M115 85 Q150 60 185 85 L185 110 L115 110 Z" fill="#a08070"/>
+                <ellipse cx="135" cy="105" rx="3" ry="3" fill="#000"/>
+                <ellipse cx="165" cy="105" rx="3" ry="3" fill="#000"/>
+                <path d="M100 150 Q150 130 200 150 L200 195 L100 195 Z" fill="#8a4a30"/>
+                <line x1="0" y1="120" x2="60" y2="100" stroke="#3a2515" stroke-width="3" opacity=".5"/>
+                <line x1="240" y1="100" x2="300" y2="120" stroke="#3a2515" stroke-width="3" opacity=".5"/>
+              </svg>
+              <div class="gc-play">
+                <svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+              </div>
+              <div class="gc-time">00:08</div>
+            </div>
+            <div class="gc-body">
+              <div class="gc-info">
+                <div class="gc-name">Urban Motion</div>
+                <div class="gc-meta">Video · 1080p</div>
+              </div>
+              <span class="gc-version">V2</span>
+              <div class="gc-dots">⋯</div>
+            </div>
+          </div>
+
+          <!-- Card 3: Cyber Wolf Run -->
+          <div class="gc">
+            <div class="gc-thumb">
+              <svg class="art" viewBox="0 0 300 195" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                  <radialGradient id="gT3" cx="50%" cy="50%"><stop offset="0%" stop-color="#3a2510"/><stop offset="100%" stop-color="#0a0604"/></radialGradient>
+                </defs>
+                <rect width="300" height="195" fill="url(#gT3)"/>
+                <ellipse cx="150" cy="110" rx="110" ry="50" fill="#3a3a3a"/>
+                <ellipse cx="240" cy="90" rx="40" ry="35" fill="#5a5a5a"/>
+                <polygon points="220,55 240,40 250,75" fill="#3a3a3a"/>
+                <polygon points="260,55 270,40 280,75" fill="#3a3a3a"/>
+                <ellipse cx="230" cy="90" rx="6" ry="4" fill="#FFAA00"/>
+                <ellipse cx="250" cy="90" rx="6" ry="4" fill="#FFAA00"/>
+                <ellipse cx="270" cy="105" rx="4" ry="3" fill="#FF6600"/>
+                <rect x="80" y="155" width="18" height="35" rx="3" fill="#2a2a2a"/>
+                <rect x="120" y="160" width="18" height="30" rx="3" fill="#2a2a2a"/>
+                <rect x="170" y="160" width="18" height="30" rx="3" fill="#2a2a2a"/>
+                <rect x="200" y="155" width="18" height="35" rx="3" fill="#2a2a2a"/>
+              </svg>
+              <div class="gc-play">
+                <svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+              </div>
+              <div class="gc-time">00:06</div>
+            </div>
+            <div class="gc-body">
+              <div class="gc-info">
+                <div class="gc-name">Cyber Wolf Run</div>
+                <div class="gc-meta">Animation · 4K</div>
+              </div>
+              <span class="gc-version">V2</span>
+              <div class="gc-dots">⋯</div>
+            </div>
+          </div>
+
+          <!-- Card 4: Neon Portrait -->
+          <div class="gc">
+            <div class="gc-thumb">
+              <svg class="art" viewBox="0 0 300 195" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                  <radialGradient id="gT4" cx="50%" cy="50%"><stop offset="0%" stop-color="#FF55AA"/><stop offset="100%" stop-color="#1a0510"/></radialGradient>
+                </defs>
+                <rect width="300" height="195" fill="url(#gT4)" opacity=".8"/>
+                <ellipse cx="150" cy="100" rx="55" ry="65" fill="#f4c2a5"/>
+                <path d="M105 75 Q150 30 195 75 L195 100 L105 100 Z" fill="#FFB0DD"/>
+                <path d="M195 80 Q220 100 215 130 Q200 150 180 145" fill="#FFB0DD" opacity=".8"/>
+                <path d="M105 80 Q80 100 85 130 Q100 150 120 145" fill="#FFB0DD" opacity=".8"/>
+                <ellipse cx="135" cy="105" rx="4" ry="5" fill="#000"/>
+                <ellipse cx="165" cy="105" rx="4" ry="5" fill="#000"/>
+                <path d="M138 130 Q150 138 162 130" stroke="#a04050" stroke-width="2" fill="none"/>
+                <ellipse cx="150" cy="125" rx="3" ry="2" fill="#a04050" opacity=".5"/>
+                <g opacity=".7">
+                  <circle cx="50" cy="40" r="2" fill="#FFAA00"/>
+                  <circle cx="250" cy="60" r="2" fill="#FF55AA"/>
+                  <circle cx="40" cy="160" r="3" fill="#FFAA00"/>
+                  <circle cx="270" cy="170" r="2" fill="#FF55AA"/>
+                </g>
+              </svg>
+              <div class="gc-fav active">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <div class="gc-heart">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="gc-body">
+              <div class="gc-info">
+                <div class="gc-name">Neon Portrait</div>
+                <div class="gc-meta">Text-to-Image · 2K</div>
+              </div>
+              <span class="gc-version">V1</span>
+              <div class="gc-dots">⋯</div>
+            </div>
+          </div>
+
+          <!-- Card 5: Future Cityscape -->
+          <div class="gc">
+            <div class="gc-thumb">
+              <svg class="art" viewBox="0 0 300 195" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                  <linearGradient id="gT5" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#FFA040"/>
+                    <stop offset="50%" stop-color="#FF6020"/>
+                    <stop offset="100%" stop-color="#3a1010"/>
+                  </linearGradient>
+                </defs>
+                <rect width="300" height="195" fill="url(#gT5)"/>
+                <circle cx="220" cy="50" r="35" fill="#FFD060" opacity=".8"/>
+                <rect x="20" y="120" width="35" height="60" fill="#1a1a1a"/>
+                <rect x="65" y="100" width="40" height="80" fill="#0a0a0a"/>
+                <rect x="115" y="80" width="30" height="100" fill="#1a1a1a"/>
+                <rect x="155" y="110" width="35" height="70" fill="#0a0a0a"/>
+                <rect x="200" y="90" width="40" height="90" fill="#1a1a1a"/>
+                <rect x="250" y="130" width="35" height="50" fill="#0a0a0a"/>
+                <g fill="#FFD060">
+                  <rect x="25" y="125" width="3" height="3"/><rect x="32" y="125" width="3" height="3"/>
+                  <rect x="120" y="100" width="3" height="3"/><rect x="125" y="100" width="3" height="3"/>
+                  <rect x="160" y="120" width="3" height="3"/><rect x="170" y="120" width="3" height="3"/>
+                  <rect x="205" y="100" width="3" height="3"/><rect x="215" y="100" width="3" height="3"/>
+                </g>
+                <ellipse cx="180" cy="40" rx="20" ry="6" fill="#FFD060" opacity=".5"/>
+              </svg>
+              <div class="gc-fav active">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <div class="gc-heart">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="gc-body">
+              <div class="gc-info">
+                <div class="gc-name">Future Cityscape</div>
+                <div class="gc-meta">Text-to-Image · 4K</div>
+              </div>
+              <span class="gc-version">V3</span>
+              <div class="gc-dots">⋯</div>
+            </div>
+          </div>
+
+          <!-- Card 6: Astronaut Close-Up -->
+          <div class="gc">
+            <div class="gc-thumb">
+              <svg class="art" viewBox="0 0 300 195" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                  <radialGradient id="gT6" cx="50%" cy="50%"><stop offset="0%" stop-color="#3a2510"/><stop offset="100%" stop-color="#000"/></radialGradient>
+                </defs>
+                <rect width="300" height="195" fill="url(#gT6)"/>
+                <circle cx="150" cy="100" r="80" fill="#a0a0a0" opacity=".5"/>
+                <circle cx="150" cy="100" r="65" fill="#1a1a1a"/>
+                <ellipse cx="150" cy="100" rx="60" ry="55" fill="url(#gT6)"/>
+                <ellipse cx="135" cy="90" rx="20" ry="15" fill="#FF8800" opacity=".4"/>
+                <ellipse cx="155" cy="105" rx="25" ry="20" fill="#FFAA00" opacity=".3"/>
+                <g fill="#FFD060" opacity=".8">
+                  <circle cx="100" cy="50" r="2"/>
+                  <circle cx="220" cy="60" r="2"/>
+                  <circle cx="80" cy="120" r="1.5"/>
+                  <circle cx="240" cy="140" r="2"/>
+                  <circle cx="50" cy="80" r="1.5"/>
+                  <circle cx="260" cy="100" r="1.5"/>
+                </g>
+                <g opacity=".4" stroke="#FFD060" stroke-width=".5">
+                  <line x1="100" y1="50" x2="105" y2="48"/>
+                  <line x1="220" y1="60" x2="225" y2="58"/>
+                </g>
+              </svg>
+              <div class="gc-fav active">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <div class="gc-heart">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="gc-body">
+              <div class="gc-info">
+                <div class="gc-name">Astronaut Close-Up</div>
+                <div class="gc-meta">Text-to-Image · 2K</div>
+              </div>
+              <span class="gc-version">V1</span>
+              <div class="gc-dots">⋯</div>
+            </div>
+          </div>
+
+          <!-- Card 7: Crow sketch -->
+          <div class="gc">
+            <div class="gc-thumb">
+              <svg class="art" viewBox="0 0 300 195" preserveAspectRatio="xMidYMid slice">
+                <rect width="300" height="195" fill="#3a2515"/>
+                <ellipse cx="150" cy="120" rx="80" ry="50" fill="#0a0a0a"/>
+                <ellipse cx="100" cy="90" rx="35" ry="30" fill="#0a0a0a"/>
+                <polygon points="65,90 50,85 75,80" fill="#FFAA00"/>
+                <ellipse cx="95" cy="85" rx="3" ry="3" fill="#FFD060"/>
+                <path d="M150 120 Q200 100 230 110" stroke="#1a1a1a" stroke-width="20" fill="none"/>
+              </svg>
+            </div>
+            <div class="gc-body">
+              <div class="gc-info">
+                <div class="gc-name">Cyber Raven</div>
+                <div class="gc-meta">Sketch · HD</div>
+              </div>
+              <span class="gc-version">V2</span>
+              <div class="gc-dots">⋯</div>
+            </div>
+          </div>
+
+          <!-- Card 8: Car sketch -->
+          <div class="gc">
+            <div class="gc-thumb">
+              <svg class="art" viewBox="0 0 300 195" preserveAspectRatio="xMidYMid slice">
+                <rect width="300" height="195" fill="#e8e8e8"/>
+                <path d="M50 130 Q60 90 130 80 L200 75 Q260 80 270 130 L260 145 L40 145 Z"
+                      fill="none" stroke="#1a1a1a" stroke-width="2"/>
+                <circle cx="80" cy="145" r="20" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+                <circle cx="220" cy="145" r="20" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+                <path d="M70 110 L130 95 L190 95 L240 110" stroke="#1a1a1a" stroke-width="1.5" fill="none"/>
+                <path d="M260 110 L255 130" stroke="#1a1a1a" stroke-width="1.5"/>
+                <path d="M40 130 L45 110" stroke="#1a1a1a" stroke-width="1.5" stroke-dasharray="3 2"/>
+              </svg>
+            </div>
+            <div class="gc-body">
+              <div class="gc-info">
+                <div class="gc-name">Concept Vehicle</div>
+                <div class="gc-meta">Sketch · 2K</div>
+              </div>
+              <span class="gc-version">V1</span>
+              <div class="gc-dots">⋯</div>
+            </div>
+          </div>
+
+          <!-- Card 9: Abstract -->
+          <div class="gc">
+            <div class="gc-thumb">
+              <svg class="art" viewBox="0 0 300 195" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                  <linearGradient id="gT9" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#FF00AA"/>
+                    <stop offset="50%" stop-color="#7700FF"/>
+                    <stop offset="100%" stop-color="#0080FF"/>
+                  </linearGradient>
+                </defs>
+                <rect width="300" height="195" fill="url(#gT9)" opacity=".5"/>
+                <ellipse cx="100" cy="100" rx="60" ry="50" fill="#FF00AA" opacity=".5"/>
+                <ellipse cx="200" cy="100" rx="60" ry="50" fill="#0080FF" opacity=".5"/>
+                <ellipse cx="150" cy="100" rx="40" ry="40" fill="#FFFFFF" opacity=".4"/>
+              </svg>
+              <div class="gc-play">
+                <svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+              </div>
+              <div class="gc-time">00:12</div>
+            </div>
+            <div class="gc-body">
+              <div class="gc-info">
+                <div class="gc-name">Abstract Flow</div>
+                <div class="gc-meta">Animation · 4K</div>
+              </div>
+              <span class="gc-version">V2</span>
+              <div class="gc-dots">⋯</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ DETAIL PANEL ═══ -->
+    <div class="dp">
+      <div class="dp-nav">
+        <div class="dp-nav-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </div>
+        <div class="dp-nav-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </div>
+        <div class="dp-nav-spacer"></div>
+        <div class="dp-nav-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="dp-thumb">
+        <svg viewBox="0 0 300 220" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <radialGradient id="dpBg" cx="50%" cy="55%"><stop offset="0%" stop-color="#1a1208"/><stop offset="100%" stop-color="#000"/></radialGradient>
+            <linearGradient id="dpOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FFC845"/>
+              <stop offset="100%" stop-color="#D4500A"/>
+            </linearGradient>
+          </defs>
+          <rect width="300" height="220" fill="url(#dpBg)"/>
+          <ellipse cx="150" cy="120" rx="120" ry="60" fill="#1a1410"/>
+          <ellipse cx="55" cy="105" rx="40" ry="35" fill="#1a1410"/>
+          <g stroke="url(#dpOrange)" stroke-width="3.5" stroke-linecap="round" opacity=".95" fill="none">
+            <path d="M70 80 L75 145"/>
+            <path d="M100 75 L102 150"/>
+            <path d="M130 73 L132 152"/>
+            <path d="M160 72 L163 152"/>
+            <path d="M190 73 L192 150"/>
+            <path d="M220 78 L218 145"/>
+            <path d="M40 95 L42 120"/>
+            <path d="M55 88 L57 125"/>
+            <path d="M70 95 L72 122"/>
+          </g>
+          <ellipse cx="40" cy="100" rx="5" ry="4" fill="#FFE066"/>
+          <ellipse cx="65" cy="100" rx="5" ry="4" fill="#FFE066"/>
+          <ellipse cx="40" cy="100" rx="2" ry="3" fill="#000"/>
+          <ellipse cx="65" cy="100" rx="2" ry="3" fill="#000"/>
+          <rect x="80" y="170" width="14" height="22" rx="3" fill="#0a0604"/>
+          <rect x="120" y="172" width="14" height="20" rx="3" fill="#0a0604"/>
+          <rect x="170" y="172" width="14" height="20" rx="3" fill="#0a0604"/>
+          <rect x="210" y="170" width="14" height="22" rx="3" fill="#0a0604"/>
+          <ellipse cx="150" cy="200" rx="100" ry="8" fill="#FF8800" opacity=".25"/>
+        </svg>
+      </div>
+
+      <div class="dp-title-row">
+        <div class="dp-title">Cyberfang Tiger</div>
+        <span class="dp-version">V1</span>
+        <div class="dp-spacer"></div>
+        <div class="dp-star">
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="dp-dots-btn">⋯</div>
+      </div>
+
+      <div class="dp-tabs">
+        <div class="dp-tab active">Details</div>
+        <div class="dp-tab">Comments <span class="count">12</span></div>
+      </div>
+
+      <div class="dp-detail-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+        </svg>
+        <span class="dp-detail-label">Type</span>
+        <span class="dp-detail-val">Image</span>
+      </div>
+      <div class="dp-detail-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <line x1="8" y1="21" x2="16" y2="21"/>
+          <line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+        <span class="dp-detail-label">Model</span>
+        <span class="dp-detail-val">Stable Diffusion XL</span>
+      </div>
+      <div class="dp-detail-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+        <span class="dp-detail-label">Style</span>
+        <span class="dp-detail-val">Cyberpunk</span>
+      </div>
+      <div class="dp-detail-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 3 21 3 21 9"/>
+          <polyline points="9 21 3 21 3 15"/>
+          <line x1="21" y1="3" x2="14" y2="10"/>
+          <line x1="3" y1="21" x2="10" y2="14"/>
+        </svg>
+        <span class="dp-detail-label">Resolution</span>
+        <span class="dp-detail-val">3840 × 2160</span>
+      </div>
+      <div class="dp-detail-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <span class="dp-detail-label">Created</span>
+        <span class="dp-detail-val">May 12, 2025, 10:24 AM</span>
+      </div>
+      <div class="dp-detail-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5z"/>
+        </svg>
+        <span class="dp-detail-label">Size</span>
+        <span class="dp-detail-val">8.4 MB</span>
+      </div>
+
+      <div class="dp-section-title">
+        Prompt
+        <span class="dp-section-title-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+        </span>
+      </div>
+      <div class="dp-prompt">
+        Cybernetic tiger with neon orange glowing lines, ultra detailed, cinematic lighting, cyberpunk aesthetic, dark background.
+      </div>
+
+      <div class="dp-collection-title">
+        Add to Collection
+        <span class="dp-coll-add">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </span>
+      </div>
+      <div class="dp-collection">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+        Cyber Animals
+        <span class="dp-collection-x">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </span>
+      </div>
+
+      <button class="btn-open-editor">
+        Open in Editor
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+      </button>
+
+      <div class="dp-actions">
+        <div class="dp-action">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </div>
+        <div class="dp-action">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+        </div>
+        <div class="dp-action">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+        </div>
+        <div class="dp-action danger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>
