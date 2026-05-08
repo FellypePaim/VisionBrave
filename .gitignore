@@ -1,0 +1,15 @@
+# Superpowers brainstorming server files
+.superpowers/brainstorm/**/.server-info
+.superpowers/brainstorm/**/.server.pid
+.superpowers/brainstorm/**/.events
+
+# Node
+node_modules/
+.env
+.env.local
+.next/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
