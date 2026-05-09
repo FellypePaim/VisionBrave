@@ -1,42 +1,60 @@
 import Link from "next/link";
 import { FoxIcon } from "@/components/FoxIcon";
-import { Image, Video, Layers, Star, ChevronRight, Zap, CheckCircle, Globe } from "lucide-react";
+import { Image, Video, Music, Star, ChevronRight, Zap, CheckCircle, Globe } from "lucide-react";
 
 const features = [
   {
     icon: Image,
-    title: "Images",
-    desc: "Generate ultra-detailed AI images in any style you imagine.",
-    link: "Explore Images",
+    title: "Imagens",
+    desc: "Gere imagens com IA ultra-detalhadas em qualquer estilo que imaginar.",
+    link: "Explorar Imagens",
+    href: "/dashboard/images",
+    image: "/hero/ai-image.png",
+    placeholder: "Imagens",
   },
   {
     icon: Video,
-    title: "Videos",
-    desc: "Create cinematic videos from text or images with AI magic.",
-    link: "Explore Videos",
+    title: "Vídeos",
+    desc: "Crie vídeos cinematográficos a partir de texto ou imagens com IA.",
+    link: "Explorar Vídeos",
+    href: "/dashboard/videos",
+    image: "/hero/ai-video.png",
+    placeholder: "Videos",
   },
   {
-    icon: Layers,
-    title: "Animation",
-    desc: "Animate your ideas with stunning motion and style.",
-    link: "Explore Animation",
+    icon: Music,
+    title: "Áudio",
+    desc: "Componha trilhas, vozes e efeitos sonoros originais com IA.",
+    link: "Explorar Áudio",
+    href: "/dashboard/audio",
+    image: "/hero/ai-sound.png",
+    placeholder: "Audio",
   },
   {
     icon: Star,
-    title: "AI Editing",
-    desc: "Edit, enhance, and transform with powerful AI tools.",
-    link: "Explore AI Tools",
+    title: "Edição com IA",
+    desc: "Edite, melhore e transforme com poderosas ferramentas de IA.",
+    link: "Explorar Ferramentas",
+    href: "/dashboard/images",
+    image: "/hero/ai-edit.png",
+    placeholder: "AI+Editing",
   },
 ];
 
 const stats = [
-  { value: "50K+", label: "Active Creators" },
-  { value: "1M+", label: "AI Creations" },
-  { value: "4.9/5", label: "User Rating" },
-  { value: "100+", label: "Countries" },
+  { value: "50K+", label: "Criadores Ativos" },
+  { value: "1M+", label: "Criações com IA" },
+  { value: "4.9/5", label: "Avaliação" },
+  { value: "100+", label: "Países" },
 ];
 
-const navLinks = ["Features", "Use Cases", "How It Works", "Pricing", "Resources"];
+const navLinks = [
+  { label: "Recursos", href: "#features" },
+  { label: "Casos de Uso", href: "#features" },
+  { label: "Como Funciona", href: "#stats" },
+  { label: "Preços", href: "/login" },
+  { label: "Materiais", href: "#features" },
+];
 
 export default function LandingPage() {
   return (
@@ -54,13 +72,14 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-1 flex-1">
-            {navLinks.map((l) => (
-              <span
-                key={l}
+            {navLinks.map(({ label, href }) => (
+              <a
+                key={label}
+                href={href}
                 className="px-4 py-2 text-[14px] font-medium text-t2 cursor-pointer rounded-[8px] hover:text-white hover:bg-white/5 transition-colors"
               >
-                {l}
-              </span>
+                {label}
+              </a>
             ))}
           </div>
 
@@ -69,14 +88,14 @@ export default function LandingPage() {
               href="/login"
               className="px-4 py-2 text-[13.5px] font-semibold text-white border border-b2 rounded-[10px] hover:border-[#4a4a4a] hover:bg-white/5 transition-colors"
             >
-              Log In
+              Entrar
             </Link>
             <Link
               href="/login"
               className="px-4 py-2 text-[13.5px] font-bold text-[#1a0e00] rounded-[10px] transition-colors hover:bg-[#FCD34D]"
               style={{ background: "#FBBF24", boxShadow: "0 2px 16px #FBBF2440" }}
             >
-              Start Creating
+              Começar a Criar
             </Link>
           </div>
         </nav>
@@ -96,52 +115,12 @@ export default function LandingPage() {
                 background: "radial-gradient(ellipse at 50% 60%, #1a1208 0%, #050202 80%)",
               }}
             >
-              <svg viewBox="0 0 540 540" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
-                <defs>
-                  <radialGradient id="bgRad" cx="50%" cy="60%" r="80%">
-                    <stop offset="0%" stopColor="#1a1208" />
-                    <stop offset="60%" stopColor="#0a0604" />
-                    <stop offset="100%" stopColor="#000" />
-                  </radialGradient>
-                  <linearGradient id="orange" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#FFC845" />
-                    <stop offset="50%" stopColor="#FF8C00" />
-                    <stop offset="100%" stopColor="#D4500A" />
-                  </linearGradient>
-                  <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#FFD700" stopOpacity="1" />
-                    <stop offset="100%" stopColor="#FF4400" stopOpacity="0" />
-                  </radialGradient>
-                  <filter id="glowF" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="6" result="blur" />
-                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-                  </filter>
-                </defs>
-                <rect width="540" height="540" fill="url(#bgRad)" />
-                <ellipse cx="200" cy="280" rx="220" ry="160" fill="url(#orange)" opacity=".06" />
-                <ellipse cx="270" cy="490" rx="200" ry="20" fill="#FF8C00" opacity=".15" />
-                <path d="M150 290 Q200 240 290 250 Q380 260 420 310 Q430 360 380 380 Q280 400 200 380 Q140 360 150 290 Z" fill="#15100c" stroke="#2a1f10" strokeWidth="2" />
-                <g filter="url(#glowF)" opacity=".9">
-                  <path d="M180 260 Q190 320 195 380" stroke="url(#orange)" strokeWidth="6" fill="none" strokeLinecap="round" />
-                  <path d="M215 252 Q225 320 230 385" stroke="url(#orange)" strokeWidth="7" fill="none" strokeLinecap="round" />
-                  <path d="M250 250 Q258 320 262 388" stroke="url(#orange)" strokeWidth="7" fill="none" strokeLinecap="round" />
-                  <path d="M285 252 Q290 320 295 388" stroke="url(#orange)" strokeWidth="6" fill="none" strokeLinecap="round" />
-                  <path d="M320 258 Q325 320 330 385" stroke="url(#orange)" strokeWidth="7" fill="none" strokeLinecap="round" />
-                </g>
-                <path d="M50 230 Q60 170 110 160 Q160 165 175 210 Q175 260 145 280 Q90 285 60 270 Q35 255 50 230 Z" fill="#1a1410" stroke="#2a1f10" strokeWidth="2" />
-                <g filter="url(#glowF)" opacity=".9">
-                  <path d="M65 195 Q70 220 75 255" stroke="url(#orange)" strokeWidth="4" fill="none" strokeLinecap="round" />
-                  <path d="M88 185 Q92 215 95 260" stroke="url(#orange)" strokeWidth="5" fill="none" strokeLinecap="round" />
-                  <path d="M115 180 Q118 215 120 262" stroke="url(#orange)" strokeWidth="5" fill="none" strokeLinecap="round" />
-                  <path d="M142 185 Q140 215 138 258" stroke="url(#orange)" strokeWidth="4" fill="none" strokeLinecap="round" />
-                </g>
-                <ellipse cx="85" cy="220" rx="14" ry="10" fill="url(#eyeGlow)" filter="url(#glowF)" />
-                <ellipse cx="135" cy="220" rx="14" ry="10" fill="url(#eyeGlow)" filter="url(#glowF)" />
-                <ellipse cx="85" cy="220" rx="6" ry="7" fill="#FFE066" />
-                <ellipse cx="135" cy="220" rx="6" ry="7" fill="#FFE066" />
-                <ellipse cx="85" cy="218" rx="2" ry="4" fill="#000" />
-                <ellipse cx="135" cy="218" rx="2" ry="4" fill="#000" />
-              </svg>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/hero/cyber-tiger.png"
+                alt="Cyberfang Tiger"
+                className="w-full h-full object-cover"
+              />
 
               {/* Badge */}
               <div
@@ -151,7 +130,7 @@ export default function LandingPage() {
                 <FoxIcon size={24} />
                 <div className="flex flex-col text-[11px] leading-[1.3]">
                   <span className="text-[#888]">
-                    Generated in <b className="text-y font-semibold">VisionBrave</b>
+                    Gerado no <b className="text-y font-semibold">VisionBrave</b>
                   </span>
                   <span className="text-white font-semibold text-[11.5px]">Cyberfang Tiger</span>
                 </div>
@@ -165,17 +144,17 @@ export default function LandingPage() {
                 style={{ background: "#ffffff05", border: "1px solid #1F1F1F" }}
               >
                 <Star size={13} className="text-y" fill="currentColor" />
-                Next-Gen AI Creative Studio
+                Estúdio Criativo com IA
               </div>
 
               <h1 className="text-[60px] font-bold leading-[1.05] tracking-[-2px] text-white mb-5">
-                Create Without<br />
-                Limits.<br />
-                Powered by <span className="text-y">AI.</span>
+                Crie Sem<br />
+                Limites.<br />
+                Movido por <span className="text-y">IA.</span>
               </h1>
 
               <p className="text-[16.5px] leading-[1.55] text-[#999] max-w-[520px] mb-7">
-                VisionBrave is your all-in-one AI creative studio for generating stunning images, videos, and audio. Unlock your imagination with powerful tools built for creators.
+                VisionBrave é seu estúdio criativo com IA completo para gerar imagens, vídeos e áudio impressionantes. Liberte sua imaginação com ferramentas poderosas feitas para criadores.
               </p>
 
               <div className="flex items-center gap-3 mb-8">
@@ -184,25 +163,28 @@ export default function LandingPage() {
                   className="flex items-center gap-2.5 px-7 py-4 rounded-[13px] text-[15.5px] font-bold text-[#1a0e00] transition-all hover:-translate-y-px"
                   style={{ background: "#FBBF24", boxShadow: "0 4px 28px #FBBF2440" }}
                 >
-                  Start Creating
+                  Começar a Criar
                   <Star size={16} fill="currentColor" />
                 </Link>
-                <button className="flex items-center gap-3 px-7 py-4 rounded-[13px] text-[15.5px] font-semibold text-white border border-b2 bg-card hover:border-[#4a4a4a] hover:bg-[#1a1a1a] transition-colors">
+                <Link
+                  href="#features"
+                  className="flex items-center gap-3 px-7 py-4 rounded-[13px] text-[15.5px] font-semibold text-white border border-b2 bg-card hover:border-[#4a4a4a] hover:bg-[#1a1a1a] transition-colors"
+                >
                   <span
                     className="w-7 h-7 rounded-full border-[1.5px] border-white flex items-center justify-center"
                     style={{ paddingLeft: 2 }}
                   >
                     <svg viewBox="0 0 24 24" width="11" height="11" fill="white"><polygon points="6 4 20 12 6 20 6 4" /></svg>
                   </span>
-                  See Demo
-                </button>
+                  Ver Demo
+                </Link>
               </div>
 
               <div className="flex items-center gap-7">
                 {[
-                  { icon: CheckCircle, title: "No Credit Card", sub: "Get started for free" },
-                  { icon: Zap, title: "Lightning Fast", sub: "Generate in seconds" },
-                  { icon: Globe, title: "Commercial Use", sub: "Your creations, your rights" },
+                  { icon: CheckCircle, title: "Sem Cartão de Crédito", sub: "Comece gratuitamente" },
+                  { icon: Zap, title: "Ultrarrápido", sub: "Gere em segundos" },
+                  { icon: Globe, title: "Uso Comercial", sub: "Suas criações, seus direitos" },
                 ].map(({ icon: Icon, title, sub }) => (
                   <div key={title} className="flex items-center gap-3">
                     <div
@@ -223,11 +205,12 @@ export default function LandingPage() {
         </section>
 
         {/* Features grid */}
-        <div className="grid grid-cols-4 gap-4 mb-4">
-          {features.map(({ icon: Icon, title, desc, link }) => (
-            <div
+        <div id="features" className="grid grid-cols-4 gap-4 mb-4">
+          {features.map(({ icon: Icon, title, desc, link, href, image, placeholder }) => (
+            <Link
               key={title}
-              className="group rounded-[18px] p-5 pb-0 flex flex-col min-h-[240px] overflow-hidden cursor-pointer hover:border-[#FBBF2440] hover:bg-[#0F0B05] hover:-translate-y-0.5 transition-all"
+              href={href}
+              className="group rounded-[18px] p-5 pb-0 flex flex-col min-h-[260px] overflow-hidden cursor-pointer hover:border-[#FBBF2440] hover:bg-[#0F0B05] hover:-translate-y-0.5 transition-all"
               style={{ background: "#0A0A0A", border: "1px solid #1F1F1F" }}
             >
               <div
@@ -241,15 +224,21 @@ export default function LandingPage() {
               <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-y mb-4 group-hover:gap-3 transition-all">
                 {link} <ChevronRight size={12} />
               </span>
-              <div className="mt-auto -mx-5 h-[90px] rounded-none overflow-hidden"
-                style={{ background: "linear-gradient(135deg, #2a1510, #100504)" }}
-              />
-            </div>
+              <div className="mt-auto -mx-5 h-[120px] overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={image}
+                  alt={title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+            </Link>
           ))}
         </div>
 
         {/* Stats bar */}
         <div
+          id="stats"
           className="flex items-center gap-7 px-7 py-5 rounded-[18px]"
           style={{ background: "#0A0A0A", border: "1px solid #1F1F1F" }}
         >
@@ -266,7 +255,7 @@ export default function LandingPage() {
             <div>
               <div className="flex gap-0.5 text-y text-sm">{"★★★★★"}</div>
               <div className="text-[12.5px] text-[#999] leading-[1.35]">
-                Trusted by 50,000+ creators<br />worldwide
+                Confiado por +50.000 criadores<br />no mundo
               </div>
             </div>
           </div>

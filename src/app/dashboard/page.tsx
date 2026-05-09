@@ -1,43 +1,79 @@
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import { Topbar } from "@/components/layout/Topbar";
 import { Image, Video, Music, ChevronRight, Plus } from "lucide-react";
 
 const tools = [
   {
     icon: Image,
-    name: "Image Generator",
-    desc: "Create and transform images with next-gen AI models.",
+    name: "Gerador de Imagens",
+    desc: "Crie e transforme imagens com modelos de IA de próxima geração.",
     badge: "Popular",
     badgeNew: false,
     stat: "2.4M",
     href: "/dashboard/images",
+    bg: "/hero/ai-image.png",
   },
   {
     icon: Video,
-    name: "Video Generator",
-    desc: "Create and edit videos end-to-end with generative AI.",
-    badge: "New",
+    name: "Gerador de Vídeos",
+    desc: "Crie e edite vídeos de ponta a ponta com IA generativa.",
+    badge: "Novo",
     badgeNew: true,
     stat: "840K",
     href: "/dashboard/videos",
+    bg: "/hero/ai-video.png",
   },
   {
     icon: Music,
-    name: "Audio Generator",
-    desc: "Add sound, voice, and soundtrack to your project with AI.",
+    name: "Gerador de Áudio",
+    desc: "Adicione som, voz e trilha sonora ao seu projeto com IA.",
     badge: null,
     badgeNew: false,
     stat: "310K",
     href: "/dashboard/audio",
+    bg: "/hero/ai-sound.png",
   },
 ];
 
-const recentProjects = [
-  { name: "Summer Campaign", meta: "2 days ago", type: "Image", color: "#FF8800" },
-  { name: "Product X Reels", meta: "4 days ago", type: "Video", color: "#3dff7a" },
-  { name: "Podcast Soundtrack", meta: "1 wk ago", type: "Audio", color: "#FBBF24" },
-];
+const TYPE_COLOR: Record<string, string> = {
+  image: "#FBBF24",
+  video: "#3dff7a",
+  audio: "#a78bfa",
+};
 
-export default function DashboardPage() {
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "agora mesmo";
+  if (m < 60) return `${m}min atrás`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h atrás`;
+  return `${Math.floor(h / 24)}d atrás`;
+}
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Bom dia";
+  if (h < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data: recent } = user
+    ? await supabase
+        .from("generations")
+        .select("id, type, prompt, model, public_url, external_url, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(3)
+    : { data: [] };
+
+  const recentItems = recent ?? [];
+
   return (
     <>
       <Topbar title="Home" />
@@ -45,43 +81,60 @@ export default function DashboardPage() {
         {/* Hero */}
         <div className="mb-9">
           <h1 className="text-[32px] font-extrabold text-white tracking-tight mb-1.5">
-            Good morning, <span className="text-y">start creating!</span> ✦
+            {greeting()}, <span className="text-y">vamos criar!</span> ✦
           </h1>
           <p className="text-[14.5px] text-t3 mb-6">
-            What would you like to create today with VisionBrave?
+            O que você gostaria de criar hoje com o VisionBrave?
           </p>
-          <div
+          <Link
+            href="/dashboard/gallery"
             className="max-w-[720px] bg-card border border-b1 rounded-[13px] px-5 py-[15px] flex items-center gap-3.5 cursor-text hover:border-b2 transition-colors"
           >
             <svg className="w-4 h-4 text-t3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
             </svg>
-            <span className="flex-1 text-[14px] text-t4">Search projects, assets, and more</span>
+            <span className="flex-1 text-[14px] text-t4">Buscar projetos, arquivos e mais</span>
             <span className="text-[11.5px] text-t3 bg-card2 border border-b1 rounded-[6px] px-2 py-0.5 font-mono">
               Ctrl K
             </span>
-          </div>
+          </Link>
         </div>
 
         {/* Tools */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[17px] font-bold text-white tracking-tight">Tools</h2>
-          <span className="flex items-center gap-1 text-[13px] text-y font-medium cursor-pointer">
-            View all <ChevronRight size={13} />
-          </span>
+          <h2 className="text-[17px] font-bold text-white tracking-tight">Ferramentas</h2>
+          <Link href="/dashboard/gallery" className="flex items-center gap-1 text-[13px] text-y font-medium cursor-pointer hover:text-y/80 transition-colors">
+            Ver tudo <ChevronRight size={13} />
+          </Link>
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-9">
-          {tools.map(({ icon: Icon, name, desc, badge, badgeNew, stat, href }) => (
-            <a
+          {tools.map(({ icon: Icon, name, desc, badge, badgeNew, stat, href, bg }) => (
+            <Link
               key={name}
               href={href}
-              className="group bg-card border border-b1 rounded-2xl p-[22px] cursor-pointer relative overflow-hidden hover:border-[#FBBF2440] hover:bg-[#0F0B05] hover:-translate-y-0.5 transition-all block"
+              className="group bg-card border border-b1 rounded-2xl p-[22px] cursor-pointer relative overflow-hidden hover:border-[#FBBF2440] hover:-translate-y-0.5 transition-all block"
             >
+              {/* Background image */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={bg}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover opacity-25 group-hover:opacity-40 transition-opacity"
+              />
+              {/* Dark gradient overlay for readability */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(10,10,10,0.92) 0%, rgba(10,10,10,0.78) 55%, rgba(10,10,10,0.55) 100%)",
+                }}
+              />
               {/* Glow */}
               <div className="absolute -top-10 -right-10 w-[130px] h-[130px] rounded-full bg-[radial-gradient(circle,#FBBF2440,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity" />
 
-              <div className="flex items-start justify-between mb-[18px]">
+              <div className="relative flex items-start justify-between mb-[18px]">
                 <div className="w-[46px] h-[46px] bg-[#1a1408] border border-[#2a1f08] rounded-xl flex items-center justify-center">
                   <Icon size={21} className="text-y" />
                 </div>
@@ -98,62 +151,74 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              <div className="text-base font-bold text-white mb-1.5 tracking-tight">{name}</div>
-              <div className="text-[13px] text-t3 leading-[1.55]">{desc}</div>
+              <div className="relative text-base font-bold text-white mb-1.5 tracking-tight">{name}</div>
+              <div className="relative text-[13px] text-t3 leading-[1.55]">{desc}</div>
 
-              <div className="mt-[18px] pt-4 border-t border-b1 flex items-center justify-between">
+              <div className="relative mt-[18px] pt-4 border-t border-b1 flex items-center justify-between">
                 <span className="text-[12px] text-t3">
-                  Over <span className="text-[#d0d0d0] font-semibold">{stat}</span> creations
+                  Mais de <span className="text-[#d0d0d0] font-semibold">{stat}</span> criações
                 </span>
                 <div className="w-[30px] h-[30px] bg-card2 rounded-[8px] flex items-center justify-center group-hover:bg-y transition-colors">
                   <ChevronRight size={13} className="text-t2 group-hover:text-[#1a0e00] transition-colors" />
                 </div>
               </div>
-            </a>
+            </Link>
           ))}
         </div>
 
         {/* Recent Projects */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[17px] font-bold text-white tracking-tight">Recent Projects</h2>
-          <span className="flex items-center gap-1 text-[13px] text-y font-medium cursor-pointer">
-            View all <ChevronRight size={13} />
-          </span>
+          <h2 className="text-[17px] font-bold text-white tracking-tight">Projetos Recentes</h2>
+          <Link href="/dashboard/gallery" className="flex items-center gap-1 text-[13px] text-y font-medium cursor-pointer hover:text-y/80 transition-colors">
+            Ver tudo <ChevronRight size={13} />
+          </Link>
         </div>
 
         <div className="grid grid-cols-4 gap-3.5">
-          {recentProjects.map(({ name, meta, type, color }) => (
-            <div
-              key={name}
-              className="bg-card border border-b1 rounded-[14px] overflow-hidden cursor-pointer hover:border-[#FBBF2440] hover:-translate-y-0.5 transition-all"
-            >
-              <div
-                className="h-[110px] flex items-center justify-center"
-                style={{ background: `radial-gradient(ellipse at 50% 50%, ${color}33 0%, #050202 80%)` }}
+          {recentItems.map((item) => {
+            const color = TYPE_COLOR[item.type] ?? "#FBBF24";
+            const url = item.public_url ?? item.external_url;
+            return (
+              <Link
+                key={item.id}
+                href="/dashboard/gallery"
+                className="bg-card border border-b1 rounded-[14px] overflow-hidden cursor-pointer hover:border-[#FBBF2440] hover:-translate-y-0.5 transition-all block"
               >
                 <div
-                  className="w-12 h-12 rounded-full opacity-60"
-                  style={{ background: color }}
-                />
-              </div>
-              <div className="px-3.5 py-3">
-                <div className="text-[13.5px] font-semibold text-white mb-1">{name}</div>
-                <div className="text-[12px] text-t3 flex items-center gap-1.5">
-                  {meta}
-                  <span className="w-[3px] h-[3px] rounded-full bg-t4 inline-block" />
-                  {type}
+                  className="h-[110px] flex items-center justify-center overflow-hidden"
+                  style={{ background: `radial-gradient(ellipse at 50% 50%, ${color}33 0%, #050202 80%)` }}
+                >
+                  {item.type === "image" && url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={url} alt={item.prompt} className="w-full h-full object-cover" />
+                  ) : item.type === "video" && url ? (
+                    <video src={url} className="w-full h-full object-cover" muted playsInline />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full opacity-60" style={{ background: color }} />
+                  )}
                 </div>
-              </div>
-            </div>
-          ))}
+                <div className="px-3.5 py-3">
+                  <div className="text-[13.5px] font-semibold text-white mb-1 truncate">{item.prompt || "Sem título"}</div>
+                  <div className="text-[12px] text-t3 flex items-center gap-1.5">
+                    {timeAgo(item.created_at)}
+                    <span className="w-[3px] h-[3px] rounded-full bg-t4 inline-block" />
+                    <span className="capitalize">{item.type}</span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
 
           {/* New project */}
-          <div className="border-[1.5px] border-dashed border-b1 rounded-[14px] flex flex-col items-center justify-center gap-2.5 cursor-pointer min-h-[165px] group hover:border-[#FBBF2455] hover:bg-[#FBBF2408] transition-all">
-            <div className="w-[38px] h-[38px] bg-card border border-b1 rounded-full flex items-center justify-center group-hover:bg-[#1f1608] group-hover:border-y transition-all" style={{ boxShadow: undefined }}>
+          <Link
+            href="/dashboard/images"
+            className="border-[1.5px] border-dashed border-b1 rounded-[14px] flex flex-col items-center justify-center gap-2.5 cursor-pointer min-h-[165px] group hover:border-[#FBBF2455] hover:bg-[#FBBF2408] transition-all"
+          >
+            <div className="w-[38px] h-[38px] bg-card border border-b1 rounded-full flex items-center justify-center group-hover:bg-[#1f1608] group-hover:border-y transition-all">
               <Plus size={16} className="text-t3 group-hover:text-y transition-colors" />
             </div>
-            <span className="text-[13px] text-t3 group-hover:text-y transition-colors">New project</span>
-          </div>
+            <span className="text-[13px] text-t3 group-hover:text-y transition-colors">Novo projeto</span>
+          </Link>
         </div>
       </div>
     </>
