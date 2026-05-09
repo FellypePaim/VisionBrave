@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useState, useTransition } from "react";
 import { FoxIcon } from "@/components/FoxIcon";
-import { Eye, EyeOff, Image, Video, Music, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Image, Video, Music, Sparkles, Loader2 } from "lucide-react";
+import { signIn, signUp } from "./actions";
 
 const features = [
   { icon: Image, title: "AI Image Generation", sub: "Create stunning visuals" },
@@ -15,25 +15,31 @@ const features = [
 export default function LoginPage() {
   const [tab, setTab] = useState<"login" | "signup">("signup");
   const [showPass, setShowPass] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    const formData = new FormData(e.currentTarget);
+
+    startTransition(async () => {
+      const result = tab === "signup" ? await signUp(formData) : await signIn(formData);
+      if (result?.error) setError(result.error);
+    });
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-black">
       <div
         className="flex-1 m-6 grid overflow-hidden rounded-3xl"
-        style={{
-          gridTemplateColumns: "1fr 1fr",
-          background: "#0A0A0A",
-          border: "1px solid #1F1F1F",
-        }}
+        style={{ gridTemplateColumns: "1fr 1fr", background: "#0A0A0A", border: "1px solid #1F1F1F" }}
       >
         {/* Left - visual side */}
         <div
           className="relative flex flex-col p-8 overflow-hidden"
-          style={{
-            background: "radial-gradient(ellipse at 50% 50%, #1a1208 0%, #050202 60%, #000 100%)",
-          }}
+          style={{ background: "radial-gradient(ellipse at 50% 50%, #1a1208 0%, #050202 60%, #000 100%)" }}
         >
-          {/* Background tiger SVG */}
           <div className="absolute inset-0 z-0 opacity-30">
             <svg viewBox="0 0 600 800" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
               <defs>
@@ -42,7 +48,7 @@ export default function LoginPage() {
                   <stop offset="50%" stopColor="#FF8C00" />
                   <stop offset="100%" stopColor="#D4500A" />
                 </linearGradient>
-                <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="glow">
                   <feGaussianBlur stdDeviation="8" result="blur" />
                   <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
                 </filter>
@@ -68,30 +74,23 @@ export default function LoginPage() {
           </div>
 
           <div className="relative z-10 flex flex-col h-full">
-            {/* Logo */}
             <div className="flex items-center gap-2.5 mb-auto">
               <FoxIcon size={36} />
               <span className="text-[19px] font-bold text-white tracking-tight">VisionBrave</span>
             </div>
 
             <div className="mt-auto">
-              <div className="text-[12.5px] font-bold text-y tracking-[2px] uppercase mb-3.5">
-                AI Creative Studio
-              </div>
+              <div className="text-[12.5px] font-bold text-y tracking-[2px] uppercase mb-3.5">AI Creative Studio</div>
               <h2 className="text-[50px] font-bold text-white leading-[1.05] tracking-tight mb-4">
                 Create Without<br />Limits.
               </h2>
               <p className="text-[14.5px] leading-[1.6] text-[#999] max-w-[440px] mb-9">
                 Your all-in-one AI creative studio for generating stunning images, videos, and audio. Join 50,000+ creators worldwide.
               </p>
-
               <div className="grid grid-cols-2 gap-4 max-w-[440px]">
                 {features.map(({ icon: Icon, title, sub }) => (
                   <div key={title} className="flex items-center gap-3">
-                    <div
-                      className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center shrink-0"
-                      style={{ background: "#1a1408", border: "1px solid #2a1f08" }}
-                    >
+                    <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center shrink-0" style={{ background: "#1a1408", border: "1px solid #2a1f08" }}>
                       <Icon size={17} className="text-y" />
                     </div>
                     <div>
@@ -106,24 +105,15 @@ export default function LoginPage() {
         </div>
 
         {/* Right - form side */}
-        <div
-          className="flex flex-col items-center overflow-y-auto px-14 pt-14 pb-10"
-          style={{ background: "#0A0A0A" }}
-        >
+        <div className="flex flex-col items-center overflow-y-auto px-14 pt-14 pb-10" style={{ background: "#0A0A0A" }}>
           <div className="w-full max-w-[420px]">
             {/* Tabs */}
-            <div
-              className="flex bg-card border border-b1 rounded-xl p-1 mb-8"
-            >
+            <div className="flex bg-card border border-b1 rounded-xl p-1 mb-8">
               {(["signup", "login"] as const).map((t) => (
                 <button
                   key={t}
-                  onClick={() => setTab(t)}
-                  className={`flex-1 py-2.5 rounded-[9px] text-[13.5px] font-semibold transition-all ${
-                    tab === t
-                      ? "bg-y text-[#1a0e00]"
-                      : "text-t2 hover:text-white"
-                  }`}
+                  onClick={() => { setTab(t); setError(null); }}
+                  className={`flex-1 py-2.5 rounded-[9px] text-[13.5px] font-semibold transition-all ${tab === t ? "bg-y text-[#1a0e00]" : "text-t2 hover:text-white"}`}
                 >
                   {t === "signup" ? "Sign Up" : "Log In"}
                 </button>
@@ -134,9 +124,7 @@ export default function LoginPage() {
               {tab === "signup" ? "Create your account" : "Welcome back"}
             </h3>
             <p className="text-[14px] text-t3 mb-8">
-              {tab === "signup"
-                ? "Start creating with AI today. Free forever."
-                : "Sign in to continue creating."}
+              {tab === "signup" ? "Start creating with AI today. Free forever." : "Sign in to continue creating."}
             </p>
 
             {/* Google button */}
@@ -156,13 +144,15 @@ export default function LoginPage() {
               <div className="flex-1 h-px bg-b1" />
             </div>
 
-            <div className="flex flex-col gap-3.5">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
               {tab === "signup" && (
                 <div>
                   <label className="block text-[13px] font-medium text-[#c0c0c0] mb-2">Full Name</label>
                   <input
+                    name="name"
                     type="text"
                     placeholder="Your name"
+                    required
                     className="w-full bg-card border border-b1 rounded-[11px] px-4 py-3 text-[14px] text-white placeholder-t4 outline-none focus:border-[#3a3a3a] transition-colors"
                   />
                 </div>
@@ -171,8 +161,10 @@ export default function LoginPage() {
               <div>
                 <label className="block text-[13px] font-medium text-[#c0c0c0] mb-2">Email</label>
                 <input
+                  name="email"
                   type="email"
                   placeholder="you@email.com"
+                  required
                   className="w-full bg-card border border-b1 rounded-[11px] px-4 py-3 text-[14px] text-white placeholder-t4 outline-none focus:border-[#3a3a3a] transition-colors"
                 />
               </div>
@@ -181,14 +173,14 @@ export default function LoginPage() {
                 <label className="block text-[13px] font-medium text-[#c0c0c0] mb-2">Password</label>
                 <div className="relative">
                   <input
+                    name="password"
                     type={showPass ? "text" : "password"}
                     placeholder="Min. 8 characters"
+                    required
+                    minLength={8}
                     className="w-full bg-card border border-b1 rounded-[11px] px-4 py-3 text-[14px] text-white placeholder-t4 outline-none focus:border-[#3a3a3a] transition-colors pr-12"
                   />
-                  <button
-                    onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-t3 hover:text-t2 transition-colors"
-                  >
+                  <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-t3 hover:text-t2 transition-colors">
                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
@@ -200,20 +192,26 @@ export default function LoginPage() {
                 </div>
               )}
 
+              {error && (
+                <div className="text-[13px] text-red-400 bg-red-500/10 border border-red-500/20 rounded-[10px] px-4 py-2.5">
+                  {error}
+                </div>
+              )}
+
               <button
-                className="w-full rounded-[11px] py-3.5 text-[14.5px] font-bold text-[#1a0e00] mt-1.5 transition-colors"
+                type="submit"
+                disabled={isPending}
+                className="w-full rounded-[11px] py-3.5 text-[14.5px] font-bold text-[#1a0e00] mt-1.5 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
                 style={{ background: "#FBBF24", boxShadow: "0 4px 24px #FBBF2440" }}
               >
-                {tab === "signup" ? "Create Account" : "Sign In"}
+                {isPending && <Loader2 size={16} className="animate-spin" />}
+                {isPending ? "Please wait..." : tab === "signup" ? "Create Account" : "Sign In"}
               </button>
-            </div>
+            </form>
 
             <p className="text-[13px] text-t3 text-center mt-6">
               {tab === "signup" ? "Already have an account? " : "Don't have an account? "}
-              <button
-                onClick={() => setTab(tab === "signup" ? "login" : "signup")}
-                className="text-y hover:underline font-medium"
-              >
+              <button onClick={() => { setTab(tab === "signup" ? "login" : "signup"); setError(null); }} className="text-y hover:underline font-medium">
                 {tab === "signup" ? "Log In" : "Sign Up"}
               </button>
             </p>
