@@ -2,9 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "Mockups (static server)",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "mockups", "--listen", "3000", "--no-clipboard"],
+      "name": "VisionBrave",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
       "port": 3000
     }
   ]
