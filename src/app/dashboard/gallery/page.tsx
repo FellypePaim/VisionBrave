@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Topbar } from "@/components/layout/Topbar";
 import {
@@ -229,6 +229,14 @@ function Lightbox({
 const PAGE_SIZE = 24;
 
 export default function GalleryPage() {
+  return (
+    <Suspense fallback={<><Topbar title="Galeria" /><div className="flex-1" /></>}>
+      <GalleryPageInner />
+    </Suspense>
+  );
+}
+
+function GalleryPageInner() {
   const searchParams = useSearchParams();
   const initialId = searchParams.get("id");
   const [activeType, setActiveType] = useState<ItemType>("all");
