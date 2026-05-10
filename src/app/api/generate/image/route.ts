@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createImageTask, createFluxKontextTask } from "@/lib/kie/client";
 import { createClient } from "@/lib/supabase/server";
+import { calculateCost, debitCredits } from "@/lib/credits";
+import { rateLimit } from "@/lib/rate-limit";
 
 const STYLE_PREFIX: Record<string, string> = {
   Cinematic:  "cinematic photography, dramatic lighting, ",
@@ -16,6 +18,15 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Rate limit: 30 gerações de imagem por minuto por usuário
+  const rl = rateLimit(`gen:img:${user.id}`, 30, 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Muitas requisições. Aguarde um momento." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetIn / 1000)) } },
+    );
+  }
 
   const body = await req.json();
   const {
@@ -34,7 +45,27 @@ export async function POST(req: NextRequest) {
   } = body;
 
   if (!prompt?.trim()) {
-    return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
+    return NextResponse.json({ error: "Prompt é obrigatório" }, { status: 400 });
+  }
+
+  // Débito de créditos antes de criar a task
+  const cost = calculateCost(model, { count });
+  try {
+    await debitCredits(
+      supabase,
+      cost,
+      `Geração de ${count} imagem${count > 1 ? "ns" : ""} (${model})`,
+      undefined,
+      { model, count, style, aspectRatio },
+    );
+  } catch (e) {
+    if ((e as Error).message === "insufficient_credits") {
+      return NextResponse.json(
+        { error: `Créditos insuficientes. Esta geração custa ${cost} créditos.` },
+        { status: 402 },
+      );
+    }
+    return NextResponse.json({ error: "Erro ao debitar créditos" }, { status: 500 });
   }
 
   const fullPrompt = style && STYLE_PREFIX[style]

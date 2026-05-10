@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Bell, Settings, LogOut, User, X, ChevronRight } from "lucide-react";
+import { Search, Bell, Settings, LogOut, User, X, ChevronRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -24,6 +24,7 @@ export function Topbar({ title }: TopbarProps) {
   const [notifOpen, setNotifOpen]     = useState(false);
   const [userEmail, setUserEmail]     = useState<string | null>(null);
   const [userName, setUserName]       = useState<string | null>(null);
+  const [credits, setCredits]         = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef   = useRef<HTMLDivElement>(null);
   const notifRef    = useRef<HTMLDivElement>(null);
@@ -38,6 +39,27 @@ export function Topbar({ title }: TopbarProps) {
         setUserName(user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? null);
       }
     });
+    // Fetch credits balance
+    fetch("/api/credits")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data?.credits) setCredits(data.credits.balance); })
+      .catch(() => {});
+  }, []);
+
+  // Refresh credits when window regains focus (catches credit updates after geração)
+  useEffect(() => {
+    function refresh() {
+      fetch("/api/credits")
+        .then((r) => r.ok ? r.json() : null)
+        .then((data) => { if (data?.credits) setCredits(data.credits.balance); })
+        .catch(() => {});
+    }
+    window.addEventListener("focus", refresh);
+    const interval = setInterval(refresh, 30_000); // a cada 30s
+    return () => {
+      window.removeEventListener("focus", refresh);
+      clearInterval(interval);
+    };
   }, []);
 
   // Close dropdowns on outside click
@@ -87,6 +109,17 @@ export function Topbar({ title }: TopbarProps) {
     >
       <span className="text-[22px] font-bold text-white tracking-tight">{title}</span>
       <div className="flex-1" />
+
+      {/* Credits balance */}
+      <Link
+        href="/dashboard/billing"
+        className="flex items-center gap-2 px-3 h-9 bg-card border border-b1 rounded-[9px] text-[13px] font-semibold text-y hover:border-y/50 transition-colors"
+        title="Saldo de créditos"
+      >
+        <Sparkles size={14} fill="currentColor" />
+        {credits !== null ? credits.toLocaleString("pt-BR") : "—"}
+        <span className="text-t3 text-[11.5px] font-normal">VBC</span>
+      </Link>
 
       {/* Search */}
       <div className="relative" ref={searchRef}>
@@ -162,7 +195,7 @@ export function Topbar({ title }: TopbarProps) {
 
       {/* Settings */}
       <Link
-        href="/dashboard"
+        href="/dashboard/settings"
         className="w-9 h-9 bg-card border border-b1 rounded-[9px] flex items-center justify-center text-t2 hover:text-white hover:border-b2 transition-colors"
         title="Configurações"
       >
@@ -191,7 +224,7 @@ export function Topbar({ title }: TopbarProps) {
 
             <div className="py-1">
               <Link
-                href="/dashboard"
+                href="/dashboard/settings"
                 onClick={() => setDropdownOpen(false)}
                 className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-t2 hover:text-white hover:bg-white/5 transition-colors"
               >
@@ -199,7 +232,7 @@ export function Topbar({ title }: TopbarProps) {
                 Perfil
               </Link>
               <Link
-                href="/dashboard"
+                href="/dashboard/settings"
                 onClick={() => setDropdownOpen(false)}
                 className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-t2 hover:text-white hover:bg-white/5 transition-colors"
               >

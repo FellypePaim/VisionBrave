@@ -81,6 +81,15 @@ export default function GenerateImagesPage() {
     };
   }, []);
 
+  // Load prompt from template (set by /dashboard/templates)
+  useEffect(() => {
+    const tpl = sessionStorage.getItem("template:prompt");
+    if (tpl) {
+      setPrompt(tpl);
+      sessionStorage.removeItem("template:prompt");
+    }
+  }, []);
+
   const promptRef = useRef(prompt);
   const modelRef = useRef(activeModel);
   promptRef.current = prompt;

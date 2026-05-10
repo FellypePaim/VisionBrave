@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
-  Home, Image, Video, Music, LayoutGrid,
+  Home, Image, Video, Music, LayoutGrid, Sparkles, CreditCard,
   MessageSquare, Star, Archive, Zap, Search, ChevronUp, LogOut,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -15,6 +15,8 @@ const navMain = [
   { href: "/dashboard/videos", icon: Video, label: "Vídeos" },
   { href: "/dashboard/audio", icon: Music, label: "Áudio" },
   { href: "/dashboard/gallery", icon: LayoutGrid, label: "Galeria" },
+  { href: "/dashboard/templates", icon: Sparkles, label: "Templates" },
+  { href: "/dashboard/billing", icon: CreditCard, label: "Cobrança" },
 ];
 
 const navChat = [
@@ -54,8 +56,8 @@ export function Sidebar() {
 
   return (
     <aside
-      style={{ width: 232, minWidth: 232, background: "#0A0A0A" }}
-      className="border-r border-b1 flex flex-col py-4 overflow-y-auto shrink-0 relative"
+      style={{ background: "#0A0A0A" }}
+      className="hidden lg:flex border-r border-b1 flex-col py-4 overflow-y-auto shrink-0 relative w-[232px] min-w-[232px]"
     >
       {/* Toast */}
       {toast && (
