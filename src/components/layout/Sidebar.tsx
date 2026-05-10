@@ -7,7 +7,6 @@ import {
   Home, Image, Video, Music, LayoutGrid,
   MessageSquare, Star, Archive, Zap, Search, ChevronUp, LogOut,
 } from "lucide-react";
-import { FoxIcon } from "@/components/FoxIcon";
 import { createClient } from "@/lib/supabase/client";
 
 const navMain = [
@@ -66,9 +65,9 @@ export function Sidebar() {
       )}
 
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-[18px] pb-4 border-b border-b1 mb-3">
-        <FoxIcon size={32} />
-        <span className="text-base font-bold text-white tracking-tight">VisionBrave</span>
+      <div className="flex items-center justify-center px-[18px] pb-4 border-b border-b1 mb-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/hero/logo-no-bg.png" alt="VisionBrave" className="h-20 w-auto object-contain" />
       </div>
 
       {/* Search */}

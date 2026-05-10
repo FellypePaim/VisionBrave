@@ -66,9 +66,9 @@ export default function LandingPage() {
           className="flex items-center gap-4 px-5 py-3.5 rounded-[18px] mb-4"
           style={{ background: "#0A0A0A", border: "1px solid #1F1F1F" }}
         >
-          <div className="flex items-center gap-2.5 mr-5">
-            <FoxIcon size={32} />
-            <span className="text-[18px] font-bold text-white tracking-tight">VisionBrave</span>
+          <div className="flex items-center mr-5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/hero/logo-no-bg.png" alt="VisionBrave" className="h-12 w-auto object-contain" />
           </div>
 
           <div className="flex items-center gap-1 flex-1">
@@ -105,21 +105,28 @@ export default function LandingPage() {
           className="rounded-[22px] px-14 py-12 relative overflow-hidden mb-4"
           style={{ background: "#0A0A0A", border: "1px solid #1F1F1F" }}
         >
-          <div className="grid gap-12 items-center" style={{ gridTemplateColumns: "1.05fr 1fr" }}>
-            {/* Tiger image */}
+          <div className="grid gap-8 items-center relative" style={{ gridTemplateColumns: "1.15fr 1fr" }}>
+            {/* Tiger image - bleeds into hero background */}
             <div
-              className="relative rounded-[18px] overflow-hidden"
+              className="relative -ml-14 -my-6"
               style={{
-                aspectRatio: "1/1",
-                maxWidth: 540,
-                background: "radial-gradient(ellipse at 50% 60%, #1a1208 0%, #050202 80%)",
+                aspectRatio: "16/10",
+                maxWidth: 720,
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/hero/cyber-tiger.png"
+                src="/hero/cyber-tiger-fundo.png"
                 alt="Cyberfang Tiger"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover saturate-[.95] contrast-105"
+                style={{
+                  maskImage:
+                    "linear-gradient(to right, transparent 0%, black 12%, black 60%, rgba(0,0,0,0.55) 80%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 8%, black 88%, transparent 100%)",
+                  WebkitMaskImage:
+                    "linear-gradient(to right, transparent 0%, black 12%, black 60%, rgba(0,0,0,0.55) 80%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 8%, black 88%, transparent 100%)",
+                  maskComposite: "intersect",
+                  WebkitMaskComposite: "source-in",
+                }}
               />
 
               {/* Badge */}
@@ -224,12 +231,21 @@ export default function LandingPage() {
               <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-y mb-4 group-hover:gap-3 transition-all">
                 {link} <ChevronRight size={12} />
               </span>
-              <div className="mt-auto -mx-5 h-[120px] overflow-hidden">
+              <div className="mt-auto -mx-5 h-[120px] overflow-hidden relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={image}
                   alt={title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover saturate-[.55] brightness-90 contrast-110 group-hover:saturate-75 group-hover:brightness-100 group-hover:scale-105 transition-all duration-500"
+                />
+                {/* Gold tint + vignette */}
+                <div
+                  className="absolute inset-0 pointer-events-none transition-opacity group-hover:opacity-40"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(251,191,36,0.22) 0%, rgba(251,191,36,0.06) 50%, transparent 100%), linear-gradient(180deg, rgba(10,10,10,0.55) 0%, transparent 40%)",
+                    opacity: 0.85,
+                  }}
                 />
               </div>
             </Link>

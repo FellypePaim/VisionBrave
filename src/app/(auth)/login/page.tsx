@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { FoxIcon } from "@/components/FoxIcon";
 import {
   Eye, EyeOff, Image as ImageIcon, Video, Box, Scissors,
   Loader2, X, Sparkles, Mail, Lock, User, Check,
@@ -72,28 +71,46 @@ export default function LoginPage() {
         style={{ gridTemplateColumns: "1fr 1fr", background: "#0A0A0A", border: "1px solid #1F1F1F" }}
       >
         {/* ───── LEFT: visual ───── */}
-        <div className="relative flex flex-col p-10 overflow-hidden">
-          {/* Wolf background */}
-          <div className="absolute inset-0 z-0">
+        <div className="relative flex flex-col p-10">
+          {/* Wolf background — bleeds into panel without box edge */}
+          <div
+            className="absolute z-0 pointer-events-none"
+            style={{
+              top: "0%",
+              left: "0%",
+              right: "-12%",
+              bottom: "0%",
+            }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/hero/cyber-wolf.png"
               alt="Cyber Wolf"
-              className="w-full h-full object-cover"
-            />
-            <div
-              className="absolute inset-0"
+              className="w-full h-full object-cover saturate-[1.05] contrast-105"
               style={{
-                background:
-                  "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.92) 100%)",
+                objectPosition: "52% center",
+                maskImage:
+                  "linear-gradient(to right, black 0%, black 60%, rgba(0,0,0,0.55) 82%, transparent 100%), linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 4%, black 10%, black 90%, rgba(0,0,0,0.4) 96%, transparent 100%)",
+                WebkitMaskImage:
+                  "linear-gradient(to right, black 0%, black 60%, rgba(0,0,0,0.55) 82%, transparent 100%), linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 4%, black 10%, black 90%, rgba(0,0,0,0.4) 96%, transparent 100%)",
+                maskComposite: "intersect",
+                WebkitMaskComposite: "source-in",
               }}
             />
           </div>
+          {/* Soft bridge overlay — softens any panel boundary line */}
+          <div
+            className="absolute inset-0 z-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(ellipse 60% 100% at 100% 50%, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.4) 40%, transparent 70%)",
+            }}
+          />
 
           {/* Top: Logo */}
-          <div className="relative z-10 flex items-center gap-2.5">
-            <FoxIcon size={36} />
-            <span className="text-[20px] font-bold text-white tracking-tight">VisionBrave</span>
+          <div className="relative z-10 flex items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/hero/logo-no-bg.png" alt="VisionBrave" className="h-32 w-auto object-contain" />
           </div>
 
           {/* Bottom: Content */}
@@ -138,7 +155,7 @@ export default function LoginPage() {
 
         {/* ───── RIGHT: form ───── */}
         <div
-          className="flex flex-col items-center overflow-y-auto px-12 pt-10 pb-8"
+          className="relative flex flex-col items-center overflow-y-auto px-12 pt-10 pb-8"
           style={{ background: "#0A0A0A" }}
         >
           <div className="w-full max-w-[440px]">

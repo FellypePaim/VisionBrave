@@ -121,14 +121,22 @@ export default async function DashboardPage() {
                 src={bg}
                 alt=""
                 aria-hidden="true"
-                className="absolute inset-0 w-full h-full object-cover opacity-25 group-hover:opacity-40 transition-opacity"
+                className="absolute inset-0 w-full h-full object-cover opacity-30 saturate-[.5] brightness-95 contrast-110 group-hover:opacity-50 group-hover:saturate-75 transition-all duration-500"
+              />
+              {/* Gold tint */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(251,191,36,0.04) 50%, transparent 100%)",
+                }}
               />
               {/* Dark gradient overlay for readability */}
               <div
                 className="absolute inset-0"
                 style={{
                   background:
-                    "linear-gradient(135deg, rgba(10,10,10,0.92) 0%, rgba(10,10,10,0.78) 55%, rgba(10,10,10,0.55) 100%)",
+                    "linear-gradient(135deg, rgba(10,10,10,0.88) 0%, rgba(10,10,10,0.72) 55%, rgba(10,10,10,0.45) 100%)",
                 }}
               />
               {/* Glow */}
