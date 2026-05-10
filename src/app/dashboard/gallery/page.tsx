@@ -27,6 +27,12 @@ const TYPE_TABS: { key: ItemType; label: string; icon: React.ElementType }[] = [
   { key: "audio", label: "Áudio",   icon: Music },
 ];
 
+const TYPE_LABEL_PT: Record<string, string> = {
+  image: "Imagem",
+  video: "Vídeo",
+  audio: "Áudio",
+};
+
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
@@ -160,11 +166,11 @@ function Lightbox({
           </button>
 
           {/* Type badge */}
-          <span className="inline-flex self-start items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-card border border-b1 text-t2 capitalize mb-3">
+          <span className="inline-flex self-start items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-card border border-b1 text-t2 mb-3">
             {item.type === "image" && <Image size={10} />}
             {item.type === "video" && <Video size={10} />}
             {item.type === "audio" && <Music size={10} />}
-            {item.type}
+            {TYPE_LABEL_PT[item.type] ?? item.type}
           </span>
 
           <p className="text-[13px] font-semibold text-white leading-[1.5] mb-3">{item.prompt}</p>
@@ -245,15 +251,24 @@ export default function GalleryPage() {
   useEffect(() => { fetchItems(true); }, [activeType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleDelete(id: string) {
+    if (!window.confirm("Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.")) {
+      return;
+    }
     setDeletingId(id);
+    const previous = items;
+    setItems((prev) => prev.filter((i) => i.id !== id));
+    if (lightboxItem?.id === id) setLightboxItem(null);
     try {
-      await fetch("/api/gallery", {
+      const res = await fetch("/api/gallery", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
-      setItems((prev) => prev.filter((i) => i.id !== id));
-      if (lightboxItem?.id === id) setLightboxItem(null);
+      if (!res.ok) throw new Error("delete failed");
+    } catch {
+      // Restore on failure
+      setItems(previous);
+      alert("Falha ao excluir. Tente novamente.");
     } finally {
       setDeletingId(null);
     }
@@ -268,7 +283,7 @@ export default function GalleryPage() {
 
   return (
     <>
-      <Topbar title="Gallery" />
+      <Topbar title="Galeria" />
 
       {/* Lightbox */}
       {lightboxItem && (
@@ -322,7 +337,7 @@ export default function GalleryPage() {
                 <LayoutGrid size={24} className="text-t4" />
               </div>
               <div>
-                <p className="text-[14px] font-semibold text-[#d0d0d0] mb-1">Nenhum {activeType === "all" ? "item" : activeType === "image" ? "imagem" : activeType === "video" ? "vídeo" : "áudio"} ainda</p>
+                <p className="text-[14px] font-semibold text-[#d0d0d0] mb-1">{activeType === "image" ? "Nenhuma imagem" : activeType === "video" ? "Nenhum vídeo" : activeType === "audio" ? "Nenhum áudio" : "Nenhum item"} ainda</p>
                 <p className="text-[12.5px] text-t3">Gere algo e ele aparecerá aqui automaticamente</p>
               </div>
             </div>
@@ -397,8 +412,8 @@ export default function GalleryPage() {
 
                   {/* Type badge */}
                   <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-white/70 capitalize">
-                      {item.type}
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-white/70">
+                      {TYPE_LABEL_PT[item.type] ?? item.type}
                     </span>
                   </div>
                 </div>

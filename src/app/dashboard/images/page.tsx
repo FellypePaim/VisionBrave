@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Topbar } from "@/components/layout/Topbar";
 import {
   Wand2, Download, RefreshCw, Crop, Layers, Sparkles,
@@ -8,7 +8,19 @@ import {
   ImagePlus, X, Ratio,
 } from "lucide-react";
 
-const TAGS = ["All", "Realistic", "Cinematic", "Anime", "3D Render", "Oil Paint", "Sketch", "Neon"];
+const TAGS = ["Todos", "Realista", "Cinemático", "Anime", "Render 3D", "Pintura a Óleo", "Esboço", "Neon"];
+
+// Mapeia o nome do estilo PT-BR (UI) → key em inglês (API)
+const TAG_TO_STYLE: Record<string, string | undefined> = {
+  "Todos": undefined,
+  "Realista": "Realistic",
+  "Cinemático": "Cinematic",
+  "Anime": "Anime",
+  "Render 3D": "3D Render",
+  "Pintura a Óleo": "Oil Paint",
+  "Esboço": "Sketch",
+  "Neon": "Neon",
+};
 const COUNTS = [1, 2, 3, 4];
 const MODELS = ["Nano Banana", "Flux Kontext", "GPT Image 2", "Flux Pro"];
 
@@ -37,7 +49,7 @@ async function uploadReferenceFile(file: File): Promise<string | null> {
 }
 
 export default function GenerateImagesPage() {
-  const [activeTag, setActiveTag] = useState("Cinematic");
+  const [activeTag, setActiveTag] = useState("Cinemático");
   const [activeCount, setActiveCount] = useState(1);
   const [activeModel, setActiveModel] = useState("Nano Banana");
   const [prompt, setPrompt] = useState("");
@@ -60,6 +72,15 @@ export default function GenerateImagesPage() {
   const nanoFileRef = useRef<HTMLInputElement>(null);
 
   const pollingRef = useRef<NodeJS.Timeout[]>([]);
+
+  // Cleanup polling timers on unmount
+  useEffect(() => {
+    return () => {
+      pollingRef.current.forEach(clearInterval);
+      pollingRef.current = [];
+    };
+  }, []);
+
   const promptRef = useRef(prompt);
   const modelRef = useRef(activeModel);
   promptRef.current = prompt;
@@ -98,7 +119,7 @@ export default function GenerateImagesPage() {
       } catch {
         clearInterval(interval);
         setImages((prev) => prev.map((img, i) =>
-          i === index ? { ...img, state: "fail", error: "Network error" } : img
+          i === index ? { ...img, state: "fail", error: "Erro de rede" } : img
         ));
       }
     }, 3000);
@@ -170,7 +191,7 @@ export default function GenerateImagesPage() {
         body: JSON.stringify({
           prompt,
           model: activeModel,
-          style: activeTag !== "All" ? activeTag : undefined,
+          style: TAG_TO_STYLE[activeTag],
           count: activeCount,
           detailLevel,
           aspectRatio: aspectRatio === "auto" ? undefined : aspectRatio,
@@ -185,7 +206,7 @@ export default function GenerateImagesPage() {
 
       const data = await res.json();
       if (!res.ok || !data.taskIds) {
-        setError(data.error ?? "Failed to start generation");
+        setError(data.error ?? "Falha ao iniciar geração");
         return;
       }
 
@@ -195,7 +216,7 @@ export default function GenerateImagesPage() {
       setImages(initial);
       initial.forEach((img, i) => pollTask(img.taskId, i));
     } catch {
-      setError("Network error. Please try again.");
+      setError("Erro de rede. Tente novamente.");
     } finally {
       setIsGenerating(false);
     }
@@ -282,7 +303,7 @@ export default function GenerateImagesPage() {
                     ) : img.state === "fail" ? (
                       <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-red-400 p-4">
                         <AlertCircle size={28} />
-                        <p className="text-[12px] text-center">{img.error ?? "Failed"}</p>
+                        <p className="text-[12px] text-center">{img.error ?? "Falhou"}</p>
                       </div>
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center gap-3">
@@ -340,6 +361,7 @@ export default function GenerateImagesPage() {
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Descreva sua imagem em detalhes..."
               rows={4}
+              maxLength={500}
               className="w-full bg-transparent text-[12.5px] leading-[1.6] text-[#c0c0c0] placeholder-t4 outline-none resize-none mb-3"
             />
             <div className="flex items-center justify-between">
@@ -349,7 +371,7 @@ export default function GenerateImagesPage() {
                 disabled={isEnhancing || !prompt.trim()}
                 className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center cursor-pointer text-y disabled:opacity-50"
                 style={{ background: "#1a1208", border: "1px solid #2a1f08" }}
-                title="Enhance prompt"
+                title="Aprimorar prompt"
               >
                 {isEnhancing ? <Loader2 size={13} className="animate-spin" /> : <Wand2 size={13} />}
               </button>
@@ -500,6 +522,7 @@ export default function GenerateImagesPage() {
           {/* Effects */}
           <div
             onClick={() => showToast("Efeitos em breve")}
+            role="button"
             className="bg-card border border-b1 rounded-[11px] flex items-center px-3.5 py-3 mb-3 cursor-pointer hover:border-b2 transition-colors"
           >
             <div className="w-8 h-8 bg-card2 border border-b1 rounded-[8px] mr-2.5 shrink-0 flex items-center justify-center">
@@ -509,7 +532,7 @@ export default function GenerateImagesPage() {
             <span className="text-[12.5px] text-t2 mr-2">Nenhum</span>
             <ChevronRight size={13} className="text-t3" />
             <button
-              onClick={(e) => { e.stopPropagation(); showToast("Effects coming soon"); }}
+              onClick={(e) => { e.stopPropagation(); showToast("Efeitos em breve"); }}
               className="w-6 h-6 rounded-[6px] flex items-center justify-center ml-1.5 text-y"
               style={{ background: "#1a1208", border: "1px solid #2a1f08" }}
             >

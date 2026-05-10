@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Topbar } from "@/components/layout/Topbar";
 import {
   Wand2, Download, RefreshCw, Sparkles, Sliders, Zap, Loader2,
@@ -10,16 +10,26 @@ import {
 
 const MODELS = [
   { id: "Seedance 2",      label: "Seedance 2",      badge: "Popular" },
-  { id: "Seedance 2 Fast", label: "Seedance 2 Fast",  badge: "Fast" },
+  { id: "Seedance 2 Fast", label: "Seedance 2 Fast",  badge: "Rápido" },
   { id: "Veo 3 Fast",      label: "Veo 3 Fast",       badge: null },
-  { id: "Veo 3",           label: "Veo 3",            badge: "Quality" },
-  { id: "Kling 2.1",       label: "Kling 2.1",        badge: "Img→Vid" },
-  { id: "Kling 3.0",       label: "Kling 3.0",        badge: "New" },
+  { id: "Veo 3",           label: "Veo 3",            badge: "Qualidade" },
+  { id: "Kling 2.1",       label: "Kling 2.1",        badge: "Img→Vídeo" },
+  { id: "Kling 3.0",       label: "Kling 3.0",        badge: "Novo" },
 ];
 
 const RATIOS = ["16:9", "9:16", "1:1", "4:3"];
 const VEO_RATIOS = ["16:9", "9:16"];
-const STYLE_OPTIONS = ["Cinematic", "Realistic", "Anime", "3D Render", "Vintage", "Neon"];
+const STYLE_OPTIONS = ["Cinemático", "Realista", "Anime", "Render 3D", "Vintage", "Neon"];
+
+// UI label PT-BR → key da API (em inglês)
+const VIDEO_STYLE_TO_API: Record<string, string> = {
+  "Cinemático": "Cinematic",
+  "Realista": "Realistic",
+  "Anime": "Anime",
+  "Render 3D": "3D Render",
+  "Vintage": "Vintage",
+  "Neon": "Neon",
+};
 
 const RESOLUTIONS: Record<string, string[]> = {
   "Seedance 2":      ["480p", "720p", "1080p"],
@@ -67,7 +77,7 @@ export default function GenerateVideosPage() {
   const [activeModel, setActiveModel] = useState("Seedance 2");
   const [activeRatio, setActiveRatio] = useState("16:9");
   const [activeDuration, setActiveDuration] = useState(5);
-  const [activeStyle, setActiveStyle] = useState("Cinematic");
+  const [activeStyle, setActiveStyle] = useState("Cinemático");
   const [motionIntensity, setMotionIntensity] = useState(60);
   const [resolution, setResolution] = useState("720p");
   const [prompt, setPrompt] = useState("");
@@ -107,6 +117,14 @@ export default function GenerateVideosPage() {
   const veoInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup polling timer on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
+
   const promptRef = useRef(prompt);
   const modelRef = useRef(activeModel);
   promptRef.current = prompt;
@@ -138,7 +156,7 @@ export default function GenerateVideosPage() {
         }
       } catch {
         clearInterval(interval);
-        setVideo({ taskId, state: "fail", error: "Network error" });
+        setVideo({ taskId, state: "fail", error: "Erro de rede" });
       }
     }, 5000);
     pollingRef.current = interval;
@@ -172,7 +190,7 @@ export default function GenerateVideosPage() {
     setIsUploadingFirst(true);
     const url = await uploadReferenceFile(file);
     if (url) setFirstFrameUrl(url);
-    else showToast("Upload failed");
+    else showToast("Falha no upload");
     setIsUploadingFirst(false);
     if (e.target) e.target.value = "";
   }
@@ -183,7 +201,7 @@ export default function GenerateVideosPage() {
     setIsUploadingLast(true);
     const url = await uploadReferenceFile(file);
     if (url) setLastFrameUrl(url);
-    else showToast("Upload failed");
+    else showToast("Falha no upload");
     setIsUploadingLast(false);
     if (e.target) e.target.value = "";
   }
@@ -194,7 +212,7 @@ export default function GenerateVideosPage() {
     setIsUploadingRef(true);
     const url = await uploadReferenceFile(file);
     if (url) setRefImageUrls((prev) => [...prev, url]);
-    else showToast("Upload failed");
+    else showToast("Falha no upload");
     setIsUploadingRef(false);
     if (e.target) e.target.value = "";
   }
@@ -205,7 +223,7 @@ export default function GenerateVideosPage() {
     setIsUploadingVeo((prev) => prev.map((v, i) => (i === index ? true : v)));
     const url = await uploadReferenceFile(file);
     if (url) setVeoImageUrls((prev) => prev.map((v, i) => (i === index ? url : v)));
-    else showToast("Upload failed");
+    else showToast("Falha no upload");
     setIsUploadingVeo((prev) => prev.map((v, i) => (i === index ? false : v)));
     if (e.target) e.target.value = "";
   }
@@ -248,7 +266,7 @@ export default function GenerateVideosPage() {
           model: activeModel,
           aspect_ratio: activeRatio,
           duration: activeDuration,
-          style: activeStyle,
+          style: VIDEO_STYLE_TO_API[activeStyle] ?? activeStyle,
           motionIntensity,
           // Seedance
           firstFrameUrl: firstFrameUrl || undefined,
@@ -273,14 +291,14 @@ export default function GenerateVideosPage() {
 
       const data = await res.json();
       if (!res.ok || !data.taskId) {
-        setError(data.error ?? "Failed to start generation");
+        setError(data.error ?? "Falha ao iniciar geração");
         return;
       }
 
       setVideo({ taskId: data.taskId, state: "waiting" });
       pollTask(data.taskId);
     } catch {
-      setError("Network error. Please try again.");
+      setError("Erro de rede. Tente novamente.");
     } finally {
       setIsGenerating(false);
     }
@@ -373,7 +391,7 @@ export default function GenerateVideosPage() {
             ) : video.state === "fail" ? (
               <div className="flex flex-col items-center gap-3 text-red-400">
                 <AlertCircle size={32} />
-                <p className="text-[13px]">{video.error ?? "Generation failed"}</p>
+                <p className="text-[13px]">{video.error ?? "Falha na geração"}</p>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-4">
@@ -424,6 +442,7 @@ export default function GenerateVideosPage() {
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Descreva o vídeo que você quer gerar..."
               rows={4}
+              maxLength={500}
               className="w-full bg-transparent text-[12.5px] leading-[1.6] text-[#c0c0c0] placeholder-t4 outline-none resize-none mb-3"
             />
             <div className="flex items-center justify-between">
@@ -433,7 +452,7 @@ export default function GenerateVideosPage() {
                 disabled={isEnhancing || !prompt.trim()}
                 className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center cursor-pointer text-y disabled:opacity-50"
                 style={{ background: "#1a1208", border: "1px solid #2a1f08" }}
-                title="Enhance prompt"
+                title="Aprimorar prompt"
               >
                 {isEnhancing ? <Loader2 size={13} className="animate-spin" /> : <Wand2 size={13} />}
               </button>
@@ -754,7 +773,7 @@ export default function GenerateVideosPage() {
                   <div className="w-8 h-8 rounded-[8px] shrink-0 flex items-center justify-center text-base" style={{ background: "linear-gradient(135deg, #5a3520, #2a1410)" }}>
                     🎬
                   </div>
-                  <span className="flex-1 text-[13px] font-semibold text-[#d8d8d8]">Style</span>
+                  <span className="flex-1 text-[13px] font-semibold text-[#d8d8d8]">Estilo</span>
                 </div>
                 <div className="grid grid-cols-3 gap-1.5">
                   {STYLE_OPTIONS.map((s) => (

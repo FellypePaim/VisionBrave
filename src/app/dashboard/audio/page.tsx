@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Topbar } from "@/components/layout/Topbar";
 import {
   Wand2, Download, Zap, Loader2, AlertCircle,
@@ -49,6 +49,14 @@ export default function GenerateAudioPage() {
   const [isEnhancing, setIsEnhancing] = useState(false);
   const audioRefs = useRef<Record<string, HTMLAudioElement>>({});
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup polling timer on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
+
   const promptRef = useRef(prompt);
   const modelRef = useRef(activeModel);
   promptRef.current = prompt;
@@ -85,12 +93,12 @@ export default function GenerateAudioPage() {
           setGenStatus("partial");
         } else if (data.status === "FAILED") {
           clearInterval(interval);
-          setError(data.error ?? "Generation failed");
+          setError(data.error ?? "Falha na geração");
           setGenStatus("failed");
         }
       } catch {
         clearInterval(interval);
-        setError("Network error");
+        setError("Erro de rede");
         setGenStatus("failed");
       }
     }, 5000);
@@ -142,14 +150,14 @@ export default function GenerateAudioPage() {
 
       const data = await res.json();
       if (!res.ok || !data.taskId) {
-        setError(data.error ?? "Failed to start generation");
+        setError(data.error ?? "Falha ao iniciar geração");
         setGenStatus("failed");
         return;
       }
 
       pollTask(data.taskId);
     } catch {
-      setError("Network error. Please try again.");
+      setError("Erro de rede. Tente novamente.");
       setGenStatus("failed");
     }
   }
@@ -182,7 +190,7 @@ export default function GenerateAudioPage() {
 
   return (
     <>
-      <Topbar title="Generate Audio" />
+      <Topbar title="Gerar Áudio" />
 
       <div className="flex flex-1 overflow-hidden">
         {/* Center */}
@@ -215,7 +223,7 @@ export default function GenerateAudioPage() {
             {genStatus === "failed" && (
               <div className="h-full flex flex-col items-center justify-center gap-3 text-red-400">
                 <AlertCircle size={32} />
-                <p className="text-[13px]">{error ?? "Generation failed"}</p>
+                <p className="text-[13px]">{error ?? "Falha na geração"}</p>
               </div>
             )}
 
@@ -315,6 +323,7 @@ export default function GenerateAudioPage() {
                 ? "Escreva a letra da sua música aqui..."
                 : "Uma balada melancólica de piano sobre sentir falta de alguém à noite..."}
               rows={5}
+              maxLength={3000}
               className="w-full bg-transparent text-[12.5px] leading-[1.6] text-[#c0c0c0] placeholder-t4 outline-none resize-none mb-3"
             />
             <div className="flex items-center justify-between">
@@ -324,7 +333,7 @@ export default function GenerateAudioPage() {
                 disabled={isEnhancing || !prompt.trim()}
                 className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center cursor-pointer text-y disabled:opacity-50"
                 style={{ background: "#1a1208", border: "1px solid #2a1f08" }}
-                title="Enhance prompt"
+                title="Aprimorar prompt"
               >
                 {isEnhancing ? <Loader2 size={13} className="animate-spin" /> : <Wand2 size={13} />}
               </button>

@@ -42,6 +42,12 @@ const TYPE_COLOR: Record<string, string> = {
   audio: "#a78bfa",
 };
 
+const TYPE_LABEL_PT: Record<string, string> = {
+  image: "Imagem",
+  video: "Vídeo",
+  audio: "Áudio",
+};
+
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
@@ -210,7 +216,7 @@ export default async function DashboardPage() {
                   <div className="text-[12px] text-t3 flex items-center gap-1.5">
                     {timeAgo(item.created_at)}
                     <span className="w-[3px] h-[3px] rounded-full bg-t4 inline-block" />
-                    <span className="capitalize">{item.type}</span>
+                    <span>{TYPE_LABEL_PT[item.type] ?? item.type}</span>
                   </div>
                 </div>
               </Link>
