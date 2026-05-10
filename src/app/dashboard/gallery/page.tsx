@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Topbar } from "@/components/layout/Topbar";
+import { Watermark, needsWatermark } from "@/components/Watermark";
 import {
   Image, Video, Music, Trash2, Download, Loader2, LayoutGrid,
   X, ChevronLeft, ChevronRight, Play, Pause,
@@ -104,13 +105,16 @@ function Lightbox({
           )}
 
           {item.type === "image" && url && (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={url}
-              alt={item.prompt}
-              className="max-w-full max-h-[85vh] rounded-[16px] object-contain"
-              style={{ boxShadow: "0 32px 80px #000000cc" }}
-            />
+            <div className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={url}
+                alt={item.prompt}
+                className="max-w-full max-h-[85vh] rounded-[16px] object-contain"
+                style={{ boxShadow: "0 32px 80px #000000cc" }}
+              />
+              {needsWatermark(item.metadata) && <Watermark size="lg" />}
+            </div>
           )}
 
           {item.type === "video" && url && (
@@ -123,6 +127,7 @@ function Lightbox({
                 autoPlay
                 loop
               />
+              {needsWatermark(item.metadata) && <Watermark size="lg" />}
             </div>
           )}
 
@@ -376,28 +381,34 @@ function GalleryPageInner() {
                 >
                   {/* Media */}
                   {item.type === "image" && displayUrl(item) && (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={displayUrl(item)}
-                      alt={item.prompt}
-                      className="w-full object-cover"
-                      loading="lazy"
-                    />
+                    <div className="relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={displayUrl(item)}
+                        alt={item.prompt}
+                        className="w-full object-cover"
+                        loading="lazy"
+                      />
+                      {needsWatermark(item.metadata) && <Watermark size="sm" />}
+                    </div>
                   )}
 
                   {item.type === "video" && displayUrl(item) && (
-                    <video
-                      src={displayUrl(item)}
-                      className="w-full object-cover"
-                      muted
-                      loop
-                      playsInline
-                      onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play()}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLVideoElement).pause();
-                        (e.currentTarget as HTMLVideoElement).currentTime = 0;
-                      }}
-                    />
+                    <div className="relative">
+                      <video
+                        src={displayUrl(item)}
+                        className="w-full object-cover"
+                        muted
+                        loop
+                        playsInline
+                        onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play()}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLVideoElement).pause();
+                          (e.currentTarget as HTMLVideoElement).currentTime = 0;
+                        }}
+                      />
+                      {needsWatermark(item.metadata) && <Watermark size="sm" />}
+                    </div>
                   )}
 
                   {item.type === "audio" && (

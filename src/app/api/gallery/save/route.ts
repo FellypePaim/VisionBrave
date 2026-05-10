@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getUserPlan, shouldWatermark } from "@/lib/plan";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -10,6 +11,14 @@ export async function POST(req: NextRequest) {
   if (!externalUrl || !type || !model) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
+
+  // Aplica flag de watermark se Free plan
+  const plan = await getUserPlan(supabase, user.id);
+  const enrichedMetadata = {
+    ...metadata,
+    plan,
+    watermarked: shouldWatermark(plan),
+  };
 
   // Download the file from the external CDN URL
   let fileBuffer: ArrayBuffer;
@@ -23,7 +32,7 @@ export async function POST(req: NextRequest) {
     // If download fails (URL expired), still save the record with just the external URL
     const { data: record } = await supabase
       .from("generations")
-      .insert({ user_id: user.id, type, prompt, model, external_url: externalUrl, metadata })
+      .insert({ user_id: user.id, type, prompt, model, external_url: externalUrl, metadata: enrichedMetadata })
       .select("id")
       .single();
     return NextResponse.json({ id: record?.id, publicUrl: externalUrl });
@@ -62,7 +71,7 @@ export async function POST(req: NextRequest) {
       storage_path: fileName,
       public_url: publicUrl,
       external_url: externalUrl,
-      metadata,
+      metadata: enrichedMetadata,
     })
     .select("id")
     .single();

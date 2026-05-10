@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check, Sparkles, Zap, Crown, ArrowLeft } from "lucide-react";
+import { Check, Sparkles, Zap, Crown, ArrowLeft, Coins } from "lucide-react";
 
 const PLANS = [
   {
@@ -16,7 +16,7 @@ const PLANS = [
       "Vídeos de até 5s (480p)",
       "Áudios de até 60s",
       "Galeria pessoal",
-      "Marca d'água em vídeos",
+      "Marca d'água visível",
     ],
     cta: "Começar grátis",
     highlight: false,
@@ -24,7 +24,7 @@ const PLANS = [
   {
     id: "starter",
     name: "Starter",
-    price: "R$ 29",
+    price: "R$ 49",
     period: "por mês",
     credits: 500,
     icon: Zap,
@@ -43,7 +43,7 @@ const PLANS = [
   {
     id: "pro",
     name: "Pro",
-    price: "R$ 89",
+    price: "R$ 149",
     period: "por mês",
     credits: 2000,
     icon: Crown,
@@ -62,26 +62,37 @@ const PLANS = [
   },
 ];
 
+// Pacotes avulsos — sem assinatura, créditos não expiram
+const CREDIT_PACKS = [
+  { id: "pack-100",  vbc: 100,  price: "R$ 15",  perVbc: "R$ 0,15",  badge: null },
+  { id: "pack-300",  vbc: 300,  price: "R$ 39",  perVbc: "R$ 0,13",  badge: "Popular" },
+  { id: "pack-1000", vbc: 1000, price: "R$ 119", perVbc: "R$ 0,12",  badge: "Melhor valor" },
+];
+
 const FAQ = [
   {
-    q: "O que é um crédito?",
-    a: "Crédito (VBC) é a moeda interna do VisionBrave. Cada geração custa um número de créditos baseado no modelo e configurações: imagem simples ~2-5 VBC, vídeo curto ~6-30 VBC, áudio 4-8 VBC.",
+    q: "O que é um crédito (VBC)?",
+    a: "Crédito (VBC) é a moeda interna do VisionBrave. Cada geração custa um número de créditos baseado no modelo: imagem simples 2-4 VBC, vídeo curto 6-30 VBC, áudio 4-8 VBC. Veja a tabela completa em Cobrança.",
   },
   {
-    q: "Os créditos não usados acumulam?",
-    a: "Sim. Créditos comprados ou ganhos por bônus não expiram. Já os créditos mensais do plano são renovados todo mês — o que não usar não acumula.",
+    q: "Qual a diferença entre assinatura e pacote avulso?",
+    a: "Assinatura renova mensalmente — créditos do plano não acumulam. Pacote avulso é compra única, sem mensalidade, e os créditos comprados não expiram nunca.",
+  },
+  {
+    q: "Como funciona a marca d'água?",
+    a: "No plano Free, todas as gerações recebem uma marca d'água visível 'VisionBrave'. Em qualquer plano pago (Starter, Pro ou pacote avulso), suas criações ficam limpas, sem marca, prontas para uso comercial.",
   },
   {
     q: "Posso usar comercialmente?",
-    a: "Sim, todos os planos pagos liberam uso comercial. Você é dono das suas criações. O plano Free também permite uso comercial, mas com marca d'água em vídeos.",
+    a: "Sim, em qualquer plano pago você é dono das criações e pode usar comercialmente sem restrições. O plano Free permite uso pessoal e em testes; uso comercial recomenda assinar Starter ou comprar avulso.",
   },
   {
     q: "Como funciona o cancelamento?",
-    a: "Você pode cancelar a qualquer momento. A assinatura permanece ativa até o fim do período pago, depois volta ao plano Free.",
+    a: "Você pode cancelar a qualquer momento. A assinatura permanece ativa até o fim do período pago, depois volta ao plano Free. Créditos avulsos não são afetados.",
   },
   {
     q: "Tem reembolso?",
-    a: "Sim, garantia de 7 dias. Se não gostar, devolvemos 100% sem perguntas.",
+    a: "Sim, garantia de 7 dias em assinaturas e pacotes. Se não gostar, devolvemos 100% sem perguntas.",
   },
 ];
 
@@ -182,6 +193,57 @@ export default function PricingPage() {
               </div>
             );
           })}
+        </div>
+
+        {/* Pacotes avulsos */}
+        <div className="mb-16">
+          <div className="text-center mb-8">
+            <div
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[12.5px] font-medium text-y mb-4"
+              style={{ background: "#1a1208", border: "1px solid #2a1f08" }}
+            >
+              <Coins size={13} />
+              Pacotes avulsos
+            </div>
+            <h2 className="text-[26px] font-bold text-white tracking-tight mb-2">
+              Sem assinatura? Compre só o que precisa
+            </h2>
+            <p className="text-[14px] text-t3">
+              Créditos avulsos não expiram. Compre uma vez, use quando quiser.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+            {CREDIT_PACKS.map((pack) => (
+              <div
+                key={pack.id}
+                className="rounded-[16px] p-6 relative"
+                style={{ background: "#0A0A0A", border: "1px solid #1F1F1F" }}
+              >
+                {pack.badge && (
+                  <div
+                    className="absolute -top-2.5 left-5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold text-[#1a0e00]"
+                    style={{ background: "#FBBF24" }}
+                  >
+                    {pack.badge.toUpperCase()}
+                  </div>
+                )}
+                <div className="flex items-baseline gap-1.5 mb-1">
+                  <span className="text-[32px] font-extrabold text-y tracking-tight tabular-nums">
+                    {pack.vbc.toLocaleString("pt-BR")}
+                  </span>
+                  <span className="text-[13px] text-y font-semibold">VBC</span>
+                </div>
+                <p className="text-[12.5px] text-t3 mb-4">{pack.perVbc} por crédito</p>
+                <Link
+                  href={`/dashboard/billing?pack=${pack.id}`}
+                  className="w-full block text-center py-2.5 rounded-[10px] text-[13.5px] font-bold text-white border border-b2 hover:border-y hover:bg-[#1f1608] hover:text-y transition-colors"
+                >
+                  Comprar por {pack.price}
+                </Link>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* FAQ */}
