@@ -94,14 +94,14 @@ export default async function DashboardPage() {
           </p>
           <Link
             href="/dashboard/gallery"
-            className="max-w-[720px] bg-card border border-b1 rounded-[13px] px-5 py-[15px] flex items-center gap-3.5 cursor-text hover:border-b2 transition-colors"
+            className="max-w-[720px] bg-card border border-b1 rounded-[13px] px-5 py-[15px] flex items-center gap-3.5 hover:border-b2 transition-colors"
           >
             <svg className="w-4 h-4 text-t3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
             </svg>
-            <span className="flex-1 text-[14px] text-t4">Buscar projetos, arquivos e mais</span>
-            <span className="text-[11.5px] text-t3 bg-card2 border border-b1 rounded-[6px] px-2 py-0.5 font-mono">
-              Ctrl K
+            <span className="flex-1 text-[14px] text-t4">Explorar minhas criações na galeria</span>
+            <span className="text-[11.5px] text-t3 bg-card2 border border-b1 rounded-[6px] px-2 py-0.5">
+              Ver tudo →
             </span>
           </Link>
         </div>
@@ -195,7 +195,7 @@ export default async function DashboardPage() {
             return (
               <Link
                 key={item.id}
-                href="/dashboard/gallery"
+                href={`/dashboard/gallery?id=${item.id}`}
                 className="bg-card border border-b1 rounded-[14px] overflow-hidden cursor-pointer hover:border-[#FBBF2440] hover:-translate-y-0.5 transition-all block"
               >
                 <div

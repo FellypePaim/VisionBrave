@@ -63,7 +63,15 @@ export default function GenerateAudioPage() {
   modelRef.current = activeModel;
 
   const pollTask = useCallback((taskId: string) => {
+    let ticks = 0;
+    const MAX_TICKS = 60; // ~5min @ 5s
     const interval = setInterval(async () => {
+      if (++ticks > MAX_TICKS) {
+        clearInterval(interval);
+        setError("Tempo limite excedido");
+        setGenStatus("failed");
+        return;
+      }
       try {
         const res = await fetch(`/api/generate/music/status?taskId=${encodeURIComponent(taskId)}`);
         const data = await res.json();

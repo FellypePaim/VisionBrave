@@ -131,7 +131,14 @@ export default function GenerateVideosPage() {
   modelRef.current = activeModel;
 
   const pollTask = useCallback((taskId: string) => {
+    let ticks = 0;
+    const MAX_TICKS = 120; // ~10min @ 5s
     const interval = setInterval(async () => {
+      if (++ticks > MAX_TICKS) {
+        clearInterval(interval);
+        setVideo({ taskId, state: "fail", error: "Tempo limite excedido" });
+        return;
+      }
       try {
         const res = await fetch(`/api/generate/status?taskId=${encodeURIComponent(taskId)}`);
         const data = await res.json();

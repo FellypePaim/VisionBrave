@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { Topbar } from "@/components/layout/Topbar";
 import {
   Image, Video, Music, Trash2, Download, Loader2, LayoutGrid,
@@ -76,6 +77,9 @@ function Lightbox({
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="lightbox-prompt"
       className="fixed inset-0 z-50 flex items-center justify-center"
       style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(12px)" }}
       onClick={onClose}
@@ -91,6 +95,7 @@ function Lightbox({
           {/* Prev */}
           {hasPrev && (
             <button
+              aria-label="Anterior"
               onClick={() => onNav(items[idx - 1])}
               className="absolute left-3 z-10 w-9 h-9 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
             >
@@ -144,6 +149,7 @@ function Lightbox({
           {/* Next */}
           {hasNext && (
             <button
+              aria-label="Próximo"
               onClick={() => onNav(items[idx + 1])}
               className="absolute right-3 z-10 w-9 h-9 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
             >
@@ -159,6 +165,7 @@ function Lightbox({
         >
           {/* Close */}
           <button
+            aria-label="Fechar"
             onClick={onClose}
             className="self-end w-8 h-8 rounded-[8px] bg-card border border-b1 flex items-center justify-center text-t2 hover:text-white hover:border-b2 transition-colors mb-4"
           >
@@ -173,7 +180,7 @@ function Lightbox({
             {TYPE_LABEL_PT[item.type] ?? item.type}
           </span>
 
-          <p className="text-[13px] font-semibold text-white leading-[1.5] mb-3">{item.prompt}</p>
+          <p id="lightbox-prompt" className="text-[13px] font-semibold text-white leading-[1.5] mb-3">{item.prompt}</p>
 
           <div className="flex flex-col gap-1.5 mb-4">
             <div className="flex items-center justify-between text-[11.5px]">
@@ -222,6 +229,8 @@ function Lightbox({
 const PAGE_SIZE = 24;
 
 export default function GalleryPage() {
+  const searchParams = useSearchParams();
+  const initialId = searchParams.get("id");
   const [activeType, setActiveType] = useState<ItemType>("all");
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -230,6 +239,9 @@ export default function GalleryPage() {
   const [offset, setOffset] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [lightboxItem, setLightboxItem] = useState<GalleryItem | null>(null);
+  const [counts, setCounts] = useState<{ all: number; image: number; video: number; audio: number }>({
+    all: 0, image: 0, video: 0, audio: 0,
+  });
 
   const fetchItems = useCallback(async (reset = true) => {
     const currentOffset = reset ? 0 : offset;
@@ -243,12 +255,20 @@ export default function GalleryPage() {
       setItems((prev) => reset ? newItems : [...prev, ...newItems]);
       setHasMore(data.hasMore ?? false);
       setOffset(currentOffset + newItems.length);
+      if (data.counts) setCounts(data.counts);
     } finally {
       reset ? setLoading(false) : setLoadingMore(false);
     }
   }, [activeType, offset]);
 
   useEffect(() => { fetchItems(true); }, [activeType]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-open lightbox if ?id= is present in URL
+  useEffect(() => {
+    if (!initialId || items.length === 0 || lightboxItem) return;
+    const found = items.find((i) => i.id === initialId);
+    if (found) setLightboxItem(found);
+  }, [initialId, items, lightboxItem]);
 
   async function handleDelete(id: string) {
     if (!window.confirm("Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.")) {
@@ -276,9 +296,6 @@ export default function GalleryPage() {
 
   const displayUrl = (item: GalleryItem) => item.public_url ?? item.external_url ?? "";
 
-  const imageItems = items.filter((i) => i.type === "image");
-  const videoItems = items.filter((i) => i.type === "video");
-  const audioItems = items.filter((i) => i.type === "audio");
   const shownItems = activeType === "all" ? items : items.filter((i) => i.type === activeType);
 
   return (
@@ -316,12 +333,12 @@ export default function GalleryPage() {
                 <span className={`text-[10.5px] px-1.5 py-0.5 rounded-full ${
                   activeType === key ? "bg-y/20 text-y" : "bg-card2 text-t4"
                 }`}>
-                  {key === "image" ? imageItems.length : key === "video" ? videoItems.length : audioItems.length}
+                  {counts[key]}
                 </span>
               )}
             </button>
           ))}
-          <span className="ml-auto text-[12px] text-t4">{items.length} {items.length !== 1 ? "itens" : "item"}</span>
+          <span className="ml-auto text-[12px] text-t4">{counts.all} {counts.all !== 1 ? "itens" : "item"}</span>
         </div>
 
         {/* Content */}

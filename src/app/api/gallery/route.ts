@@ -23,7 +23,23 @@ export async function GET(req: NextRequest) {
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ items: data, hasMore: (data?.length ?? 0) === limit });
+  // Counts per type (small extra query, runs in parallel)
+  const [imgCount, vidCount, audCount] = await Promise.all([
+    supabase.from("generations").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("type", "image"),
+    supabase.from("generations").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("type", "video"),
+    supabase.from("generations").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("type", "audio"),
+  ]);
+
+  return NextResponse.json({
+    items: data,
+    hasMore: (data?.length ?? 0) === limit,
+    counts: {
+      image: imgCount.count ?? 0,
+      video: vidCount.count ?? 0,
+      audio: audCount.count ?? 0,
+      all: (imgCount.count ?? 0) + (vidCount.count ?? 0) + (audCount.count ?? 0),
+    },
+  });
 }
 
 export async function DELETE(req: NextRequest) {

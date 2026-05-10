@@ -87,7 +87,16 @@ export default function GenerateImagesPage() {
   modelRef.current = activeModel;
 
   const pollTask = useCallback((taskId: string, index: number) => {
+    let ticks = 0;
+    const MAX_TICKS = 60; // ~3min @ 3s
     const interval = setInterval(async () => {
+      if (++ticks > MAX_TICKS) {
+        clearInterval(interval);
+        setImages((prev) => prev.map((img, i) =>
+          i === index ? { ...img, state: "fail", error: "Tempo limite excedido" } : img
+        ));
+        return;
+      }
       try {
         const res = await fetch(`/api/generate/status?taskId=${encodeURIComponent(taskId)}`);
         const data = await res.json();
