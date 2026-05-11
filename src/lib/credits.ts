@@ -99,3 +99,43 @@ export async function getBalance(supabase: SupabaseClient, userId: string): Prom
     .single();
   return (data?.balance as number) ?? 0;
 }
+
+/**
+ * Estorna créditos a um usuário em caso de falha de geração.
+ *
+ * Usa service role pq `credit_credits` RPC não é exposto a `authenticated`
+ * (proteção contra auto-crédito). Falha silenciosa em log — nunca quebra
+ * a resposta ao usuário; melhor mostrar o erro original da API do que um
+ * erro adicional de "refund failed".
+ *
+ * Pré-requisito: env var `SUPABASE_SERVICE_ROLE_KEY` configurada.
+ */
+export async function refundCredits(
+  userId: string,
+  amount: number,
+  description: string,
+  metadata?: Record<string, unknown>,
+): Promise<void> {
+  if (amount <= 0) return;
+  try {
+    const { createClient: createServiceClient } = await import("@supabase/supabase-js");
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      console.error("[refund] SUPABASE_SERVICE_ROLE_KEY ausente — refund de", amount, "VBC para", userId, "NÃO foi processado");
+      return;
+    }
+    const sb = createServiceClient(url, key);
+    const { error } = await sb.rpc("credit_credits", {
+      p_user_id: userId,
+      p_amount: amount,
+      p_type: "refund",
+      p_description: description,
+      p_ref_id: null,
+      p_metadata: metadata ?? null,
+    });
+    if (error) console.error("[refund] RPC falhou:", error.message, "amount:", amount, "user:", userId);
+  } catch (e) {
+    console.error("[refund] erro inesperado:", e);
+  }
+}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSeedanceTask, createKlingTask, createKling3Task, createVeo3Task } from "@/lib/kie/client";
 import { createClient } from "@/lib/supabase/server";
-import { calculateCost, debitCredits } from "@/lib/credits";
+import { calculateCost, debitCredits, refundCredits } from "@/lib/credits";
 import { rateLimit } from "@/lib/rate-limit";
 
 const STYLE_PREFIX: Record<string, string> = {
@@ -158,10 +158,9 @@ export async function POST(req: NextRequest) {
   }
 
   if (task.code !== 200 || !task.data?.taskId) {
-    return NextResponse.json(
-      { error: task.msg ?? "Failed to start generation" },
-      { status: 500 }
-    );
+    const errMsg = task.msg ?? "Failed to start generation";
+    await refundCredits(user.id, cost, `Refund: falha na geração (${model}, ${duration}s)`, { error: errMsg, model, duration });
+    return NextResponse.json({ error: errMsg }, { status: 500 });
   }
 
   return NextResponse.json({ taskId: task.data.taskId });

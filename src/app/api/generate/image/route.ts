@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createImageTask, createFluxKontextTask } from "@/lib/kie/client";
 import { createClient } from "@/lib/supabase/server";
-import { calculateCost, debitCredits } from "@/lib/credits";
+import { calculateCost, debitCredits, refundCredits } from "@/lib/credits";
 import { rateLimit } from "@/lib/rate-limit";
 
 const STYLE_PREFIX: Record<string, string> = {
@@ -78,12 +78,20 @@ export async function POST(req: NextRequest) {
     detailLevel <= 70 ? "2K" : "4K";
   const resolution = model === "Flux Pro" && rawResolution === "4K" ? "2K" : rawResolution;
 
+  // KIE exige aspect_ratio quando resolution é 2K ou 4K. "auto" não é aceito.
+  // Defaulta pra "1:1" se vier vazio/auto e resolução requer aspect_ratio explícito.
+  const requiresAspect = resolution === "2K" || resolution === "4K";
+  const normalizedAspectRatio =
+    !aspectRatio || aspectRatio === "auto"
+      ? (requiresAspect ? "1:1" : undefined)
+      : aspectRatio;
+
   const tasks = await Promise.all(
     Array.from({ length: count }, () => {
       if (model === "Flux Kontext") {
         return createFluxKontextTask({
           prompt: fullPrompt,
-          aspectRatio,
+          aspectRatio: normalizedAspectRatio,
           inputImage,       // Must be a hosted URL (uploaded via /api/upload/reference)
           outputFormat,
           promptUpsampling,
@@ -99,7 +107,7 @@ export async function POST(req: NextRequest) {
       return createImageTask({
         model: modelId,
         prompt: fullPrompt,
-        aspect_ratio: aspectRatio,
+        aspect_ratio: normalizedAspectRatio,
         resolution,
         image_input: model === "Nano Banana" && referenceImages?.length
           ? referenceImages
@@ -112,9 +120,18 @@ export async function POST(req: NextRequest) {
     .filter((t) => t.code === 200 && t.data?.taskId)
     .map((t) => t.data!.taskId);
 
+  // Se TODAS as tasks falharam, refund integral
   if (taskIds.length === 0) {
     const firstError = tasks[0]?.msg ?? "Failed to start generation";
+    await refundCredits(user.id, cost, `Refund: falha na geração (${model})`, { error: firstError, model });
     return NextResponse.json({ error: firstError }, { status: 500 });
+  }
+
+  // Se algumas falharam, refund proporcional
+  const failedCount = count - taskIds.length;
+  if (failedCount > 0) {
+    const refundAmount = Math.ceil((cost / count) * failedCount);
+    await refundCredits(user.id, refundAmount, `Refund parcial: ${failedCount}/${count} falharam (${model})`, { model, failedCount });
   }
 
   return NextResponse.json({ taskIds });

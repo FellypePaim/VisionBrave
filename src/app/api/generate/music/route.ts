@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createMusicTask } from "@/lib/kie/client";
 import { createClient } from "@/lib/supabase/server";
-import { calculateCost, debitCredits } from "@/lib/credits";
+import { calculateCost, debitCredits, refundCredits } from "@/lib/credits";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
@@ -71,7 +71,9 @@ export async function POST(req: NextRequest) {
   });
 
   if (task.code !== 200 || !task.data?.taskId) {
-    return NextResponse.json({ error: task.msg ?? "Failed to start generation" }, { status: 500 });
+    const errMsg = task.msg ?? "Failed to start generation";
+    await refundCredits(user.id, cost, `Refund: falha na geração (Suno ${model})`, { error: errMsg, model });
+    return NextResponse.json({ error: errMsg }, { status: 500 });
   }
 
   return NextResponse.json({ taskId: task.data.taskId });
