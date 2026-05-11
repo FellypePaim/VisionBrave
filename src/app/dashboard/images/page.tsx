@@ -90,6 +90,18 @@ export default function GenerateImagesPage() {
     }
   }, []);
 
+  // KIE rejeita aspect_ratio="auto" quando resolução é 2K/4K (detailLevel > 30).
+  // Auto-corrige para "1:1" e avisa o usuário (mantém alinhado com o backend).
+  const requiresFixedRatio = detailLevel > 30;
+  useEffect(() => {
+    if (requiresFixedRatio && aspectRatio === "auto") {
+      setAspectRatio("1:1");
+      setToast("Nível de Detalhe alto (2K/4K) requer proporção fixa — ajustado para 1:1");
+      const t = setTimeout(() => setToast(null), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [requiresFixedRatio, aspectRatio]);
+
   const promptRef = useRef(prompt);
   const modelRef = useRef(activeModel);
   promptRef.current = prompt;
@@ -429,21 +441,33 @@ export default function GenerateImagesPage() {
             <div className="flex items-center gap-2 text-[13px] font-semibold text-[#d8d8d8] mb-2.5">
               <Ratio size={14} className="text-t2" />
               Proporção
+              {requiresFixedRatio && ratios.includes("auto") && (
+                <span className="ml-auto text-[10.5px] text-t3 font-normal">
+                  &ldquo;auto&rdquo; indisponível em 2K/4K
+                </span>
+              )}
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {ratios.map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setAspectRatio(r)}
-                  className={`px-3 py-1.5 rounded-[7px] text-[11.5px] font-medium border transition-all ${
-                    aspectRatio === r
-                      ? "bg-[#1f1608] border-y text-y"
-                      : "bg-card2 border-b1 text-t2 hover:border-b2 hover:text-white"
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
+              {ratios.map((r) => {
+                const isAutoDisabled = r === "auto" && requiresFixedRatio;
+                return (
+                  <button
+                    key={r}
+                    disabled={isAutoDisabled}
+                    onClick={() => !isAutoDisabled && setAspectRatio(r)}
+                    title={isAutoDisabled ? "Proporção 'auto' não é suportada em resolução 2K/4K. Reduza o Nível de Detalhe ou escolha uma proporção fixa." : undefined}
+                    className={`px-3 py-1.5 rounded-[7px] text-[11.5px] font-medium border transition-all ${
+                      isAutoDisabled
+                        ? "bg-card2 border-b1 text-t4 line-through cursor-not-allowed opacity-50"
+                        : aspectRatio === r
+                        ? "bg-[#1f1608] border-y text-y"
+                        : "bg-card2 border-b1 text-t2 hover:border-b2 hover:text-white"
+                    }`}
+                  >
+                    {r}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
