@@ -110,6 +110,33 @@ export type Database = {
         }
         Relationships: []
       }
+      kie_monthly_usage: {
+        Row: {
+          cap_brl: number | null
+          month_key: string
+          notified_at_75pct: string | null
+          total_brl: number
+          total_requests: number
+          updated_at: string
+        }
+        Insert: {
+          cap_brl?: number | null
+          month_key: string
+          notified_at_75pct?: string | null
+          total_brl?: number
+          total_requests?: number
+          updated_at?: string
+        }
+        Update: {
+          cap_brl?: number | null
+          month_key?: string
+          notified_at_75pct?: string | null
+          total_brl?: number
+          total_requests?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at: string | null
@@ -157,6 +184,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_kie_usage: { Args: { p_brl: number }; Returns: number }
       credit_credits: {
         Args: {
           p_amount: number
@@ -177,10 +205,25 @@ export type Database = {
         }
         Returns: number
       }
+      get_daily_generations: {
+        Args: { p_kind?: string; p_user_id: string }
+        Returns: number
+      }
+      get_kie_monthly_status: {
+        Args: { p_default_cap?: number }
+        Returns: Json
+      }
+      mark_kie_alert_75pct: { Args: never; Returns: boolean }
     }
     Enums: {
       credit_tx_type: "purchase" | "bonus" | "spend" | "refund" | "subscription"
-      subscription_plan: "free" | "starter" | "pro" | "enterprise"
+      subscription_plan:
+        | "free"
+        | "starter"
+        | "pro"
+        | "enterprise"
+        | "premium"
+        | "premiumplus"
       subscription_status:
         | "active"
         | "canceled"
@@ -315,7 +358,14 @@ export const Constants = {
   public: {
     Enums: {
       credit_tx_type: ["purchase", "bonus", "spend", "refund", "subscription"],
-      subscription_plan: ["free", "starter", "pro", "enterprise"],
+      subscription_plan: [
+        "free",
+        "starter",
+        "pro",
+        "enterprise",
+        "premium",
+        "premiumplus",
+      ],
       subscription_status: [
         "active",
         "canceled",
