@@ -1,33 +1,74 @@
 /**
  * Sistema de créditos — custos por modelo + helpers de débito.
  *
- * Custo é em "créditos VisionBrave" (VBC). Aproximação:
- *   1 crédito = $0.01 USD em custo KIE médio
+ * Custo é em "créditos VisionBrave" (VBC).
+ *   1 VBC = R$ 0,098 (Pro) a R$ 0,080 (Studio) ≈ $0,018 USD
  *
- * Plano Free: 50 VBC/mês. Pro: 1500 VBC. Enterprise: 10000 VBC.
+ * Tabela calibrada em 2026-05-11 com markup ~3x sobre custo KIE.AI real
+ * (USD/R$5,40 → ×3 / R$0,10 = VBC).
+ *
+ * Planos:
+ *   Free   — 30 VBC/mês  — só imagem básica + Suno V4
+ *   Pro    — 500 VBC/mês — todos exceto Veo Quality / Seedance 1080p / Kling Pro
+ *   Studio — 2.500 VBC/mês — tudo liberado
  */
 
 export const CREDIT_COSTS = {
-  // Imagem
-  "Nano Banana": 2,
-  "GPT Image 2": 4,
-  "Flux Pro": 3,
-  "Flux Kontext": 3,
-  // Vídeo
-  "Seedance 2": 12,
-  "Seedance 2 Fast": 6,
-  "Veo 3 Fast": 18,
-  "Veo 3": 30,
-  "Kling 2.1": 8,
-  "Kling 3.0": 15,
-  // Áudio (Suno)
-  "V4": 4,
-  "V4_5": 5,
-  "V4_5PLUS": 6,
-  "V4_5ALL": 8,
-  "V5": 7,
-  "V5_5": 8,
+  // ── Imagem (custos KIE $0.04-0.12 → ×3 markup)
+  "Nano Banana": 7,
+  "Nano Banana Pro": 20,        // novo — Gemini 3 Pro
+  "GPT Image 2": 7,
+  "Flux Pro": 8,
+  "Flux Kontext": 7,            // pro
+  "Flux Kontext Max": 13,       // novo — endpoint flux-kontext-max
+  // ── Vídeo — custos por 5s @ 720p (multiplicado por duration/5 e resolution depois)
+  "Seedance 2 Fast": 49,        // 720p t2v ($0.30/5s)
+  "Seedance 2": 102,            // 720p i2v ($0.625/5s) — base
+  "Kling 2.1": 65,              // i2v ($0.40/5s)
+  "Kling 3.0": 103,             // std 720p ($0.63/5s)
+  "Kling 3.0 Pro": 137,         // pro 1080p ($0.84/5s)
+  "Veo 3 Fast": 65,             // 8s ($0.40)
+  "Veo 3": 325,                 // quality 8s ($2.00) — só Studio
+  // ── Áudio Suno
+  "V4": 8,
+  "V4_5": 8,
+  "V4_5PLUS": 10,
+  "V4_5ALL": 13,
+  "V5": 13,
+  "V5_5": 13,
 } as const;
+
+/**
+ * Modelos disponíveis por plano. Usado em backend (gate) e UI (mostrar lock).
+ */
+export const PLAN_MODEL_ACCESS: Record<"free" | "pro" | "studio" | "enterprise", string[]> = {
+  free: [
+    "Nano Banana", "Flux Kontext",
+    "V4", "V4_5",
+  ],
+  pro: [
+    "Nano Banana", "Nano Banana Pro", "GPT Image 2", "Flux Pro", "Flux Kontext", "Flux Kontext Max",
+    "Seedance 2 Fast", "Veo 3 Fast", "Kling 2.1", "Kling 3.0",
+    "V4", "V4_5", "V4_5PLUS", "V4_5ALL", "V5", "V5_5",
+  ],
+  studio: [
+    // Tudo
+    "Nano Banana", "Nano Banana Pro", "GPT Image 2", "Flux Pro", "Flux Kontext", "Flux Kontext Max",
+    "Seedance 2 Fast", "Seedance 2", "Veo 3 Fast", "Veo 3", "Kling 2.1", "Kling 3.0", "Kling 3.0 Pro",
+    "V4", "V4_5", "V4_5PLUS", "V4_5ALL", "V5", "V5_5",
+  ],
+  enterprise: [
+    // Tudo (alias de Studio por enquanto)
+    "Nano Banana", "Nano Banana Pro", "GPT Image 2", "Flux Pro", "Flux Kontext", "Flux Kontext Max",
+    "Seedance 2 Fast", "Seedance 2", "Veo 3 Fast", "Veo 3", "Kling 2.1", "Kling 3.0", "Kling 3.0 Pro",
+    "V4", "V4_5", "V4_5PLUS", "V4_5ALL", "V5", "V5_5",
+  ],
+};
+
+export function isModelAllowedForPlan(plan: string, model: string): boolean {
+  const list = PLAN_MODEL_ACCESS[(plan as keyof typeof PLAN_MODEL_ACCESS)] ?? PLAN_MODEL_ACCESS.free;
+  return list.includes(model);
+}
 
 export type ModelKey = keyof typeof CREDIT_COSTS;
 

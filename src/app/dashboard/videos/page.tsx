@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Topbar } from "@/components/layout/Topbar";
 import {
   Wand2, Download, RefreshCw, Sparkles, Sliders, Zap, Loader2,
   AlertCircle, Play, Clock, ImagePlus, X, Volume2, VolumeX,
   ChevronDown, ChevronUp, Film, Monitor,
 } from "lucide-react";
+import { calculateCost } from "@/lib/credits";
 
 const MODELS = [
   { id: "Seedance 2",      label: "Seedance 2",      badge: "Popular" },
@@ -86,6 +87,12 @@ export default function GenerateVideosPage() {
   const [error, setError] = useState<string | null>(null);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  // Custo VBC desta geração (espelha calculateCost do backend p/ mostrar no botão)
+  const generationCost = useMemo(() => calculateCost(activeModel, {
+    durationSeconds: Number(activeDuration) || 5,
+    resolution,
+  }), [activeModel, activeDuration, resolution]);
 
   // Reference media state
   const [firstFrameUrl, setFirstFrameUrl] = useState<string | null>(null);
@@ -911,10 +918,17 @@ export default function GenerateVideosPage() {
             className="w-full rounded-xl py-3.5 text-[14.5px] font-bold text-[#1a0e00] flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: "#FBBF24", boxShadow: "0 4px 24px #FBBF2440" }}
           >
-            {isGenerating
-              ? <><Loader2 size={14} className="animate-spin" /> Iniciando...</>
-              : <><Zap size={14} fill="currentColor" /> Gerar</>
-            }
+            {isGenerating ? (
+              <><Loader2 size={14} className="animate-spin" /> Iniciando...</>
+            ) : (
+              <>
+                <Zap size={14} fill="currentColor" />
+                Gerar
+                <span className="ml-1 px-2 py-0.5 rounded-md bg-[#1a0e00]/15 text-[12px] font-bold tabular-nums">
+                  −{generationCost} VBC
+                </span>
+              </>
+            )}
           </button>
         </div>
       </div>

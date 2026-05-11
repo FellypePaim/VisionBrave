@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { calculateCost } from "@/lib/credits";
 import { Topbar } from "@/components/layout/Topbar";
 import {
   Wand2, Download, Zap, Loader2, AlertCircle,
@@ -31,6 +32,7 @@ type GenStatus = "idle" | "pending" | "partial" | "done" | "failed";
 
 export default function GenerateAudioPage() {
   const [activeModel, setActiveModel] = useState("V4_5");
+  const generationCost = useMemo(() => calculateCost(activeModel), [activeModel]);
   const [prompt, setPrompt] = useState("");
   const [customMode, setCustomMode] = useState(false);
   const [style, setStyle] = useState("");
@@ -548,7 +550,13 @@ export default function GenerateAudioPage() {
             {isPending ? (
               <><Loader2 size={14} className="animate-spin" /> Compondo...</>
             ) : (
-              <><Zap size={14} fill="currentColor" /> Gerar</>
+              <>
+                <Zap size={14} fill="currentColor" />
+                Gerar
+                <span className="ml-1 px-2 py-0.5 rounded-md bg-[#1a0e00]/15 text-[12px] font-bold tabular-nums">
+                  −{generationCost} VBC
+                </span>
+              </>
             )}
           </button>
         </div>

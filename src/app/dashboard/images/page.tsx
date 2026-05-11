@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Topbar } from "@/components/layout/Topbar";
 import {
   Wand2, Download, RefreshCw, Crop, Layers, Sparkles,
   Sliders, ChevronRight, Plus, MoreHorizontal, Zap, Loader2, AlertCircle,
   ImagePlus, X, Ratio,
 } from "lucide-react";
+import { calculateCost } from "@/lib/credits";
 
 const TAGS = ["Todos", "Realista", "Cinemático", "Anime", "Render 3D", "Pintura a Óleo", "Esboço", "Neon"];
 
@@ -93,6 +94,12 @@ export default function GenerateImagesPage() {
   // KIE rejeita aspect_ratio="auto" quando resolução é 2K/4K (detailLevel > 30).
   // Auto-corrige para "1:1" e avisa o usuário (mantém alinhado com o backend).
   const requiresFixedRatio = detailLevel > 30;
+
+  // Custo VBC desta geração (espelha calculateCost do backend para mostrar no botão)
+  const generationCost = useMemo(() => {
+    const resolution = detailLevel <= 30 ? "1K" : detailLevel <= 70 ? "2K" : "4K";
+    return calculateCost(activeModel, { count: activeCount, resolution });
+  }, [activeModel, activeCount, detailLevel]);
   useEffect(() => {
     if (requiresFixedRatio && aspectRatio === "auto") {
       setAspectRatio("1:1");
@@ -638,10 +645,17 @@ export default function GenerateImagesPage() {
             className="w-full rounded-xl py-3.5 text-[14.5px] font-bold text-[#1a0e00] flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: "#FBBF24", boxShadow: "0 4px 24px #FBBF2440" }}
           >
-            {isGenerating
-              ? <><Loader2 size={14} className="animate-spin" /> Iniciando...</>
-              : <><Zap size={14} fill="currentColor" /> Gerar</>
-            }
+            {isGenerating ? (
+              <><Loader2 size={14} className="animate-spin" /> Iniciando...</>
+            ) : (
+              <>
+                <Zap size={14} fill="currentColor" />
+                Gerar
+                <span className="ml-1 px-2 py-0.5 rounded-md bg-[#1a0e00]/15 text-[12px] font-bold tabular-nums">
+                  −{generationCost} VBC
+                </span>
+              </>
+            )}
           </button>
         </div>
       </div>
