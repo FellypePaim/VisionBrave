@@ -1,192 +1,129 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { Check, Sparkles, Zap, Crown, ArrowLeft, Coins } from "lucide-react";
+import {
+  Sparkles, Zap, Crown, ArrowLeft, Coins, X, Image as ImageIcon, Video, Music,
+} from "lucide-react";
 
+// ─── PLANOS ──────────────────────────────────────────────────────────
 const PLANS = [
-  {
-    id: "free",
-    name: "Free",
-    price: "R$ 0",
-    period: "para sempre",
-    credits: 50,
-    icon: Sparkles,
-    color: "#888",
-    features: [
-      "50 créditos por mês",
-      "Imagens em até 2K",
-      "Vídeos de até 5s (480p)",
-      "Áudios de até 60s",
-      "Galeria pessoal",
-      "Marca d'água visível",
-    ],
-    cta: "Começar grátis",
-    highlight: false,
-  },
-  {
-    id: "starter",
-    name: "Starter",
-    price: "R$ 49",
-    period: "por mês",
-    credits: 500,
-    icon: Zap,
-    color: "#FBBF24",
-    features: [
-      "500 créditos por mês",
-      "Imagens em 4K (Flux Pro)",
-      "Vídeos até 10s (1080p)",
-      "Áudios completos (Suno V5.5)",
-      "Sem marca d'água",
-      "Suporte por e-mail",
-    ],
-    cta: "Assinar Starter",
-    highlight: true,
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    price: "R$ 149",
-    period: "por mês",
-    credits: 2000,
-    icon: Crown,
-    color: "#a78bfa",
-    features: [
-      "2000 créditos por mês",
-      "Todos os modelos premium (Veo 3, Kling 3.0)",
-      "Vídeos até 15s (4K)",
-      "Geração prioritária (fila rápida)",
-      "Uso comercial garantido",
-      "Suporte prioritário",
-      "API access (em breve)",
-    ],
-    cta: "Assinar Pro",
-    highlight: false,
-  },
+  { id: "free",        name: "Free",      monthly: 0,   annual: 0,   credits: 200,    icon: Sparkles, color: "#888",    cta: "Começar grátis",   highlight: false, note: "para sempre" },
+  { id: "premium",     name: "Premium",   monthly: 49,  annual: 39,  credits: 8000,   icon: Zap,      color: "#FBBF24", cta: "Assinar Premium",  highlight: true,  note: "/mês" },
+  { id: "premiumplus", name: "Premium+",  monthly: 129, annual: 103, credits: 25000,  icon: Crown,    color: "#a78bfa", cta: "Assinar Premium+", highlight: false, note: "/mês" },
+  { id: "pro",         name: "Pro",       monthly: 449, annual: 359, credits: 100000, icon: Crown,    color: "#3dff7a", cta: "Assinar Pro",      highlight: false, note: "/mês" },
 ];
 
-// Pacotes avulsos — sem assinatura, créditos não expiram
-const CREDIT_PACKS = [
-  { id: "pack-100",  vbc: 100,  price: "R$ 15",  perVbc: "R$ 0,15",  badge: null },
-  { id: "pack-300",  vbc: 300,  price: "R$ 39",  perVbc: "R$ 0,13",  badge: "Popular" },
-  { id: "pack-1000", vbc: 1000, price: "R$ 119", perVbc: "R$ 0,12",  badge: "Melhor valor" },
+// ─── TABELA DE MODELOS ───────────────────────────────────────────────
+type AccessRow = {
+  name: string;
+  cost: string;
+  badge?: "NOVO" | "POPULAR" | "PRO";
+  free: number | "❌";
+  premium: number | "❌";
+  premiumplus: number | "❌";
+  pro: number | "❌";
+};
+
+const calc = (creditsAvailable: number, costPerGen: number): number =>
+  Math.floor(creditsAvailable / costPerGen);
+
+const IMAGE_MODELS: AccessRow[] = [
+  { name: "Nano Banana 2 (1K)",   cost: "50 créditos/imagem",   badge: "POPULAR", free: calc(200, 50),  premium: calc(8000, 50),  premiumplus: calc(25000, 50),  pro: calc(100000, 50) },
+  { name: "Nano Banana 2 (4K)",   cost: "100 créditos/imagem",                    free: calc(200, 100), premium: calc(8000, 100), premiumplus: calc(25000, 100), pro: calc(100000, 100) },
+  { name: "Flux Kontext (Pro)",   cost: "100 créditos/imagem",                    free: calc(200, 100), premium: calc(8000, 100), premiumplus: calc(25000, 100), pro: calc(100000, 100) },
+  { name: "GPT Image 2",          cost: "100 créditos/imagem",                    free: "❌",          premium: calc(8000, 100), premiumplus: calc(25000, 100), pro: calc(100000, 100) },
+  { name: "Flux Pro 2",           cost: "125 créditos/imagem",                    free: "❌",          premium: calc(8000, 125), premiumplus: calc(25000, 125), pro: calc(100000, 125) },
+  { name: "Flux Kontext Max",     cost: "200 créditos/imagem",                    free: "❌",          premium: calc(8000, 200), premiumplus: calc(25000, 200), pro: calc(100000, 200) },
+  { name: "Nano Banana Pro (4K)", cost: "325 créditos/imagem", badge: "NOVO",     free: "❌",          premium: calc(8000, 325), premiumplus: calc(25000, 325), pro: calc(100000, 325) },
 ];
 
-const FAQ = [
-  {
-    q: "O que é um crédito (VBC)?",
-    a: "Crédito (VBC) é a moeda interna do VisionBrave. Cada geração custa um número de créditos baseado no modelo: imagem simples 2-4 VBC, vídeo curto 6-30 VBC, áudio 4-8 VBC. Veja a tabela completa em Cobrança.",
-  },
-  {
-    q: "Qual a diferença entre assinatura e pacote avulso?",
-    a: "Assinatura renova mensalmente — créditos do plano não acumulam. Pacote avulso é compra única, sem mensalidade, e os créditos comprados não expiram nunca.",
-  },
-  {
-    q: "Como funciona a marca d'água?",
-    a: "No plano Free, todas as gerações recebem uma marca d'água visível 'VisionBrave'. Em qualquer plano pago (Starter, Pro ou pacote avulso), suas criações ficam limpas, sem marca, prontas para uso comercial.",
-  },
-  {
-    q: "Posso usar comercialmente?",
-    a: "Sim, em qualquer plano pago você é dono das criações e pode usar comercialmente sem restrições. O plano Free permite uso pessoal e em testes; uso comercial recomenda assinar Starter ou comprar avulso.",
-  },
-  {
-    q: "Como funciona o cancelamento?",
-    a: "Você pode cancelar a qualquer momento. A assinatura permanece ativa até o fim do período pago, depois volta ao plano Free. Créditos avulsos não são afetados.",
-  },
-  {
-    q: "Tem reembolso?",
-    a: "Sim, garantia de 7 dias em assinaturas e pacotes. Se não gostar, devolvemos 100% sem perguntas.",
-  },
+const VIDEO_MODELS: AccessRow[] = [
+  { name: "Seedance 2 Fast 720p",         cost: "750 créditos/5s",     badge: "POPULAR", free: "❌", premium: calc(8000, 750),  premiumplus: calc(25000, 750),  pro: calc(100000, 750) },
+  { name: "Veo 3 Fast (8s + áudio)",      cost: "1.000 créditos/vídeo",                  free: "❌", premium: calc(8000, 1000), premiumplus: calc(25000, 1000), pro: calc(100000, 1000) },
+  { name: "Kling 2.1 (i2v)",              cost: "1.000 créditos/5s",                     free: "❌", premium: calc(8000, 1000), premiumplus: calc(25000, 1000), pro: calc(100000, 1000) },
+  { name: "Kling 3.0 Std 720p",           cost: "1.575 créditos/5s",                     free: "❌", premium: "❌",            premiumplus: calc(25000, 1575), pro: calc(100000, 1575) },
+  { name: "Seedance 2 720p (i2v)",        cost: "1.700 créditos/5s",                     free: "❌", premium: "❌",            premiumplus: calc(25000, 1700), pro: calc(100000, 1700) },
+  { name: "Kling 3.0 Pro 1080p",          cost: "2.270 créditos/5s",   badge: "PRO",     free: "❌", premium: "❌",            premiumplus: "❌",             pro: calc(100000, 2270) },
+  { name: "Veo 3 Quality (8s 4K + áudio)",cost: "5.000 créditos/vídeo",badge: "PRO",     free: "❌", premium: "❌",            premiumplus: "❌",             pro: calc(100000, 5000) },
 ];
 
+const AUDIO_MODELS: AccessRow[] = [
+  { name: "Suno V4 / V4.5",   cost: "125 créditos/música",                free: calc(200, 125), premium: calc(8000, 125), premiumplus: calc(25000, 125), pro: calc(100000, 125) },
+  { name: "Suno V4.5 Plus",   cost: "175 créditos/música",                free: "❌",          premium: calc(8000, 175), premiumplus: calc(25000, 175), pro: calc(100000, 175) },
+  { name: "Suno V5 / V5.5",   cost: "200 créditos/música", badge: "NOVO", free: "❌",          premium: "❌",            premiumplus: calc(25000, 200), pro: calc(100000, 200) },
+];
+
+// ─── PÁGINA ──────────────────────────────────────────────────────────
 export default function PricingPage() {
-  return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="max-w-[1200px] mx-auto px-7 py-12">
-        {/* Header */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-[13px] text-t3 hover:text-white transition-colors mb-8"
-        >
-          <ArrowLeft size={14} />
-          Voltar
-        </Link>
+  const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
 
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <div
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[12.5px] font-medium text-y mb-5"
-            style={{ background: "#1a1208", border: "1px solid #2a1f08" }}
-          >
-            <Sparkles size={13} fill="currentColor" />
-            Preços simples e transparentes
-          </div>
-          <h1 className="text-[48px] font-bold leading-[1.1] tracking-[-1.5px] text-white mb-5">
-            Crie sem limites,<br />
-            pague apenas pelo que <span className="text-y">usar</span>
+  return (
+    <div className="min-h-screen bg-bg text-t1">
+      <nav className="border-b border-b1 px-6 py-4 flex items-center gap-4">
+        <Link href="/" className="flex items-center gap-2 text-t2 hover:text-white text-[13.5px]">
+          <ArrowLeft size={14} /> Voltar
+        </Link>
+        <div className="flex-1" />
+        <Link href="/login" className="text-[13.5px] text-t2 hover:text-white">Entrar</Link>
+      </nav>
+
+      <main className="max-w-[1280px] mx-auto px-6 py-12">
+        <header className="text-center mb-10">
+          <h1 className="text-[40px] font-bold tracking-tight mb-3">
+            Compare os planos: <span className="text-y">vídeo, imagem e áudio com IA</span>
           </h1>
-          <p className="text-[16px] leading-[1.6] text-t3">
-            Escolha o plano que se encaixa no seu fluxo. Pode mudar ou cancelar quando quiser.
+          <p className="text-t2 text-[15px] max-w-[640px] mx-auto">
+            Tudo o que você precisa para criar — em um só lugar. Sem watermark a partir do Premium.
           </p>
+        </header>
+
+        <div className="flex items-center justify-center gap-3 mb-10">
+          <div className="flex bg-card border border-b1 rounded-[10px] p-1">
+            <button
+              onClick={() => setBilling("monthly")}
+              className={`px-5 py-2 rounded-[7px] text-[13px] font-medium transition-all ${billing === "monthly" ? "bg-white text-bg" : "text-t2 hover:text-white"}`}
+            >Mensal</button>
+            <button
+              onClick={() => setBilling("annual")}
+              className={`px-5 py-2 rounded-[7px] text-[13px] font-medium transition-all ${billing === "annual" ? "bg-white text-bg" : "text-t2 hover:text-white"}`}
+            >Anual</button>
+          </div>
+          <span className="text-[12.5px] text-t3">Economize 20% com o plano anual</span>
         </div>
 
-        {/* Plans */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-16">
+        <div className="grid grid-cols-4 gap-4 mb-12">
           {PLANS.map((plan) => {
             const Icon = plan.icon;
+            const price = billing === "annual" ? plan.annual : plan.monthly;
+            const yearlyTotal = billing === "annual" && plan.annual > 0 ? plan.annual * 12 : null;
             return (
-              <div
-                key={plan.id}
-                className="rounded-[20px] p-7 relative"
-                style={{
-                  background: plan.highlight
-                    ? "linear-gradient(180deg, #1a1408 0%, #0a0604 100%)"
-                    : "#0A0A0A",
-                  border: plan.highlight ? "1.5px solid #FBBF24" : "1px solid #1F1F1F",
-                  boxShadow: plan.highlight ? "0 0 60px #FBBF2420" : undefined,
-                }}
-              >
+              <div key={plan.id} className={`relative rounded-[14px] border p-5 flex flex-col ${plan.highlight ? "border-y bg-[#1a1208]" : "border-b1 bg-card"}`}>
                 {plan.highlight && (
-                  <div
-                    className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[11px] font-bold text-[#1a0e00]"
-                    style={{ background: "#FBBF24" }}
-                  >
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10.5px] font-bold tracking-wide bg-y text-[#1a0e00]">
                     MAIS POPULAR
                   </div>
                 )}
-
-                <div
-                  className="w-11 h-11 rounded-[11px] flex items-center justify-center mb-5"
-                  style={{
-                    background: `${plan.color}15`,
-                    border: `1px solid ${plan.color}30`,
-                  }}
-                >
-                  <Icon size={20} style={{ color: plan.color }} />
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: `${plan.color}20` }}>
+                    <Icon size={16} style={{ color: plan.color }} />
+                  </div>
+                  <span className="text-[15px] font-bold">{plan.name}</span>
                 </div>
-
-                <h2 className="text-[22px] font-bold text-white mb-1">{plan.name}</h2>
-                <div className="flex items-baseline gap-1.5 mb-1">
-                  <span className="text-[36px] font-extrabold text-white tracking-tight">{plan.price}</span>
-                  <span className="text-[13px] text-t3">/{plan.period}</span>
+                <div className="mb-3">
+                  <span className="text-[28px] font-bold">R$ {price.toLocaleString("pt-BR")}</span>
+                  <span className="text-[13px] text-t3 ml-1">{plan.note}</span>
+                  {yearlyTotal !== null && (
+                    <div className="text-[11.5px] text-t3 mt-0.5">R$ {yearlyTotal.toLocaleString("pt-BR")} cobrado anualmente</div>
+                  )}
                 </div>
-                <p className="text-[13.5px] text-y font-semibold mb-6">
-                  {plan.credits.toLocaleString("pt-BR")} créditos/mês
-                </p>
-
-                <ul className="flex flex-col gap-3 mb-8 min-h-[200px]">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2.5 text-[13px] text-[#c0c0c0]">
-                      <Check size={14} className="text-y shrink-0 mt-0.5" />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-
+                <div className="flex items-center gap-1.5 text-[13px] text-t2 mb-4">
+                  <Coins size={13} className="text-y" />
+                  <span className="font-bold text-white">{plan.credits.toLocaleString("pt-BR")}</span>&nbsp;créditos/mês
+                </div>
                 <Link
-                  href={plan.id === "free" ? "/login" : `/dashboard/billing?plan=${plan.id}`}
-                  className={`w-full block text-center py-3 rounded-[11px] text-[13.5px] font-bold transition-all ${
-                    plan.highlight
-                      ? "text-[#1a0e00] hover:-translate-y-px"
-                      : "text-white border border-b2 hover:border-[#4a4a4a] hover:bg-[#1a1a1a]"
-                  }`}
-                  style={plan.highlight ? { background: "#FBBF24", boxShadow: "0 4px 20px #FBBF2440" } : {}}
+                  href={plan.id === "free" ? "/login" : `/login?plan=${plan.id}`}
+                  className={`w-full text-center py-2.5 rounded-[9px] text-[13px] font-bold transition-all ${plan.highlight ? "bg-y text-[#1a0e00] hover:bg-[#FCD34D]" : "bg-card2 border border-b2 text-white hover:border-b1"}`}
                 >
                   {plan.cta}
                 </Link>
@@ -195,86 +132,65 @@ export default function PricingPage() {
           })}
         </div>
 
-        {/* Pacotes avulsos */}
-        <div className="mb-16">
-          <div className="text-center mb-8">
-            <div
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[12.5px] font-medium text-y mb-4"
-              style={{ background: "#1a1208", border: "1px solid #2a1f08" }}
-            >
-              <Coins size={13} />
-              Pacotes avulsos
-            </div>
-            <h2 className="text-[26px] font-bold text-white tracking-tight mb-2">
-              Sem assinatura? Compre só o que precisa
-            </h2>
-            <p className="text-[14px] text-t3">
-              Créditos avulsos não expiram. Compre uma vez, use quando quiser.
-            </p>
-          </div>
+        <ComparisonTable title="Imagem com IA" icon={ImageIcon} rows={IMAGE_MODELS} />
+        <ComparisonTable title="Vídeo com IA"  icon={Video}     rows={VIDEO_MODELS} />
+        <ComparisonTable title="Áudio com IA"  icon={Music}     rows={AUDIO_MODELS} />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-            {CREDIT_PACKS.map((pack) => (
-              <div
-                key={pack.id}
-                className="rounded-[16px] p-6 relative"
-                style={{ background: "#0A0A0A", border: "1px solid #1F1F1F" }}
-              >
-                {pack.badge && (
-                  <div
-                    className="absolute -top-2.5 left-5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold text-[#1a0e00]"
-                    style={{ background: "#FBBF24" }}
-                  >
-                    {pack.badge.toUpperCase()}
-                  </div>
-                )}
-                <div className="flex items-baseline gap-1.5 mb-1">
-                  <span className="text-[32px] font-extrabold text-y tracking-tight tabular-nums">
-                    {pack.vbc.toLocaleString("pt-BR")}
-                  </span>
-                  <span className="text-[13px] text-y font-semibold">VBC</span>
-                </div>
-                <p className="text-[12.5px] text-t3 mb-4">{pack.perVbc} por crédito</p>
-                <Link
-                  href={`/dashboard/billing?pack=${pack.id}`}
-                  className="w-full block text-center py-2.5 rounded-[10px] text-[13.5px] font-bold text-white border border-b2 hover:border-y hover:bg-[#1f1608] hover:text-y transition-colors"
-                >
-                  Comprar por {pack.price}
-                </Link>
-              </div>
-            ))}
-          </div>
+        <div className="mt-10 text-center text-[12.5px] text-t3 max-w-[720px] mx-auto leading-relaxed">
+          Os números mostram quantas gerações cabem em cada plano se você usar 100% dos créditos só naquele modelo.
+          Você pode misturar à vontade — os créditos são compartilhados entre imagem, vídeo e áudio.
         </div>
-
-        {/* FAQ */}
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-[28px] font-bold text-white text-center mb-10 tracking-tight">
-            Perguntas frequentes
-          </h2>
-          <div className="flex flex-col gap-4">
-            {FAQ.map((item) => (
-              <details
-                key={item.q}
-                className="group rounded-[14px] p-5 cursor-pointer"
-                style={{ background: "#0A0A0A", border: "1px solid #1F1F1F" }}
-              >
-                <summary className="flex items-center justify-between text-[14.5px] font-semibold text-white list-none">
-                  {item.q}
-                  <span className="text-y transition-transform group-open:rotate-45 text-[18px] leading-none">+</span>
-                </summary>
-                <p className="text-[13.5px] text-t3 leading-[1.6] mt-3">{item.a}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-
-        {/* CTA bottom */}
-        <div className="text-center mt-16 mb-8">
-          <p className="text-[14px] text-t3 mb-4">
-            Ainda tem dúvidas? <Link href="/" className="text-y hover:underline">Fale com a gente</Link>
-          </p>
-        </div>
-      </div>
+      </main>
     </div>
   );
+}
+
+function ComparisonTable({ title, icon: Icon, rows }: { title: string; icon: React.ElementType; rows: AccessRow[] }) {
+  return (
+    <section className="mb-10">
+      <div className="flex items-center gap-2 mb-3 text-[15px] font-bold">
+        <Icon size={16} className="text-y" />
+        {title}
+      </div>
+      <div className="border border-b1 rounded-[12px] overflow-hidden bg-card">
+        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] text-[12px] font-semibold text-t3 bg-card2 border-b border-b1">
+          <div className="px-4 py-3">Modelo</div>
+          <div className="px-3 py-3 text-center">Free</div>
+          <div className="px-3 py-3 text-center">Premium</div>
+          <div className="px-3 py-3 text-center">Premium+</div>
+          <div className="px-3 py-3 text-center">Pro</div>
+        </div>
+        {rows.map((row, i) => (
+          <div key={row.name} className={`grid grid-cols-[2fr_1fr_1fr_1fr_1fr] items-center text-[13px] ${i % 2 === 1 ? "bg-card2/50" : ""}`}>
+            <div className="px-4 py-3">
+              <div className="flex items-center gap-2 font-medium">
+                <span>{row.name}</span>
+                {row.badge && (
+                  <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded-md tracking-wider ${
+                    row.badge === "POPULAR" ? "bg-y/20 text-y" :
+                    row.badge === "NOVO"    ? "bg-pink-500/20 text-pink-400" :
+                                              "bg-purple-500/20 text-purple-400"
+                  }`}>{row.badge}</span>
+                )}
+              </div>
+              <div className="flex items-center gap-1 text-[11.5px] text-t3 mt-0.5">
+                <Coins size={10} /> {row.cost}
+              </div>
+            </div>
+            <Cell value={row.free} />
+            <Cell value={row.premium} />
+            <Cell value={row.premiumplus} />
+            <Cell value={row.pro} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Cell({ value }: { value: number | "❌" }) {
+  if (value === "❌") {
+    return <div className="px-3 py-3 flex items-center justify-center text-t4"><X size={14} /></div>;
+  }
+  return <div className="px-3 py-3 text-center text-[13px] font-medium text-t1 tabular-nums">{value.toLocaleString("pt-BR")}</div>;
 }

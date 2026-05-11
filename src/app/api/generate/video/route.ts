@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSeedanceTask, createKlingTask, createKling3Task, createVeo3Task } from "@/lib/kie/client";
 import { createClient } from "@/lib/supabase/server";
-import { calculateCost, debitCredits, refundCredits } from "@/lib/credits";
+import {
+  calculateCost, debitCredits, refundCredits, estimateKieCostBRL,
+  checkKieCap, logKieUsage, checkDailyLimit, isModelAllowedForPlan,
+} from "@/lib/credits";
+import { getUserPlan } from "@/lib/plan";
 import { rateLimit } from "@/lib/rate-limit";
 
 const STYLE_PREFIX: Record<string, string> = {
@@ -66,23 +70,47 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Prompt é obrigatório" }, { status: 400 });
   }
 
-  // Débito de créditos antes de criar a task
-  const cost = calculateCost(model, {
-    durationSeconds: Number(duration) || 5,
-    resolution: resolution ?? veoResolution,
-  });
+  const effectiveResolution = resolution ?? veoResolution;
+  const effectiveDuration = Number(duration) || 5;
+
+  // ── Gate 1: plano permite esse modelo? ──────────────────────────────
+  const plan = await getUserPlan(supabase, user.id);
+  if (!isModelAllowedForPlan(plan, model)) {
+    return NextResponse.json(
+      { error: `${model} não disponível no plano ${plan}. Faça upgrade.`, code: "model_locked", plan, model },
+      { status: 403 },
+    );
+  }
+
+  // ── Gate 2: cap diário Free (vídeo é 0 no Free → sempre bloqueia) ──
+  const daily = await checkDailyLimit(supabase, user.id, plan, "video");
+  if (!daily.allowed) {
+    return NextResponse.json({ error: daily.reason, code: "daily_limit", count: daily.count, limit: daily.limit }, { status: 429 });
+  }
+
+  // ── Gate 3: cap mensal KIE global ───────────────────────────────────
+  const estimatedBRL = estimateKieCostBRL(model, { durationSeconds: effectiveDuration, resolution: effectiveResolution });
+  const cap = await checkKieCap(estimatedBRL);
+  if (!cap.allowed) {
+    return NextResponse.json(
+      { error: cap.reason, code: "service_cap", current_total_brl: cap.current_total_brl, cap_brl: cap.cap_brl },
+      { status: 503 },
+    );
+  }
+
+  // ── Gate 4: débito de créditos ──────────────────────────────────────
+  const cost = calculateCost(model, { durationSeconds: effectiveDuration, resolution: effectiveResolution });
   try {
     await debitCredits(
-      supabase,
-      cost,
-      `Geração de vídeo (${model}, ${duration}s)`,
+      supabase, cost,
+      `Geração de vídeo (${model}, ${effectiveDuration}s)`,
       undefined,
-      { model, duration, aspect_ratio, resolution },
+      { model, duration: effectiveDuration, aspect_ratio, resolution: effectiveResolution, kind: "video", kie_cost_brl: estimatedBRL },
     );
   } catch (e) {
     if ((e as Error).message === "insufficient_credits") {
       return NextResponse.json(
-        { error: `Créditos insuficientes. Esta geração custa ${cost} créditos.` },
+        { error: `Créditos insuficientes. Esta geração custa ${cost} créditos.`, code: "insufficient_credits", cost },
         { status: 402 },
       );
     }
@@ -159,9 +187,12 @@ export async function POST(req: NextRequest) {
 
   if (task.code !== 200 || !task.data?.taskId) {
     const errMsg = task.msg ?? "Failed to start generation";
-    await refundCredits(user.id, cost, `Refund: falha na geração (${model}, ${duration}s)`, { error: errMsg, model, duration });
+    await refundCredits(user.id, cost, `Refund: falha na geração (${model}, ${effectiveDuration}s)`, { error: errMsg, model, duration: effectiveDuration });
     return NextResponse.json({ error: errMsg }, { status: 500 });
   }
+
+  // Log de gasto KIE real
+  await logKieUsage(estimatedBRL);
 
   return NextResponse.json({ taskId: task.data.taskId });
 }

@@ -554,7 +554,7 @@ export default function GenerateAudioPage() {
                 <Zap size={14} fill="currentColor" />
                 Gerar
                 <span className="ml-1 px-2 py-0.5 rounded-md bg-[#1a0e00]/15 text-[12px] font-bold tabular-nums">
-                  −{generationCost} VBC
+                  −{generationCost.toLocaleString("pt-BR")} créditos
                 </span>
               </>
             )}

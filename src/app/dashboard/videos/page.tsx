@@ -88,7 +88,7 @@ export default function GenerateVideosPage() {
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  // Custo VBC desta geração (espelha calculateCost do backend p/ mostrar no botão)
+  // Custo em créditos desta geração (espelha calculateCost do backend p/ mostrar no botão)
   const generationCost = useMemo(() => calculateCost(activeModel, {
     durationSeconds: Number(activeDuration) || 5,
     resolution,
@@ -925,7 +925,7 @@ export default function GenerateVideosPage() {
                 <Zap size={14} fill="currentColor" />
                 Gerar
                 <span className="ml-1 px-2 py-0.5 rounded-md bg-[#1a0e00]/15 text-[12px] font-bold tabular-nums">
-                  −{generationCost} VBC
+                  −{generationCost.toLocaleString("pt-BR")} créditos
                 </span>
               </>
             )}

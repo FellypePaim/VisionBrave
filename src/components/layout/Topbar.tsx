@@ -118,7 +118,7 @@ export function Topbar({ title }: TopbarProps) {
       >
         <Sparkles size={14} fill="currentColor" />
         {credits !== null ? credits.toLocaleString("pt-BR") : "—"}
-        <span className="text-t3 text-[11.5px] font-normal">VBC</span>
+        <span className="text-t3 text-[11.5px] font-normal">créditos</span>
       </Link>
 
       {/* Search */}

@@ -101,9 +101,9 @@ export default function BillingPage() {
                   <span className="text-[40px] font-extrabold text-white tracking-tight">
                     {credits ? credits.balance.toLocaleString("pt-BR") : "—"}
                   </span>
-                  <span className="text-[13px] text-y font-semibold">VBC</span>
+                  <span className="text-[13px] text-y font-semibold">créditos</span>
                 </div>
-                <p className="text-[12px] text-t3">Créditos disponíveis</p>
+                <p className="text-[12px] text-t3">Saldo disponível</p>
               </div>
             </div>
 
@@ -119,7 +119,7 @@ export default function BillingPage() {
                 </span>
               </div>
               <p className="text-[12px] text-t3 mb-4">
-                {subscription?.monthly_credits ?? 50} créditos / mês
+                {(subscription?.monthly_credits ?? 200).toLocaleString("pt-BR")} créditos / mês
               </p>
               <Link
                 href="/pricing"
@@ -154,7 +154,7 @@ export default function BillingPage() {
           </div>
 
           {/* CTA: Comprar créditos */}
-          {(subscription?.plan === "free" || (credits && credits.balance < 50)) && (
+          {(subscription?.plan === "free" || (credits && credits.balance < 200)) && (
             <div
               className="rounded-2xl p-6 mb-7 flex items-center justify-between"
               style={{ background: "#0A0A0A", border: "1px solid #2a1f08" }}
@@ -164,7 +164,7 @@ export default function BillingPage() {
                   {subscription?.plan === "free" ? "Faça upgrade e ganhe mais créditos" : "Saldo baixo"}
                 </h3>
                 <p className="text-[13px] text-t3">
-                  Planos a partir de R$ 29/mês ou compre pacotes avulsos.
+                  Planos a partir de R$ 39/mês (anual) ou R$ 49/mês.
                 </p>
               </div>
               <Link
@@ -187,22 +187,23 @@ export default function BillingPage() {
                   <ImageIcon size={13} className="text-y" /> Imagens
                 </div>
                 <ul className="text-[12px] text-t3 space-y-1">
-                  <li>Nano Banana — <span className="text-white font-medium">2 VBC</span></li>
-                  <li>Flux Pro — <span className="text-white font-medium">3 VBC</span></li>
-                  <li>Flux Kontext — <span className="text-white font-medium">3 VBC</span></li>
-                  <li>GPT Image 2 — <span className="text-white font-medium">4 VBC</span></li>
+                  <li>Nano Banana 2 (1K) — <span className="text-white font-medium">50 créditos</span></li>
+                  <li>Nano Banana 2 (4K) / Flux Kontext — <span className="text-white font-medium">100</span></li>
+                  <li>GPT Image 2 — <span className="text-white font-medium">100</span></li>
+                  <li>Flux Pro 2 — <span className="text-white font-medium">125</span></li>
+                  <li>Nano Banana Pro — <span className="text-white font-medium">325</span></li>
                 </ul>
               </div>
               <div>
                 <div className="flex items-center gap-2 text-[12.5px] font-semibold text-t2 mb-2">
-                  <Video size={13} className="text-y" /> Vídeos (5s)
+                  <Video size={13} className="text-y" /> Vídeos (5s base)
                 </div>
                 <ul className="text-[12px] text-t3 space-y-1">
-                  <li>Seedance 2 Fast — <span className="text-white font-medium">6 VBC</span></li>
-                  <li>Kling 2.1 — <span className="text-white font-medium">8 VBC</span></li>
-                  <li>Seedance 2 — <span className="text-white font-medium">12 VBC</span></li>
-                  <li>Kling 3.0 — <span className="text-white font-medium">15 VBC</span></li>
-                  <li>Veo 3 / Fast — <span className="text-white font-medium">18-30 VBC</span></li>
+                  <li>Seedance 2 Fast — <span className="text-white font-medium">750 créditos</span></li>
+                  <li>Veo 3 Fast (8s) / Kling 2.1 — <span className="text-white font-medium">1.000</span></li>
+                  <li>Kling 3.0 / Seedance 2 — <span className="text-white font-medium">1.575-1.700</span></li>
+                  <li>Kling 3.0 Pro — <span className="text-white font-medium">2.270</span></li>
+                  <li>Veo 3 Quality (8s) — <span className="text-white font-medium">5.000</span></li>
                 </ul>
               </div>
               <div>
@@ -210,10 +211,9 @@ export default function BillingPage() {
                   <Music size={13} className="text-y" /> Áudios
                 </div>
                 <ul className="text-[12px] text-t3 space-y-1">
-                  <li>Suno V4 — <span className="text-white font-medium">4 VBC</span></li>
-                  <li>Suno V4.5 — <span className="text-white font-medium">5 VBC</span></li>
-                  <li>Suno V5 — <span className="text-white font-medium">7 VBC</span></li>
-                  <li>Suno V5.5 / V4.5 All — <span className="text-white font-medium">8 VBC</span></li>
+                  <li>Suno V4 / V4.5 — <span className="text-white font-medium">125 créditos</span></li>
+                  <li>Suno V4.5 Plus — <span className="text-white font-medium">175</span></li>
+                  <li>Suno V5 / V5.5 — <span className="text-white font-medium">200</span></li>
                 </ul>
               </div>
             </div>
@@ -262,7 +262,7 @@ export default function BillingPage() {
                           isPositive ? "text-[#3dff7a]" : "text-t2"
                         }`}
                       >
-                        {isPositive ? "+" : ""}{tx.amount} VBC
+                        {isPositive ? "+" : ""}{tx.amount.toLocaleString("pt-BR")} créd
                       </span>
                     </div>
                   );

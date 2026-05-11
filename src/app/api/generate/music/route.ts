@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createMusicTask } from "@/lib/kie/client";
 import { createClient } from "@/lib/supabase/server";
-import { calculateCost, debitCredits, refundCredits } from "@/lib/credits";
+import {
+  calculateCost, debitCredits, refundCredits, estimateKieCostBRL,
+  checkKieCap, logKieUsage, checkDailyLimit, isModelAllowedForPlan,
+} from "@/lib/credits";
+import { getUserPlan } from "@/lib/plan";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
@@ -36,20 +40,44 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Prompt é obrigatório" }, { status: 400 });
   }
 
-  // Débito de créditos antes de criar a task
+  // ── Gate 1: plano permite esse modelo? ──────────────────────────────
+  const plan = await getUserPlan(supabase, user.id);
+  if (!isModelAllowedForPlan(plan, model)) {
+    return NextResponse.json(
+      { error: `Suno ${model} não disponível no plano ${plan}. Faça upgrade.`, code: "model_locked", plan, model },
+      { status: 403 },
+    );
+  }
+
+  // ── Gate 2: cap diário Free ─────────────────────────────────────────
+  const daily = await checkDailyLimit(supabase, user.id, plan, "audio");
+  if (!daily.allowed) {
+    return NextResponse.json({ error: daily.reason, code: "daily_limit", count: daily.count, limit: daily.limit }, { status: 429 });
+  }
+
+  // ── Gate 3: cap mensal KIE global ───────────────────────────────────
+  const estimatedBRL = estimateKieCostBRL(model);
+  const cap = await checkKieCap(estimatedBRL);
+  if (!cap.allowed) {
+    return NextResponse.json(
+      { error: cap.reason, code: "service_cap", current_total_brl: cap.current_total_brl, cap_brl: cap.cap_brl },
+      { status: 503 },
+    );
+  }
+
+  // ── Gate 4: débito de créditos ──────────────────────────────────────
   const cost = calculateCost(model);
   try {
     await debitCredits(
-      supabase,
-      cost,
+      supabase, cost,
       `Geração de áudio (Suno ${model})`,
       undefined,
-      { model, customMode, instrumental },
+      { model, customMode, instrumental, kind: "audio", kie_cost_brl: estimatedBRL },
     );
   } catch (e) {
     if ((e as Error).message === "insufficient_credits") {
       return NextResponse.json(
-        { error: `Créditos insuficientes. Esta geração custa ${cost} créditos.` },
+        { error: `Créditos insuficientes. Esta geração custa ${cost} créditos.`, code: "insufficient_credits", cost },
         { status: 402 },
       );
     }
@@ -75,6 +103,8 @@ export async function POST(req: NextRequest) {
     await refundCredits(user.id, cost, `Refund: falha na geração (Suno ${model})`, { error: errMsg, model });
     return NextResponse.json({ error: errMsg }, { status: 500 });
   }
+
+  await logKieUsage(estimatedBRL);
 
   return NextResponse.json({ taskId: task.data.taskId });
 }
