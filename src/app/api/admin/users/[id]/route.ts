@@ -14,13 +14,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { AdminUserDetails } from "@/lib/admin/types";
 
 interface RouteParams {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export async function GET(_req: Request, ctx: RouteParams) {
   try {
     await requireAdmin("users.read");
-    const { id } = await ctx.params;
+    const { id } = ctx.params;
 
     // Valida UUID rapidinho
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
