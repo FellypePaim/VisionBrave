@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, FileText, Coins, ArrowLeftRight,
-  ServerCog, Cog, Shield, ArrowLeft, Sparkles, AlertTriangle,
+  ServerCog, Cog, Shield, ArrowLeft, Sparkles, AlertTriangle, DollarSign,
 } from "lucide-react";
 import type { AdminRole } from "@/lib/admin/types";
 
@@ -29,6 +29,7 @@ const navGroups: { title: string; items: NavItem[] }[] = [
     items: [
       { href: "/admin/credits",      icon: Coins,         label: "Créditos" },
       { href: "/admin/transactions", icon: ArrowLeftRight, label: "Transações" },
+      { href: "/admin/costs",        icon: DollarSign,    label: "Custos & Margem" },
       { href: "/admin/kie",          icon: ServerCog,     label: "KIE Global" },
     ],
   },

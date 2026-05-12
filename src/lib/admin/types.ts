@@ -39,6 +39,7 @@ export interface AdminOverview {
     pastDue: number;
     trialing: number;
     byPlan: Record<string, number>;
+    mrrEstimatedBRL: number;
   };
   credits: {
     totalInCirculation: number;

@@ -8,6 +8,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin, adminErrorResponse } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { calculateEstimatedMRR } from "@/lib/admin/pricing";
 import type { AdminOverview } from "@/lib/admin/types";
 
 export async function GET() {
@@ -47,14 +48,21 @@ export async function GET() {
     const subscriptions = {
       active: 0, canceled: 0, pastDue: 0, trialing: 0,
       byPlan: {} as Record<string, number>,
+      mrrEstimatedBRL: 0,
     };
+    // MRR só conta active subs por plano (não trial nem canceled)
+    const activeByPlan: Record<string, number> = {};
     for (const s of subs ?? []) {
-      if (s.status === "active") subscriptions.active++;
+      if (s.status === "active") {
+        subscriptions.active++;
+        activeByPlan[s.plan] = (activeByPlan[s.plan] ?? 0) + 1;
+      }
       else if (s.status === "canceled") subscriptions.canceled++;
       else if (s.status === "past_due") subscriptions.pastDue++;
       else if (s.status === "trialing") subscriptions.trialing++;
       subscriptions.byPlan[s.plan] = (subscriptions.byPlan[s.plan] ?? 0) + 1;
     }
+    subscriptions.mrrEstimatedBRL = calculateEstimatedMRR(activeByPlan).totalBRL;
     const usersByPlan = { ...subscriptions.byPlan };
 
     // ─── 3. Credits ───────────────────────────────────────────────

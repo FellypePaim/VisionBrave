@@ -7,7 +7,9 @@ import {
   Coins, Lock, ExternalLink, Plus,
 } from "lucide-react";
 import { CreditAdjustModal } from "@/components/admin/CreditAdjustModal";
+import { ExportCsvButton } from "@/components/admin/ExportCsvButton";
 import type { AdminUserRow, PaginatedResponse } from "@/lib/admin/types";
+import type { CsvColumn } from "@/lib/admin/csv";
 
 const PLAN_OPTIONS = ["", "free", "premium", "premiumplus", "pro", "enterprise"];
 const STATUS_OPTIONS = ["", "active", "canceled", "past_due", "trialing", "incomplete"];
@@ -67,15 +69,28 @@ export default function AdminUsersPage() {
     setPage(1);
   }, [search, plan, status, blocked]);
 
+  const csvColumns: CsvColumn<AdminUserRow>[] = [
+    { header: "User ID",      accessor: (r) => r.userId },
+    { header: "Email",        accessor: (r) => r.email },
+    { header: "Criado em",    accessor: (r) => new Date(r.createdAt).toISOString() },
+    { header: "Plano",        accessor: (r) => r.plan },
+    { header: "Status",       accessor: (r) => r.subscriptionStatus },
+    { header: "Saldo",        accessor: (r) => r.balance },
+    { header: "Total earned", accessor: (r) => r.totalEarned },
+    { header: "Total spent",  accessor: (r) => r.totalSpent },
+    { header: "Bloqueado",    accessor: (r) => r.isBlocked ? "sim" : "não" },
+  ];
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-5 flex items-end justify-between gap-4">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-[22px] font-bold text-white mb-1">Usuários</h1>
           <p className="text-[13px] text-t3">
             {pagination.total.toLocaleString("pt-BR")} {pagination.total === 1 ? "usuário" : "usuários"} no total
           </p>
         </div>
+        <ExportCsvButton data={data} columns={csvColumns} filenamePrefix="users" />
       </div>
 
       {/* Filtros */}

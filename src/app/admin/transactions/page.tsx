@@ -6,6 +6,8 @@ import {
   Search, Filter, ChevronLeft, ChevronRight, Loader2, AlertCircle,
   ArrowDownLeft, ArrowUpRight, RotateCcw, Calendar, Copy, Shield,
 } from "lucide-react";
+import { ExportCsvButton } from "@/components/admin/ExportCsvButton";
+import type { CsvColumn } from "@/lib/admin/csv";
 
 interface Transaction {
   id: string;
@@ -76,15 +78,29 @@ export default function AdminTransactionsPage() {
     navigator.clipboard.writeText(text).catch(() => {});
   }
 
+  const csvColumns: CsvColumn<Transaction>[] = [
+    { header: "Data",         accessor: (r) => new Date(r.createdAt).toISOString() },
+    { header: "User ID",      accessor: (r) => r.userId },
+    { header: "Email",        accessor: (r) => r.email ?? "" },
+    { header: "Tipo",         accessor: (r) => r.type },
+    { header: "Amount",       accessor: (r) => r.amount },
+    { header: "Descrição",    accessor: (r) => r.description ?? "" },
+    { header: "Ref ID",       accessor: (r) => r.refId ?? "" },
+    { header: "Modelo",       accessor: (r) => r.model ?? "" },
+    { header: "Admin?",       accessor: (r) => r.isAdmin ? "sim" : "não" },
+    { header: "Metadata JSON", accessor: (r) => JSON.stringify(r.metadata) },
+  ];
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-5 flex items-end justify-between gap-4">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-[22px] font-bold text-white mb-1">Transações</h1>
           <p className="text-[13px] text-t3">
             {pagination.total.toLocaleString("pt-BR")} {pagination.total === 1 ? "transação" : "transações"} no total
           </p>
         </div>
+        <ExportCsvButton data={data} columns={csvColumns} filenamePrefix="transactions" />
       </div>
 
       {/* Filtros */}

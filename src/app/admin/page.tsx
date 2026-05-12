@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   Users, UserPlus, Crown, CreditCard, TrendingUp, Zap,
-  Sparkles, Activity, AlertTriangle, Loader2,
+  Sparkles, Activity, AlertTriangle, Loader2, DollarSign,
 } from "lucide-react";
 import { AdminStatCard } from "@/components/admin/AdminStatCard";
 import { HealthCard } from "@/components/admin/HealthCard";
@@ -107,8 +107,15 @@ export default function AdminOverviewPage() {
       </div>
 
       {/* Assinaturas */}
-      <SectionTitle>Assinaturas</SectionTitle>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+      <SectionTitle>Assinaturas e Receita</SectionTitle>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
+        <AdminStatCard
+          icon={DollarSign}
+          label="MRR estimado"
+          value={`R$ ${data.subscriptions.mrrEstimatedBRL.toFixed(0)}`}
+          hint="Sem gateway integrado"
+          tone={data.subscriptions.mrrEstimatedBRL > 0 ? "success" : "default"}
+        />
         <AdminStatCard
           icon={Activity}
           label="Ativas"

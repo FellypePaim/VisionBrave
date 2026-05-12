@@ -7,6 +7,8 @@ import {
   Loader2, AlertCircle, FileText, ExternalLink,
 } from "lucide-react";
 import { JsonViewer } from "@/components/admin/JsonViewer";
+import { ExportCsvButton } from "@/components/admin/ExportCsvButton";
+import type { CsvColumn } from "@/lib/admin/csv";
 
 interface AuditRow {
   id: string;
@@ -75,17 +77,36 @@ export default function AdminAuditPage() {
 
   useEffect(() => { setPage(1); }, [search, entityType, from, to]);
 
+  const csvColumns: CsvColumn<AuditRow>[] = [
+    { header: "Data",         accessor: (r) => new Date(r.createdAt).toISOString() },
+    { header: "Ação",         accessor: (r) => r.action },
+    { header: "Entity Type",  accessor: (r) => r.entityType },
+    { header: "Entity ID",    accessor: (r) => r.entityId ?? "" },
+    { header: "Admin ID",     accessor: (r) => r.adminUserId ?? "" },
+    { header: "Admin email",  accessor: (r) => r.adminEmail ?? "" },
+    { header: "Target ID",    accessor: (r) => r.targetUserId ?? "" },
+    { header: "Target email", accessor: (r) => r.targetEmail ?? "" },
+    { header: "Before JSON",  accessor: (r) => JSON.stringify(r.before) },
+    { header: "After JSON",   accessor: (r) => JSON.stringify(r.after) },
+    { header: "Metadata JSON", accessor: (r) => JSON.stringify(r.metadata) },
+    { header: "IP",           accessor: (r) => r.ipAddress ?? "" },
+    { header: "User-Agent",   accessor: (r) => r.userAgent ?? "" },
+  ];
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-5">
-        <h1 className="text-[22px] font-bold text-white mb-1 flex items-center gap-2">
-          <FileText size={20} className="text-y" />
-          Auditoria
-        </h1>
-        <p className="text-[13px] text-t3">
-          {pagination.total.toLocaleString("pt-BR")} {pagination.total === 1 ? "ação registrada" : "ações registradas"}
-          {" · "}trilha imutável de todas as operações admin
-        </p>
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-[22px] font-bold text-white mb-1 flex items-center gap-2">
+            <FileText size={20} className="text-y" />
+            Auditoria
+          </h1>
+          <p className="text-[13px] text-t3">
+            {pagination.total.toLocaleString("pt-BR")} {pagination.total === 1 ? "ação registrada" : "ações registradas"}
+            {" · "}trilha imutável de todas as operações admin
+          </p>
+        </div>
+        <ExportCsvButton data={data} columns={csvColumns} filenamePrefix="audit_logs" />
       </div>
 
       {/* Filtros */}
