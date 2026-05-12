@@ -5,6 +5,7 @@ import { Topbar } from "@/components/layout/Topbar";
 import {
   Camera, Download, RefreshCw, Maximize2, Layers,
   Loader2, AlertCircle, ImagePlus, X, ChevronDown, ChevronUp, Pencil, Languages, Lock,
+  Info, Plus,
 } from "lucide-react";
 import { calculateCost, isModelAllowedForPlan, PLAN_MODEL_ACCESS } from "@/lib/credits";
 
@@ -51,13 +52,20 @@ const FRAMINGS = [
   { id: "wide",      label: "Composição Ampla" },
 ];
 
-// Modelos melhores para fotorrealismo
-const PORTRAIT_MODELS = ["Flux Pro", "Nano Banana", "Nano Banana Pro"];
+// Modelos com suporte real a imagem de referência via KIE.
+// Removido Flux Pro (text-to-image puro, ignora qualquer imagem enviada).
+// Removido Nano Banana Pro temporariamente — modelId KIE ainda não confirmado.
+const PORTRAIT_MODELS = ["Nano Banana", "Flux Kontext"];
 
 const MODEL_RESOLUTIONS: Record<string, Array<"1K" | "2K" | "4K">> = {
-  "Flux Pro":         ["1K", "2K"],
   "Nano Banana":      ["1K", "2K", "4K"],
-  "Nano Banana Pro":  ["1K", "2K", "4K"],
+  "Flux Kontext":     ["1K", "2K", "4K"],
+};
+
+// Quantas imagens de referência cada modelo aceita
+const MAX_REF_IMAGES: Record<string, number> = {
+  "Nano Banana":      4,   // KIE aceita até 14, limitamos a 4 pra UX
+  "Flux Kontext":     1,   // edita 1 imagem específica
 };
 
 // ─── Composição do prompt ───────────────────────────────────────────────────
@@ -132,10 +140,14 @@ function buildPortraitPrompt(fields: {
   const scene = [style, "photograph", type_].filter(Boolean).join(" ");
   if (scene.trim()) sentences.push(scene.charAt(0).toUpperCase() + scene.slice(1) + ".");
 
-  // Fidelidade à referência — instrução de maior prioridade para o modelo
+  // Fidelidade à referência — instrução de maior prioridade para o modelo.
+  // Texto reforçado em duas frases pra modelos diffusion-based dar mais peso.
   if (fields.hasReference) {
     sentences.push(
-      "Preserving the exact facial features, skin tone, body proportions, and identity from the reference image."
+      "The subject's face, hairstyle, skin tone, and overall identity must match exactly the reference image(s) provided — same person, no facial alterations."
+    );
+    sentences.push(
+      "Maintain consistent facial structure, eye shape, nose, lips, and jawline from the reference."
     );
   }
 
@@ -219,7 +231,7 @@ export default function PortraitPage() {
   const [framing, setFraming]             = useState("fullbody");
 
   // Configurações de geração
-  const [activeModel, setActiveModel]     = useState("Flux Pro");
+  const [activeModel, setActiveModel]     = useState("Nano Banana");
   const [resolution, setResolution]       = useState<"1K" | "2K" | "4K">("1K");
   const [activeCount, setActiveCount]     = useState(1);
 
@@ -227,8 +239,8 @@ export default function PortraitPage() {
   const [outfitEn, setOutfitEn]           = useState("");
   const [isTranslating, setIsTranslating] = useState(false);
 
-  // Referência de aparência (opcional)
-  const [refImageUrl, setRefImageUrl]     = useState<string | null>(null);
+  // Referência de aparência (opcional, múltiplas imagens pra melhor fidelidade)
+  const [refImageUrls, setRefImageUrls]   = useState<string[]>([]);
   const [isUploadingRef, setIsUploadingRef] = useState(false);
   const refFileRef = useRef<HTMLInputElement>(null);
 
@@ -338,9 +350,9 @@ export default function PortraitPage() {
       setting:      resolve(setting,      "cenario"),
       lighting:     resolve(lighting,     "lighting"),
       framing:      resolve(framing,      "framing"),
-      hasReference: !!refImageUrl,
+      hasReference: refImageUrls.length > 0,
     });
-  }, [portraitType, shootStyle, outfit, outfitEn, setting, lighting, framing, outroTexts, outroTextsEn, refImageUrl]);
+  }, [portraitType, shootStyle, outfit, outfitEn, setting, lighting, framing, outroTexts, outroTextsEn, refImageUrls]);
 
   // Quando qualquer campo muda, limpa o override manual do prompt
   useEffect(() => {
@@ -361,19 +373,28 @@ export default function PortraitPage() {
     setTimeout(() => setToast(null), 2500);
   }
 
-  // Upload de referência
+  // Upload de referência — múltiplas imagens, limita ao MAX_REF_IMAGES do modelo
   async function handleRefUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    const maxForModel = MAX_REF_IMAGES[activeModel] ?? 1;
+    if (refImageUrls.length >= maxForModel) {
+      showToast(`Limite de ${maxForModel} ${maxForModel === 1 ? "imagem" : "imagens"} para ${activeModel}`);
+      return;
+    }
     setIsUploadingRef(true);
     try {
       const url = await uploadReferenceFile(file);
-      if (url) setRefImageUrl(url);
+      if (url) setRefImageUrls((prev) => [...prev, url]);
       else showToast("Falha no upload — tente novamente");
     } finally {
       setIsUploadingRef(false);
       if (e.target) e.target.value = "";
     }
+  }
+
+  function removeRefImage(idx: number) {
+    setRefImageUrls((prev) => prev.filter((_, i) => i !== idx));
   }
 
   // Polling
@@ -435,6 +456,12 @@ export default function PortraitPage() {
     pollingRef.current = [];
 
     try {
+      // Mapeia upload pra parâmetro certo conforme o modelo:
+      //  - Nano Banana / Pro → referenceImages (array, KIE aceita até 14)
+      //  - Flux Kontext       → inputImage (única imagem)
+      const isNanoFamily = activeModel === "Nano Banana" || activeModel === "Nano Banana Pro";
+      const isFluxKontext = activeModel === "Flux Kontext";
+
       const res = await fetch("/api/generate/image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -445,9 +472,9 @@ export default function PortraitPage() {
           resolution,
           aspectRatio: "2:3",   // Proporção retrato (padrão para ensaios)
           referenceImages:
-            activeModel === "Nano Banana" && refImageUrl ? [refImageUrl] : undefined,
+            isNanoFamily && refImageUrls.length > 0 ? refImageUrls : undefined,
           inputImage:
-            activeModel === "Flux Pro" && refImageUrl ? refImageUrl : undefined,
+            isFluxKontext && refImageUrls.length > 0 ? refImageUrls[0] : undefined,
         }),
       });
 
@@ -835,40 +862,67 @@ export default function PortraitPage() {
             )}
           </div>
 
-          {/* Referência visual (opcional) */}
+          {/* Referência visual (opcional, múltiplas) */}
           <div className="bg-card border border-b1 rounded-[11px] p-3.5">
             <div className="flex items-center gap-2 mb-2">
               <p className="text-[12px] font-semibold text-t3 uppercase tracking-wider flex-1">Referência Visual</p>
-              <span className="text-[10.5px] text-t4">Opcional</span>
+              <span className="text-[10.5px] text-t4">
+                {refImageUrls.length}/{MAX_REF_IMAGES[activeModel] ?? 1}
+              </span>
             </div>
-            <p className="text-[11px] text-t4 mb-2.5 leading-[1.4]">
-              Envie uma foto para manter o estilo ou aparência da modelo.
-            </p>
+
+            {/* Dica de boas práticas */}
+            <div className="flex items-start gap-1.5 mb-2.5 p-2 rounded-[8px] bg-y/5 border border-y/15">
+              <Info size={11} className="text-y shrink-0 mt-0.5" />
+              <p className="text-[10.5px] text-t2 leading-[1.45]">
+                {activeModel === "Flux Kontext" ? (
+                  <>Envie <strong className="text-white">1 foto</strong> do rosto/corpo — o modelo edita essa imagem aplicando o estilo escolhido.</>
+                ) : (
+                  <>Pra fidelidade máxima, envie <strong className="text-white">2-4 fotos</strong> de ângulos diferentes (frontal, 3/4, perfil, sorrindo).</>
+                )}
+              </p>
+            </div>
+
             <input ref={refFileRef} type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
+
+            {/* Grid de referências */}
+            {refImageUrls.length > 0 && (
+              <div className="grid grid-cols-3 gap-1.5 mb-2">
+                {refImageUrls.map((url, i) => (
+                  <div key={url + i} className="relative rounded-[8px] overflow-hidden border border-b1 aspect-square">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt={`Ref ${i + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => removeRefImage(i)}
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 flex items-center justify-center text-white hover:bg-black/90"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Botão de upload */}
             {isUploadingRef ? (
-              <div className="w-full border border-dashed border-b2 rounded-[10px] py-5 flex items-center justify-center gap-2 text-t3">
-                <Loader2 size={14} className="animate-spin text-y" />
+              <div className="w-full border border-dashed border-b2 rounded-[10px] py-4 flex items-center justify-center gap-2 text-t3">
+                <Loader2 size={13} className="animate-spin text-y" />
                 <span className="text-[12px]">Enviando...</span>
               </div>
-            ) : refImageUrl ? (
-              <div className="relative rounded-[10px] overflow-hidden border border-b1">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={refImageUrl} alt="Reference" className="w-full h-[110px] object-cover" />
-                <button
-                  onClick={() => { setRefImageUrl(null); if (refFileRef.current) refFileRef.current.value = ""; }}
-                  className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/70 flex items-center justify-center text-white hover:bg-black/90"
-                >
-                  <X size={12} />
-                </button>
-              </div>
-            ) : (
+            ) : refImageUrls.length < (MAX_REF_IMAGES[activeModel] ?? 1) ? (
               <button
                 onClick={() => refFileRef.current?.click()}
-                className="w-full border border-dashed border-b2 rounded-[10px] py-4 flex flex-col items-center gap-2 text-t3 hover:text-white hover:border-b2 transition-colors"
+                className="w-full border border-dashed border-b2 rounded-[10px] py-3 flex items-center justify-center gap-2 text-t3 hover:text-white hover:border-b2 transition-colors"
               >
-                <ImagePlus size={18} />
-                <span className="text-[12px]">Adicionar referência</span>
+                {refImageUrls.length === 0 ? <ImagePlus size={14} /> : <Plus size={13} />}
+                <span className="text-[12px]">
+                  {refImageUrls.length === 0 ? "Adicionar referência" : "Adicionar mais"}
+                </span>
               </button>
+            ) : (
+              <p className="text-[11px] text-t4 text-center py-2">
+                Limite de {MAX_REF_IMAGES[activeModel]} {MAX_REF_IMAGES[activeModel] === 1 ? "imagem" : "imagens"} atingido para {activeModel}
+              </p>
             )}
           </div>
 
@@ -926,6 +980,11 @@ export default function PortraitPage() {
                       setActiveModel(m);
                       const opts = MODEL_RESOLUTIONS[m] ?? ["1K", "2K", "4K"];
                       if (!opts.includes(resolution)) setResolution(opts[0]);
+                      // Recorta refImageUrls se exceder o limite do novo modelo
+                      const maxNew = MAX_REF_IMAGES[m] ?? 1;
+                      if (refImageUrls.length > maxNew) {
+                        setRefImageUrls((prev) => prev.slice(0, maxNew));
+                      }
                     }}
                     title={locked ? `Disponível a partir do plano ${minPlan}` : undefined}
                     className={`py-2 px-3 rounded-[8px] text-[12px] font-medium border transition-all flex items-center ${
