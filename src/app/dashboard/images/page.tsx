@@ -5,9 +5,9 @@ import { Topbar } from "@/components/layout/Topbar";
 import {
   Wand2, Download, RefreshCw, Crop, Layers, Sparkles,
   Maximize2, ChevronRight, Plus, MoreHorizontal, Zap, Loader2, AlertCircle,
-  ImagePlus, X, Ratio,
+  ImagePlus, X, Ratio, Lock,
 } from "lucide-react";
-import { calculateCost } from "@/lib/credits";
+import { calculateCost, isModelAllowedForPlan, PLAN_MODEL_ACCESS } from "@/lib/credits";
 
 const TAGS = ["Todos", "Realista", "Cinemático", "Anime", "Render 3D", "Pintura a Óleo", "Esboço", "Neon"];
 
@@ -24,6 +24,14 @@ const TAG_TO_STYLE: Record<string, string | undefined> = {
 };
 const COUNTS = [1, 2, 3, 4];
 const MODELS = ["Nano Banana", "Flux Kontext", "GPT Image 2", "Flux Pro"];
+
+// Retorna o nome do plano mínimo para acessar um modelo
+function minPlanFor(model: string): string {
+  if (PLAN_MODEL_ACCESS.free.includes(model)) return "Free";
+  if (PLAN_MODEL_ACCESS.premium.includes(model)) return "Premium";
+  if (PLAN_MODEL_ACCESS.premiumplus.includes(model)) return "Premium+";
+  return "Pro";
+}
 
 // Resoluções disponíveis por modelo (Flux Pro max 2K per KIE docs)
 const MODEL_RESOLUTIONS: Record<string, Array<"1K" | "2K" | "4K">> = {
@@ -69,6 +77,7 @@ export default function GenerateImagesPage() {
   const [error, setError] = useState<string | null>(null);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [userPlan, setUserPlan] = useState<string>("free");
 
   // Flux Kontext reference image (hosted URL)
   const [refImageUrl, setRefImageUrl] = useState<string | null>(null);
@@ -88,6 +97,14 @@ export default function GenerateImagesPage() {
       pollingRef.current.forEach(clearInterval);
       pollingRef.current = [];
     };
+  }, []);
+
+  // Busca plano do usuário para UI lock de modelos
+  useEffect(() => {
+    fetch("/api/credits")
+      .then((r) => r.json())
+      .then((d) => { if (d?.subscription?.plan) setUserPlan(d.subscription.plan); })
+      .catch(() => {/* mantém "free" como fallback seguro */});
   }, []);
 
   // Load prompt from template (set by /dashboard/templates)
@@ -430,26 +447,38 @@ export default function GenerateImagesPage() {
               Modelo
             </div>
             <div className="grid grid-cols-2 gap-1.5">
-              {MODELS.map((m) => (
-                <button
-                  key={m}
-                  onClick={() => {
-                    setActiveModel(m);
-                    setAspectRatio((ASPECT_RATIOS[m] ?? [])[0] ?? "1:1");
-                    const resOptions = MODEL_RESOLUTIONS[m] ?? ["1K", "2K", "4K"];
-                    if (!resOptions.includes(resolution)) setResolution(resOptions[0]);
-                    setRefImageUrl(null);
-                    setNanoBananaRefs([]);
-                  }}
-                  className={`py-2 rounded-[8px] text-[12px] font-medium border transition-all ${
-                    activeModel === m
-                      ? "bg-[#1f1608] border-y text-y"
-                      : "bg-card2 border-b1 text-t2 hover:border-b2 hover:text-white"
-                  }`}
-                >
-                  {m}
-                </button>
-              ))}
+              {MODELS.map((m) => {
+                const locked = !isModelAllowedForPlan(userPlan, m);
+                const minPlan = locked ? minPlanFor(m) : null;
+                return (
+                  <button
+                    key={m}
+                    onClick={() => {
+                      if (locked) {
+                        showToast(`🔒 ${m} disponível a partir do plano ${minPlan}`);
+                        return;
+                      }
+                      setActiveModel(m);
+                      setAspectRatio((ASPECT_RATIOS[m] ?? [])[0] ?? "1:1");
+                      const resOptions = MODEL_RESOLUTIONS[m] ?? ["1K", "2K", "4K"];
+                      if (!resOptions.includes(resolution)) setResolution(resOptions[0]);
+                      setRefImageUrl(null);
+                      setNanoBananaRefs([]);
+                    }}
+                    title={locked ? `Disponível a partir do plano ${minPlan}` : undefined}
+                    className={`py-2 rounded-[8px] text-[12px] font-medium border transition-all flex items-center justify-center gap-1.5 ${
+                      activeModel === m && !locked
+                        ? "bg-[#1f1608] border-y text-y"
+                        : locked
+                        ? "bg-card2 border-b1 text-t4 cursor-not-allowed opacity-50"
+                        : "bg-card2 border-b1 text-t2 hover:border-b2 hover:text-white"
+                    }`}
+                  >
+                    {locked && <Lock size={10} className="shrink-0" />}
+                    {m}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

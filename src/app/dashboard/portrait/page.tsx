@@ -4,9 +4,9 @@ import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Topbar } from "@/components/layout/Topbar";
 import {
   Camera, Download, RefreshCw, Maximize2, Layers,
-  Loader2, AlertCircle, ImagePlus, X, ChevronDown, ChevronUp, Pencil, Languages,
+  Loader2, AlertCircle, ImagePlus, X, ChevronDown, ChevronUp, Pencil, Languages, Lock,
 } from "lucide-react";
-import { calculateCost } from "@/lib/credits";
+import { calculateCost, isModelAllowedForPlan, PLAN_MODEL_ACCESS } from "@/lib/credits";
 
 // ─── Opções dos campos guiados ──────────────────────────────────────────────
 
@@ -136,6 +136,14 @@ function buildPortraitPrompt(fields: {
   return parts.join(", ");
 }
 
+// Retorna o nome do plano mínimo para acessar um modelo
+function minPlanFor(model: string): string {
+  if (PLAN_MODEL_ACCESS.free.includes(model)) return "Free";
+  if (PLAN_MODEL_ACCESS.premium.includes(model)) return "Premium";
+  if (PLAN_MODEL_ACCESS.premiumplus.includes(model)) return "Premium+";
+  return "Pro";
+}
+
 // ─── Interfaces ────────────────────────────────────────────────────────────
 
 interface GeneratedImage {
@@ -213,6 +221,9 @@ export default function PortraitPage() {
   const [promptOverride, setPromptOverride] = useState<string | null>(null);
   const [promptExpanded, setPromptExpanded] = useState(false);
 
+  // Plano do usuário para UI lock de modelos
+  const [userPlan, setUserPlan] = useState<string>("free");
+
   const pollingRef = useRef<NodeJS.Timeout[]>([]);
   const promptRef  = useRef("");
   const modelRef   = useRef(activeModel);
@@ -220,6 +231,23 @@ export default function PortraitPage() {
 
   useEffect(() => {
     return () => { pollingRef.current.forEach(clearInterval); pollingRef.current = []; };
+  }, []);
+
+  // Busca plano do usuário; auto-troca para Nano Banana se modelo padrão for locked
+  useEffect(() => {
+    fetch("/api/credits")
+      .then((r) => r.json())
+      .then((d) => {
+        const plan: string = d?.subscription?.plan ?? "free";
+        setUserPlan(plan);
+        // Se o modelo padrão (Flux Pro) não for permitido no plano, troca para Nano Banana
+        if (!isModelAllowedForPlan(plan, activeModel)) {
+          const first = PORTRAIT_MODELS.find((m) => isModelAllowedForPlan(plan, m));
+          if (first) setActiveModel(first);
+        }
+      })
+      .catch(() => {/* mantém "free" como fallback seguro */});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Tradução automática do vestuário: debounce 600ms após o user parar de digitar
@@ -673,21 +701,38 @@ export default function PortraitPage() {
           <div className="bg-card border border-b1 rounded-[11px] p-3.5">
             <p className="text-[12px] font-semibold text-t3 uppercase tracking-wider mb-2.5">Modelo de IA</p>
             <div className="flex flex-col gap-1.5">
-              {PORTRAIT_MODELS.map((m) => (
-                <OptionBtn key={m} active={activeModel === m}
-                  onClick={() => {
-                    setActiveModel(m);
-                    const opts = MODEL_RESOLUTIONS[m] ?? ["1K", "2K", "4K"];
-                    if (!opts.includes(resolution)) setResolution(opts[0]);
-                  }}
-                  className="py-2 px-3 flex items-center justify-between"
-                >
-                  <span>{m}</span>
-                  <span className={`text-[10.5px] font-normal ${activeModel === m ? "text-y/70" : "text-t4"}`}>
-                    {calculateCost(m, { count: 1, resolution: "1K" })} créd/1K
-                  </span>
-                </OptionBtn>
-              ))}
+              {PORTRAIT_MODELS.map((m) => {
+                const locked = !isModelAllowedForPlan(userPlan, m);
+                const minPlan = locked ? minPlanFor(m) : null;
+                return (
+                  <button
+                    key={m}
+                    onClick={() => {
+                      if (locked) {
+                        showToast(`🔒 ${m} disponível a partir do plano ${minPlan}`);
+                        return;
+                      }
+                      setActiveModel(m);
+                      const opts = MODEL_RESOLUTIONS[m] ?? ["1K", "2K", "4K"];
+                      if (!opts.includes(resolution)) setResolution(opts[0]);
+                    }}
+                    title={locked ? `Disponível a partir do plano ${minPlan}` : undefined}
+                    className={`py-2 px-3 rounded-[8px] text-[12px] font-medium border transition-all flex items-center ${
+                      activeModel === m && !locked
+                        ? "bg-[#1f1608] border-y text-y"
+                        : locked
+                        ? "bg-card2 border-b1 text-t4 cursor-not-allowed opacity-50"
+                        : "bg-card2 border-b1 text-t2 hover:border-b2 hover:text-white"
+                    }`}
+                  >
+                    {locked && <Lock size={10} className="shrink-0 mr-1.5" />}
+                    <span className="flex-1 text-left">{m}</span>
+                    <span className={`text-[10.5px] font-normal ${activeModel === m && !locked ? "text-y/70" : "text-t4"}`}>
+                      {locked ? minPlan : `${calculateCost(m, { count: 1, resolution: "1K" })} créd/1K`}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
