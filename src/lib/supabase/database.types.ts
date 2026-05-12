@@ -83,6 +83,9 @@ export type Database = {
           storage_path: string | null
           type: string
           user_id: string
+          deleted_at: string | null
+          deleted_by: string | null
+          delete_reason: string | null
         }
         Insert: {
           created_at?: string
@@ -95,6 +98,9 @@ export type Database = {
           storage_path?: string | null
           type: string
           user_id: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          delete_reason?: string | null
         }
         Update: {
           created_at?: string
@@ -107,6 +113,9 @@ export type Database = {
           storage_path?: string | null
           type?: string
           user_id?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          delete_reason?: string | null
         }
         Relationships: []
       }
@@ -275,6 +284,48 @@ export type Database = {
           value?: Json
           updated_by?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      app_error_logs: {
+        Row: {
+          id: string
+          user_id: string | null
+          route: string | null
+          action: string | null
+          provider: string | null
+          model: string | null
+          error_code: string | null
+          error_message: string
+          stack: string | null
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          route?: string | null
+          action?: string | null
+          provider?: string | null
+          model?: string | null
+          error_code?: string | null
+          error_message: string
+          stack?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          route?: string | null
+          action?: string | null
+          provider?: string | null
+          model?: string | null
+          error_code?: string | null
+          error_message?: string
+          stack?: string | null
+          metadata?: Json
+          created_at?: string
         }
         Relationships: []
       }

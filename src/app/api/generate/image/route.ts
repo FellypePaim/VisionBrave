@@ -8,6 +8,7 @@ import {
 import { getUserPlan } from "@/lib/plan";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkGenerationAllowed } from "@/lib/admin/settings-cache";
+import { logAppError } from "@/lib/log-error";
 
 const STYLE_PREFIX: Record<string, string> = {
   Cinematic:  "cinematic photography, dramatic lighting, ",
@@ -107,6 +108,15 @@ export async function POST(req: NextRequest) {
         { status: 402 },
       );
     }
+    await logAppError({
+      userId: user.id,
+      route: "/api/generate/image",
+      action: "debit_credits",
+      errorCode: "debit_failed",
+      errorMessage: e instanceof Error ? e.message : String(e),
+      stack: e instanceof Error ? e.stack : undefined,
+      metadata: { model, cost, count },
+    });
     return NextResponse.json({ error: "Erro ao debitar créditos" }, { status: 500 });
   }
 
@@ -156,6 +166,16 @@ export async function POST(req: NextRequest) {
   if (taskIds.length === 0) {
     const firstError = tasks[0]?.msg ?? "Failed to start generation";
     await refundCredits(user.id, cost, `Refund: falha na geração (${model})`, { error: firstError, model });
+    await logAppError({
+      userId: user.id,
+      route: "/api/generate/image",
+      action: "kie_create_task_total_fail",
+      provider: "KIE",
+      model,
+      errorCode: "kie_failed",
+      errorMessage: firstError,
+      metadata: { count, refundAmount: cost, kieResponses: tasks.map((t) => ({ code: t.code, msg: t.msg })) },
+    });
     return NextResponse.json({ error: firstError }, { status: 500 });
   }
 

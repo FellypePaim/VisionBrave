@@ -20,7 +20,10 @@ export type AdminPermission =
   | "kie.update"
   | "settings.read"
   | "settings.update"
-  | "audit.read";
+  | "audit.read"
+  | "generations.read"
+  | "generations.delete"
+  | "errors.read";
 
 export interface AdminOverview {
   users: {

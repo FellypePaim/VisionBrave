@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, FileText, Coins, ArrowLeftRight,
-  ServerCog, Cog, Shield, ArrowLeft,
+  ServerCog, Cog, Shield, ArrowLeft, Sparkles, AlertTriangle,
 } from "lucide-react";
 import type { AdminRole } from "@/lib/admin/types";
 
@@ -18,9 +18,10 @@ const navGroups: { title: string; items: NavItem[] }[] = [
   {
     title: "Operação",
     items: [
-      { href: "/admin",         icon: LayoutDashboard, label: "Visão Geral" },
-      { href: "/admin/users",   icon: Users,           label: "Usuários" },
-      { href: "/admin/audit",   icon: FileText,        label: "Auditoria" },
+      { href: "/admin",             icon: LayoutDashboard, label: "Visão Geral" },
+      { href: "/admin/users",       icon: Users,           label: "Usuários" },
+      { href: "/admin/generations", icon: Sparkles,        label: "Gerações" },
+      { href: "/admin/audit",       icon: FileText,        label: "Auditoria" },
     ],
   },
   {
@@ -34,7 +35,8 @@ const navGroups: { title: string; items: NavItem[] }[] = [
   {
     title: "Sistema",
     items: [
-      { href: "/admin/settings", icon: Cog, label: "Configurações" },
+      { href: "/admin/errors",   icon: AlertTriangle, label: "Erros" },
+      { href: "/admin/settings", icon: Cog,           label: "Configurações" },
     ],
   },
 ];

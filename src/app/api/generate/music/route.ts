@@ -8,6 +8,7 @@ import {
 import { getUserPlan } from "@/lib/plan";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkGenerationAllowed } from "@/lib/admin/settings-cache";
+import { logAppError } from "@/lib/log-error";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -91,6 +92,15 @@ export async function POST(req: NextRequest) {
         { status: 402 },
       );
     }
+    await logAppError({
+      userId: user.id,
+      route: "/api/generate/music",
+      action: "debit_credits",
+      errorCode: "debit_failed",
+      errorMessage: e instanceof Error ? e.message : String(e),
+      stack: e instanceof Error ? e.stack : undefined,
+      metadata: { model, cost },
+    });
     return NextResponse.json({ error: "Erro ao debitar créditos" }, { status: 500 });
   }
 
@@ -111,6 +121,16 @@ export async function POST(req: NextRequest) {
   if (task.code !== 200 || !task.data?.taskId) {
     const errMsg = task.msg ?? "Failed to start generation";
     await refundCredits(user.id, cost, `Refund: falha na geração (Suno ${model})`, { error: errMsg, model });
+    await logAppError({
+      userId: user.id,
+      route: "/api/generate/music",
+      action: "kie_create_task",
+      provider: "KIE",
+      model,
+      errorCode: "kie_failed",
+      errorMessage: errMsg,
+      metadata: { refundAmount: cost, kieCode: task.code },
+    });
     return NextResponse.json({ error: errMsg }, { status: 500 });
   }
 

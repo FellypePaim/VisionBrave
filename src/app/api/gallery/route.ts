@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
     .from("generations")
     .select("id, type, prompt, model, public_url, external_url, metadata, created_at")
     .eq("user_id", user.id)
+    .is("deleted_at", null)  // soft delete: gerações removidas pelo admin somem da galeria
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -23,11 +24,11 @@ export async function GET(req: NextRequest) {
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Counts per type (small extra query, runs in parallel)
+  // Counts per type (small extra query, runs in parallel) — também respeitam soft delete
   const [imgCount, vidCount, audCount] = await Promise.all([
-    supabase.from("generations").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("type", "image"),
-    supabase.from("generations").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("type", "video"),
-    supabase.from("generations").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("type", "audio"),
+    supabase.from("generations").select("*", { count: "exact", head: true }).eq("user_id", user.id).is("deleted_at", null).eq("type", "image"),
+    supabase.from("generations").select("*", { count: "exact", head: true }).eq("user_id", user.id).is("deleted_at", null).eq("type", "video"),
+    supabase.from("generations").select("*", { count: "exact", head: true }).eq("user_id", user.id).is("deleted_at", null).eq("type", "audio"),
   ]);
 
   return NextResponse.json({
