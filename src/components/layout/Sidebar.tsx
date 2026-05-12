@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   Home, Image, Camera, Video, Music, LayoutGrid, Sparkles, CreditCard,
-  MessageSquare, Star, Archive, Zap, Search, ChevronUp, LogOut,
+  MessageSquare, Star, Archive, Zap, Search, ChevronUp, LogOut, Shield,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -33,6 +33,8 @@ export function Sidebar() {
   const [userName, setUserName] = useState<string | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminRole, setAdminRole] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -42,6 +44,15 @@ export function Sidebar() {
         setUserName(user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? null);
       }
     });
+
+    // Checa se é admin pra exibir o atalho "ADMIN" no sidebar
+    fetch("/api/admin/me")
+      .then((r) => r.json())
+      .then((d: { isAdmin: boolean; role: string | null }) => {
+        setIsAdmin(!!d.isAdmin);
+        setAdminRole(d.role);
+      })
+      .catch(() => {/* falha segura — botão não aparece */});
   }, []);
 
   function showToast(msg: string) {
@@ -82,6 +93,34 @@ export function Sidebar() {
         <span className="text-[13px] text-t4 flex-1">Buscar...</span>
         <span className="text-[11px] text-t4">⌘K</span>
       </Link>
+
+      {/* Admin shortcut — só aparece pra contas registradas em admin_users */}
+      {isAdmin && (
+        <Link
+          href="/admin"
+          className="group mx-3 mb-3.5 rounded-[10px] px-3 py-2.5 flex items-center gap-2.5 transition-all"
+          style={{
+            background: "linear-gradient(145deg, #1a1208 0%, #0f0904 100%)",
+            border: "1px solid #2a1f08",
+            boxShadow: "0 2px 14px #FBBF2420",
+          }}
+          title="Abrir Painel Admin"
+        >
+          <div
+            className="w-7 h-7 rounded-[7px] shrink-0 flex items-center justify-center"
+            style={{ background: "#FBBF24", boxShadow: "0 2px 8px #FBBF2440" }}
+          >
+            <Shield size={13} className="text-[#1a0e00]" />
+          </div>
+          <div className="flex-1 leading-tight">
+            <div className="text-[12.5px] font-bold text-y">ADMIN</div>
+            <div className="text-[10px] text-t3 uppercase tracking-wider">
+              {adminRole ?? "admin"}
+            </div>
+          </div>
+          <ChevronUp size={13} className="text-t4 group-hover:text-y rotate-90 transition-colors" />
+        </Link>
+      )}
 
       {/* Main nav */}
       {navMain.map(({ href, icon: Icon, label }) => {
