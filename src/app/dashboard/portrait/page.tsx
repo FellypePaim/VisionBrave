@@ -62,6 +62,16 @@ const MODEL_RESOLUTIONS: Record<string, Array<"1K" | "2K" | "4K">> = {
 
 // ─── Composição do prompt ───────────────────────────────────────────────────
 
+/**
+ * Gera o prompt em inglês para envio à KIE.AI.
+ *
+ * Estrutura em frases completas (melhor coerência para modelos de difusão):
+ *   [Estilo] photograph [Tipo]. [Referência se houver]. Wearing [Vestuário].
+ *   [Cenário], [Iluminação], [Enquadramento]. [Tags de qualidade].
+ *
+ * Cada campo aceita tanto preset IDs (mapeados internamente) quanto texto EN
+ * customizado de "outro" — se não encontrar no map, usa o valor diretamente.
+ */
 function buildPortraitPrompt(fields: {
   type: string;
   style: string;
@@ -69,71 +79,82 @@ function buildPortraitPrompt(fields: {
   setting: string;
   lighting: string;
   framing: string;
+  hasReference?: boolean;
 }): string {
-  const parts: string[] = [];
-
-  // Estilo fotográfico
+  // Presets → EN photography terminology
+  // Se o valor não estiver no map, assume texto EN customizado (campo "outro" traduzido)
   const styleMap: Record<string, string> = {
-    "Editorial Fashion":  "high-fashion editorial photography",
-    "Alta Costura":       "haute couture fashion photography",
-    "Comercial":          "commercial product photography",
-    "Lifestyle":          "lifestyle photography",
-    "Street Fashion":     "street fashion photography",
-    "Retrato Artístico":  "fine art portrait photography",
+    "Editorial Fashion":  "high-fashion editorial",
+    "Alta Costura":       "haute couture fashion",
+    "Comercial":          "commercial fashion",
+    "Lifestyle":          "lifestyle fashion",
+    "Street Fashion":     "street fashion",
+    "Retrato Artístico":  "fine art portrait",
   };
-  parts.push(styleMap[fields.style] ?? "professional photography");
-
-  // Sujeito
   const typeMap: Record<string, string> = {
     "feminino":  "of a beautiful female model",
     "masculino": "of a handsome male model",
     "casal":     "of an elegant couple",
     "grupo":     "of stylish models",
   };
-  parts.push(typeMap[fields.type] ?? "of a model");
-
-  // Vestuário
-  if (fields.outfit.trim()) {
-    parts.push(`wearing ${fields.outfit.trim()}`);
-  }
-
-  // Cenário
   const settingMap: Record<string, string> = {
-    "studio-white": "in a clean white photography studio",
-    "studio-black": "in a dramatic black studio",
+    "studio-white": "in a clean minimalist white photography studio",
+    "studio-black": "in a dramatic black studio with dark backdrop",
     "urban":        "in an urban city street environment",
-    "nature":       "in a natural outdoor setting",
-    "interior":     "in a luxurious elegant interior",
-    "rooftop":      "on a rooftop with city skyline backdrop",
+    "nature":       "in a natural outdoor setting with soft ambient light",
+    "interior":     "in a luxurious elegant interior space",
+    "rooftop":      "on a rooftop terrace with city skyline backdrop",
   };
-  if (fields.setting) parts.push(settingMap[fields.setting]);
-
-  // Iluminação
   const lightingMap: Record<string, string> = {
-    "natural":   "soft natural lighting",
-    "studio":    "professional studio lighting, Rembrandt lighting",
-    "golden":    "beautiful golden hour warm sunlight",
-    "dramatic":  "dramatic low-key lighting, deep shadows",
-    "highkey":   "clean high-key lighting, minimal shadows",
-    "neon":      "vibrant neon colored lighting",
+    "natural":   "with soft natural diffused window lighting",
+    "studio":    "with professional Rembrandt studio lighting setup",
+    "golden":    "with warm golden hour sunlight",
+    "dramatic":  "with dramatic low-key lighting and deep cinematic shadows",
+    "highkey":   "with clean high-key lighting and minimal shadows",
+    "neon":      "with vibrant neon colored accent lighting",
   };
-  if (fields.lighting) parts.push(lightingMap[fields.lighting]);
-
-  // Enquadramento
   const framingMap: Record<string, string> = {
     "closeup":   "close-up portrait",
     "halfbody":  "half-body shot",
     "fullbody":  "full-body shot",
-    "wide":      "wide environmental shot",
+    "wide":      "wide environmental composition",
   };
-  if (fields.framing) parts.push(framingMap[fields.framing]);
+
+  const style    = styleMap[fields.style]       ?? fields.style;
+  const type_    = typeMap[fields.type]         ?? fields.type;
+  const setting  = settingMap[fields.setting]   ?? fields.setting;
+  const lighting = lightingMap[fields.lighting] ?? fields.lighting;
+  const framing  = framingMap[fields.framing]   ?? fields.framing;
+
+  const sentences: string[] = [];
+
+  // Cena principal
+  const scene = [style, "photograph", type_].filter(Boolean).join(" ");
+  if (scene.trim()) sentences.push(scene.charAt(0).toUpperCase() + scene.slice(1) + ".");
+
+  // Fidelidade à referência — instrução de maior prioridade para o modelo
+  if (fields.hasReference) {
+    sentences.push(
+      "Preserving the exact facial features, skin tone, body proportions, and identity from the reference image."
+    );
+  }
+
+  // Vestuário
+  if (fields.outfit?.trim()) sentences.push(`Wearing ${fields.outfit.trim()}.`);
+
+  // Ambiente + técnica fotográfica
+  const env: string[] = [];
+  if (setting)  env.push(setting);
+  if (lighting) env.push(lighting);
+  if (framing)  env.push(framing);
+  if (env.length > 0) sentences.push(env.join(", ") + ".");
 
   // Tags de qualidade
-  parts.push(
-    "photorealistic, ultra-detailed, sharp focus, professional camera, bokeh background, high resolution"
+  sentences.push(
+    "Photorealistic, ultra-detailed, sharp focus, 85mm prime lens, professional camera, subtle background bokeh, high resolution, magazine editorial quality."
   );
 
-  return parts.join(", ");
+  return sentences.join(" ");
 }
 
 // Retorna o nome do plano mínimo para acessar um modelo
@@ -224,6 +245,13 @@ export default function PortraitPage() {
   // Plano do usuário para UI lock de modelos
   const [userPlan, setUserPlan] = useState<string>("free");
 
+  // Campos "outro" — texto livre PT + tradução EN
+  const [outroTexts, setOutroTexts] = useState<Record<string, string>>({
+    tipo: "", style: "", cenario: "", lighting: "", framing: "",
+  });
+  const [outroTextsEn, setOutroTextsEn] = useState<Record<string, string>>({});
+  const [isTranslatingOutro, setIsTranslatingOutro] = useState(false);
+
   const pollingRef = useRef<NodeJS.Timeout[]>([]);
   const promptRef  = useRef("");
   const modelRef   = useRef(activeModel);
@@ -250,6 +278,33 @@ export default function PortraitPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Tradução batch dos campos "outro" — 600ms debounce, todos de uma vez
+  useEffect(() => {
+    const entries = Object.entries(outroTexts).filter(([, v]) => v.trim());
+    if (entries.length === 0) { setOutroTextsEn({}); return; }
+    setIsTranslatingOutro(true);
+    const timer = setTimeout(async () => {
+      try {
+        const results: Record<string, string> = {};
+        await Promise.all(
+          entries.map(async ([key, text]) => {
+            try {
+              const res = await fetch("/api/translate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text }),
+              });
+              const data = await res.json();
+              results[key] = data.translated ?? text;
+            } catch { results[key] = text; }
+          })
+        );
+        setOutroTextsEn(results);
+      } finally { setIsTranslatingOutro(false); }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [outroTexts]);
+
   // Tradução automática do vestuário: debounce 600ms após o user parar de digitar
   useEffect(() => {
     if (!outfit.trim()) { setOutfitEn(""); return; }
@@ -272,14 +327,25 @@ export default function PortraitPage() {
     return () => clearTimeout(timer);
   }, [outfit]);
 
-  // Prompt composto (campos → string) — usa versão em inglês do vestuário
-  const composedPrompt = useMemo(
-    () => buildPortraitPrompt({ type: portraitType, style: shootStyle, outfit: outfitEn || outfit, setting, lighting, framing }),
-    [portraitType, shootStyle, outfit, outfitEn, setting, lighting, framing]
-  );
+  // Prompt composto — resolve campos "outro" para EN antes de passar ao builder
+  const composedPrompt = useMemo(() => {
+    const resolve = (field: string, key: string) =>
+      field === "outro" ? (outroTextsEn[key] || outroTexts[key] || "") : field;
+    return buildPortraitPrompt({
+      type:         resolve(portraitType, "tipo"),
+      style:        resolve(shootStyle,   "style"),
+      outfit:       outfitEn || outfit,
+      setting:      resolve(setting,      "cenario"),
+      lighting:     resolve(lighting,     "lighting"),
+      framing:      resolve(framing,      "framing"),
+      hasReference: !!refImageUrl,
+    });
+  }, [portraitType, shootStyle, outfit, outfitEn, setting, lighting, framing, outroTexts, outroTextsEn, refImageUrl]);
 
-  // Quando os campos mudam e o user não editou manualmente, limpa o override
-  useEffect(() => { setPromptOverride(null); }, [portraitType, shootStyle, outfit, outfitEn, setting, lighting, framing]);
+  // Quando qualquer campo muda, limpa o override manual do prompt
+  useEffect(() => {
+    setPromptOverride(null);
+  }, [portraitType, shootStyle, outfit, outfitEn, setting, lighting, framing, outroTexts, outroTextsEn]);
 
   const activePrompt = promptOverride ?? composedPrompt;
   promptRef.current  = activePrompt;
@@ -529,7 +595,36 @@ export default function PortraitPage() {
                   <span className="text-[10.5px]">{t.label}</span>
                 </OptionBtn>
               ))}
+              <OptionBtn active={portraitType === "outro"} onClick={() => setPortraitType("outro")}
+                className="col-span-4 py-2 flex items-center justify-center gap-1.5"
+              >
+                <Pencil size={11} />
+                Outro
+              </OptionBtn>
             </div>
+            {portraitType === "outro" && (
+              <div className="mt-2">
+                <input
+                  type="text" value={outroTexts.tipo}
+                  onChange={(e) => setOutroTexts((p) => ({ ...p, tipo: e.target.value }))}
+                  placeholder="ex: pessoa idosa, criança, grupo corporativo..."
+                  maxLength={80}
+                  className="w-full bg-card2 border border-b1 rounded-[8px] px-3 py-2 text-[12px] text-[#c0c0c0] placeholder-t4 outline-none focus:border-b2 transition-colors"
+                />
+                {outroTexts.tipo.trim() && (
+                  <div className="mt-1.5 flex items-center gap-1.5 min-h-[16px]">
+                    {isTranslatingOutro
+                      ? <Loader2 size={10} className="animate-spin text-t4 shrink-0" />
+                      : <Languages size={10} className="text-y shrink-0" />}
+                    <span className="text-[10.5px] text-t3">
+                      {isTranslatingOutro ? "Traduzindo..." : outroTextsEn.tipo
+                        ? <><span className="text-t4">en: </span><span className="text-[#c8a84b] italic">{outroTextsEn.tipo}</span></>
+                        : null}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Estilo do ensaio */}
@@ -543,7 +638,36 @@ export default function PortraitPage() {
                   {s}
                 </OptionBtn>
               ))}
+              <OptionBtn active={shootStyle === "outro"} onClick={() => setShootStyle("outro")}
+                className="col-span-2 py-2 flex items-center justify-center gap-1.5"
+              >
+                <Pencil size={11} />
+                Outro
+              </OptionBtn>
             </div>
+            {shootStyle === "outro" && (
+              <div className="mt-2">
+                <input
+                  type="text" value={outroTexts.style}
+                  onChange={(e) => setOutroTexts((p) => ({ ...p, style: e.target.value }))}
+                  placeholder="ex: ensaio grunge, fotografia vintage, moda praia..."
+                  maxLength={80}
+                  className="w-full bg-card2 border border-b1 rounded-[8px] px-3 py-2 text-[12px] text-[#c0c0c0] placeholder-t4 outline-none focus:border-b2 transition-colors"
+                />
+                {outroTexts.style.trim() && (
+                  <div className="mt-1.5 flex items-center gap-1.5 min-h-[16px]">
+                    {isTranslatingOutro
+                      ? <Loader2 size={10} className="animate-spin text-t4 shrink-0" />
+                      : <Languages size={10} className="text-y shrink-0" />}
+                    <span className="text-[10.5px] text-t3">
+                      {isTranslatingOutro ? "Traduzindo..." : outroTextsEn.style
+                        ? <><span className="text-t4">en: </span><span className="text-[#c8a84b] italic">{outroTextsEn.style}</span></>
+                        : null}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Vestuário */}
@@ -593,7 +717,36 @@ export default function PortraitPage() {
                   {s.label}
                 </OptionBtn>
               ))}
+              <OptionBtn active={setting === "outro"} onClick={() => setSetting("outro")}
+                className="col-span-2 py-2 flex items-center justify-center gap-1.5"
+              >
+                <Pencil size={11} />
+                Outro
+              </OptionBtn>
             </div>
+            {setting === "outro" && (
+              <div className="mt-2">
+                <input
+                  type="text" value={outroTexts.cenario}
+                  onChange={(e) => setOutroTexts((p) => ({ ...p, cenario: e.target.value }))}
+                  placeholder="ex: piscina, praia tropical, parque florido..."
+                  maxLength={80}
+                  className="w-full bg-card2 border border-b1 rounded-[8px] px-3 py-2 text-[12px] text-[#c0c0c0] placeholder-t4 outline-none focus:border-b2 transition-colors"
+                />
+                {outroTexts.cenario.trim() && (
+                  <div className="mt-1.5 flex items-center gap-1.5 min-h-[16px]">
+                    {isTranslatingOutro
+                      ? <Loader2 size={10} className="animate-spin text-t4 shrink-0" />
+                      : <Languages size={10} className="text-y shrink-0" />}
+                    <span className="text-[10.5px] text-t3">
+                      {isTranslatingOutro ? "Traduzindo..." : outroTextsEn.cenario
+                        ? <><span className="text-t4">en: </span><span className="text-[#c8a84b] italic">{outroTextsEn.cenario}</span></>
+                        : null}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Iluminação */}
@@ -607,7 +760,36 @@ export default function PortraitPage() {
                   {l.label}
                 </OptionBtn>
               ))}
+              <OptionBtn active={lighting === "outro"} onClick={() => setLighting("outro")}
+                className="col-span-3 py-2 flex items-center justify-center gap-1.5"
+              >
+                <Pencil size={11} />
+                Outro
+              </OptionBtn>
             </div>
+            {lighting === "outro" && (
+              <div className="mt-2">
+                <input
+                  type="text" value={outroTexts.lighting}
+                  onChange={(e) => setOutroTexts((p) => ({ ...p, lighting: e.target.value }))}
+                  placeholder="ex: luz de vela, luz de neon azul, pôr do sol..."
+                  maxLength={80}
+                  className="w-full bg-card2 border border-b1 rounded-[8px] px-3 py-2 text-[12px] text-[#c0c0c0] placeholder-t4 outline-none focus:border-b2 transition-colors"
+                />
+                {outroTexts.lighting.trim() && (
+                  <div className="mt-1.5 flex items-center gap-1.5 min-h-[16px]">
+                    {isTranslatingOutro
+                      ? <Loader2 size={10} className="animate-spin text-t4 shrink-0" />
+                      : <Languages size={10} className="text-y shrink-0" />}
+                    <span className="text-[10.5px] text-t3">
+                      {isTranslatingOutro ? "Traduzindo..." : outroTextsEn.lighting
+                        ? <><span className="text-t4">en: </span><span className="text-[#c8a84b] italic">{outroTextsEn.lighting}</span></>
+                        : null}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Enquadramento */}
@@ -621,7 +803,36 @@ export default function PortraitPage() {
                   {f.label}
                 </OptionBtn>
               ))}
+              <OptionBtn active={framing === "outro"} onClick={() => setFraming("outro")}
+                className="col-span-2 py-2 flex items-center justify-center gap-1.5"
+              >
+                <Pencil size={11} />
+                Outro
+              </OptionBtn>
             </div>
+            {framing === "outro" && (
+              <div className="mt-2">
+                <input
+                  type="text" value={outroTexts.framing}
+                  onChange={(e) => setOutroTexts((p) => ({ ...p, framing: e.target.value }))}
+                  placeholder="ex: plano americano, visão de baixo para cima, perspectiva aérea..."
+                  maxLength={80}
+                  className="w-full bg-card2 border border-b1 rounded-[8px] px-3 py-2 text-[12px] text-[#c0c0c0] placeholder-t4 outline-none focus:border-b2 transition-colors"
+                />
+                {outroTexts.framing.trim() && (
+                  <div className="mt-1.5 flex items-center gap-1.5 min-h-[16px]">
+                    {isTranslatingOutro
+                      ? <Loader2 size={10} className="animate-spin text-t4 shrink-0" />
+                      : <Languages size={10} className="text-y shrink-0" />}
+                    <span className="text-[10.5px] text-t3">
+                      {isTranslatingOutro ? "Traduzindo..." : outroTextsEn.framing
+                        ? <><span className="text-t4">en: </span><span className="text-[#c8a84b] italic">{outroTextsEn.framing}</span></>
+                        : null}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Referência visual (opcional) */}
