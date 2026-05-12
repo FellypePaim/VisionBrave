@@ -7,6 +7,7 @@ import {
 } from "@/lib/credits";
 import { getUserPlan } from "@/lib/plan";
 import { rateLimit } from "@/lib/rate-limit";
+import { checkGenerationAllowed } from "@/lib/admin/settings-cache";
 
 const STYLE_PREFIX: Record<string, string> = {
   Cinematic:  "cinematic photography, dramatic lighting, ",
@@ -22,6 +23,15 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // ── Gate 0: modo manutenção / kill switch global ────────────────────
+  const sys = await checkGenerationAllowed("image");
+  if (!sys.allowed) {
+    return NextResponse.json(
+      { error: sys.reason, code: sys.code },
+      { status: 503 }
+    );
+  }
 
   // ── Rate limit: 30 gerações/min/user ────────────────────────────────
   const rl = rateLimit(`gen:img:${user.id}`, 30, 60_000);

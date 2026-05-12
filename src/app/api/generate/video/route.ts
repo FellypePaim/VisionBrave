@@ -7,6 +7,7 @@ import {
 } from "@/lib/credits";
 import { getUserPlan } from "@/lib/plan";
 import { rateLimit } from "@/lib/rate-limit";
+import { checkGenerationAllowed } from "@/lib/admin/settings-cache";
 
 const STYLE_PREFIX: Record<string, string> = {
   Cinematic:  "cinematic, dramatic lighting, film quality, ",
@@ -27,6 +28,15 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Gate 0: modo manutenção / kill switch global
+  const sys = await checkGenerationAllowed("video");
+  if (!sys.allowed) {
+    return NextResponse.json(
+      { error: sys.reason, code: sys.code },
+      { status: 503 }
+    );
+  }
 
   // Rate limit: 10 vídeos por minuto por usuário (mais caros)
   const rl = rateLimit(`gen:vid:${user.id}`, 10, 60_000);

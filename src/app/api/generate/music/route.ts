@@ -7,11 +7,21 @@ import {
 } from "@/lib/credits";
 import { getUserPlan } from "@/lib/plan";
 import { rateLimit } from "@/lib/rate-limit";
+import { checkGenerationAllowed } from "@/lib/admin/settings-cache";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Gate 0: modo manutenção / kill switch global
+  const sys = await checkGenerationAllowed("audio");
+  if (!sys.allowed) {
+    return NextResponse.json(
+      { error: sys.reason, code: sys.code },
+      { status: 503 }
+    );
+  }
 
   // Rate limit: 15 áudios por minuto
   const rl = rateLimit(`gen:audio:${user.id}`, 15, 60_000);
