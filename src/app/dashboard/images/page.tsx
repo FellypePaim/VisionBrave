@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Topbar } from "@/components/layout/Topbar";
 import {
   Wand2, Download, RefreshCw, Crop, Layers, Sparkles,
-  Sliders, ChevronRight, Plus, MoreHorizontal, Zap, Loader2, AlertCircle,
+  Maximize2, ChevronRight, Plus, MoreHorizontal, Zap, Loader2, AlertCircle,
   ImagePlus, X, Ratio,
 } from "lucide-react";
 import { calculateCost } from "@/lib/credits";
@@ -24,6 +24,14 @@ const TAG_TO_STYLE: Record<string, string | undefined> = {
 };
 const COUNTS = [1, 2, 3, 4];
 const MODELS = ["Nano Banana", "Flux Kontext", "GPT Image 2", "Flux Pro"];
+
+// Resoluções disponíveis por modelo (Flux Pro max 2K per KIE docs)
+const MODEL_RESOLUTIONS: Record<string, Array<"1K" | "2K" | "4K">> = {
+  "Nano Banana":  ["1K", "2K", "4K"],
+  "Flux Kontext": ["1K", "2K", "4K"],
+  "GPT Image 2":  ["1K", "2K", "4K"],
+  "Flux Pro":     ["1K", "2K"],
+};
 
 // Common aspect ratios per model
 const ASPECT_RATIOS: Record<string, string[]> = {
@@ -54,7 +62,7 @@ export default function GenerateImagesPage() {
   const [activeCount, setActiveCount] = useState(1);
   const [activeModel, setActiveModel] = useState("Nano Banana");
   const [prompt, setPrompt] = useState("");
-  const [detailLevel, setDetailLevel] = useState(72);
+  const [resolution, setResolution] = useState<"1K" | "2K" | "4K">("1K");
   const [aspectRatio, setAspectRatio] = useState("1:1");
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -91,19 +99,19 @@ export default function GenerateImagesPage() {
     }
   }, []);
 
-  // KIE rejeita aspect_ratio="auto" quando resolução é 2K/4K (detailLevel > 30).
+  // KIE rejeita aspect_ratio="auto" quando resolução é 2K/4K.
   // Auto-corrige para "1:1" e avisa o usuário (mantém alinhado com o backend).
-  const requiresFixedRatio = detailLevel > 30;
+  const requiresFixedRatio = resolution !== "1K";
 
   // Custo em créditos desta geração (espelha calculateCost do backend para mostrar no botão)
   const generationCost = useMemo(() => {
-    const resolution = detailLevel <= 30 ? "1K" : detailLevel <= 70 ? "2K" : "4K";
     return calculateCost(activeModel, { count: activeCount, resolution });
-  }, [activeModel, activeCount, detailLevel]);
+  }, [activeModel, activeCount, resolution]);
+
   useEffect(() => {
     if (requiresFixedRatio && aspectRatio === "auto") {
       setAspectRatio("1:1");
-      setToast("Nível de Detalhe alto (2K/4K) requer proporção fixa — ajustado para 1:1");
+      setToast("Resolução 2K/4K requer proporção fixa — ajustado para 1:1");
       const t = setTimeout(() => setToast(null), 4000);
       return () => clearTimeout(t);
     }
@@ -230,7 +238,7 @@ export default function GenerateImagesPage() {
           model: activeModel,
           style: TAG_TO_STYLE[activeTag],
           count: activeCount,
-          detailLevel,
+          resolution,
           aspectRatio: aspectRatio === "auto" ? undefined : aspectRatio,
           // Flux Kontext
           inputImage: activeModel === "Flux Kontext" ? refImageUrl || undefined : undefined,
@@ -428,6 +436,8 @@ export default function GenerateImagesPage() {
                   onClick={() => {
                     setActiveModel(m);
                     setAspectRatio((ASPECT_RATIOS[m] ?? [])[0] ?? "1:1");
+                    const resOptions = MODEL_RESOLUTIONS[m] ?? ["1K", "2K", "4K"];
+                    if (!resOptions.includes(resolution)) setResolution(resOptions[0]);
                     setRefImageUrl(null);
                     setNanoBananaRefs([]);
                   }}
@@ -589,23 +599,32 @@ export default function GenerateImagesPage() {
             </button>
           </div>
 
-          {/* Detail level */}
+          {/* Resolution */}
           <div className="bg-card border border-b1 rounded-[11px] p-3.5 mb-2">
-            <div className="flex items-center gap-2 text-[13px] font-semibold text-[#d8d8d8] mb-3.5">
-              <Sliders size={14} className="text-t2" />
-              Nível de Detalhe
-              {activeModel === "Flux Pro" && (
-                <span className="ml-auto text-[11px] text-t4 font-normal">Max 2K</span>
-              )}
+            <div className="flex items-center gap-2 text-[13px] font-semibold text-[#d8d8d8] mb-2.5">
+              <Maximize2 size={14} className="text-t2" />
+              Resolução
             </div>
-            <input
-              type="range" min={0} max={100} value={detailLevel}
-              onChange={(e) => setDetailLevel(Number(e.target.value))}
-              className="w-full accent-y mb-2 cursor-pointer"
-            />
-            <div className="flex justify-between text-[11.5px] text-t3">
-              <span>Rascunho</span>
-              <span>{activeModel === "Flux Pro" ? "2K HD" : "Ultra HD"}</span>
+            <div className={`grid gap-1.5 ${(MODEL_RESOLUTIONS[activeModel] ?? ["1K","2K","4K"]).length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
+              {(MODEL_RESOLUTIONS[activeModel] ?? ["1K", "2K", "4K"]).map((res) => {
+                const btnCost = calculateCost(activeModel, { count: 1, resolution: res });
+                return (
+                  <button
+                    key={res}
+                    onClick={() => setResolution(res)}
+                    className={`py-2.5 rounded-[8px] flex flex-col items-center gap-0.5 border transition-all ${
+                      resolution === res
+                        ? "bg-[#1f1608] border-y text-y"
+                        : "bg-card2 border-b1 text-t2 hover:border-b2 hover:text-white"
+                    }`}
+                  >
+                    <span className="text-[13px] font-semibold">{res}</span>
+                    <span className={`text-[10.5px] font-normal ${resolution === res ? "text-y/70" : "text-t4"}`}>
+                      {btnCost} créd
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

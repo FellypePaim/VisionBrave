@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
     model = "Nano Banana",
     style,
     count = 1,
-    detailLevel = 72,
+    resolution: resolutionParam,   // novo: string direto ("1K" | "2K" | "4K")
+    detailLevel = 72,              // legado: fallback se resolution não vier
     aspectRatio,
     inputImage, outputFormat, promptUpsampling,   // Flux Kontext
     referenceImages,                              // Nano Banana
@@ -49,9 +50,10 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Resolução (define multiplier de custo) ──────────────────────────
-  const rawResolution =
-    detailLevel <= 30 ? "1K" :
-    detailLevel <= 70 ? "2K" : "4K";
+  // Aceita "resolution" direto do novo frontend; fallback para cálculo por detailLevel (legado)
+  const rawResolution: string =
+    resolutionParam ??
+    (detailLevel <= 30 ? "1K" : detailLevel <= 70 ? "2K" : "4K");
   const resolution = model === "Flux Pro" && rawResolution === "4K" ? "2K" : rawResolution;
 
   // ── Gate 1: plano permite esse modelo? ──────────────────────────────
