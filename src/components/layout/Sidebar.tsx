@@ -4,15 +4,16 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
-  Home, Image, Video, Music, LayoutGrid, Sparkles, CreditCard,
+  Home, Image, Camera, Video, Music, LayoutGrid, Sparkles, CreditCard,
   MessageSquare, Star, Archive, Zap, Search, ChevronUp, LogOut,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const navMain = [
   { href: "/dashboard", icon: Home, label: "Início" },
-  { href: "/dashboard/images", icon: Image, label: "Imagens" },
-  { href: "/dashboard/videos", icon: Video, label: "Vídeos" },
+  { href: "/dashboard/images",   icon: Image,  label: "Imagens" },
+  { href: "/dashboard/portrait", icon: Camera, label: "Ensaio Fotográfico" },
+  { href: "/dashboard/videos",   icon: Video,  label: "Vídeos" },
   { href: "/dashboard/audio", icon: Music, label: "Áudio" },
   { href: "/dashboard/gallery", icon: LayoutGrid, label: "Galeria" },
   { href: "/dashboard/templates", icon: Sparkles, label: "Templates" },
