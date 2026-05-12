@@ -4,9 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft, Loader2, AlertCircle, Coins, User, Crown, CreditCard,
-  Calendar, Lock, Plus, Copy, ArrowDownLeft, ArrowUpRight, RotateCcw,
+  Calendar, Lock, Unlock, Plus, Copy, ArrowDownLeft, ArrowUpRight, RotateCcw,
+  Settings,
 } from "lucide-react";
 import { CreditAdjustModal } from "@/components/admin/CreditAdjustModal";
+import { SubscriptionEditModal } from "@/components/admin/SubscriptionEditModal";
+import { UserBlockModal } from "@/components/admin/UserBlockModal";
 import { AdminStatCard } from "@/components/admin/AdminStatCard";
 
 interface Transaction {
@@ -47,6 +50,8 @@ export default function AdminUserDetailPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [adjustOpen, setAdjustOpen] = useState(false);
+  const [subOpen, setSubOpen] = useState(false);
+  const [blockOpen, setBlockOpen] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -120,13 +125,33 @@ export default function AdminUserDetailPage({
             <Copy size={11} />
           </button>
         </div>
-        <button
-          onClick={() => setAdjustOpen(true)}
-          className="px-4 py-2.5 rounded-[10px] bg-y text-[#1a0e00] font-bold text-[13px] hover:bg-[#FCD34D] transition-colors flex items-center gap-2"
-        >
-          <Plus size={14} />
-          Ajustar créditos
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setSubOpen(true)}
+            className="px-3 py-2 rounded-[9px] bg-card border border-b1 text-t2 hover:text-white hover:border-b2 text-[12.5px] font-medium transition-colors flex items-center gap-1.5"
+          >
+            <Settings size={12} />
+            Alterar plano/status
+          </button>
+          <button
+            onClick={() => setBlockOpen(true)}
+            className={`px-3 py-2 rounded-[9px] border text-[12.5px] font-medium transition-colors flex items-center gap-1.5 ${
+              data.isBlocked
+                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
+                : "bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20"
+            }`}
+          >
+            {data.isBlocked ? <Unlock size={12} /> : <Lock size={12} />}
+            {data.isBlocked ? "Desbanir" : "Banir"}
+          </button>
+          <button
+            onClick={() => setAdjustOpen(true)}
+            className="px-4 py-2 rounded-[9px] bg-y text-[#1a0e00] font-bold text-[12.5px] hover:bg-[#FCD34D] transition-colors flex items-center gap-1.5"
+          >
+            <Plus size={12} />
+            Ajustar créditos
+          </button>
+        </div>
       </div>
 
       {/* Stat cards */}
@@ -232,11 +257,23 @@ export default function AdminUserDetailPage({
         )}
       </Section>
 
-      {/* Modal */}
+      {/* Modais */}
       <CreditAdjustModal
         open={adjustOpen}
         onClose={() => setAdjustOpen(false)}
         target={{ userId: data.userId, email: data.email, balance: data.balance }}
+        onSuccess={() => load()}
+      />
+      <SubscriptionEditModal
+        open={subOpen}
+        onClose={() => setSubOpen(false)}
+        target={{ userId: data.userId, email: data.email, plan: data.plan, status: data.subscriptionStatus }}
+        onSuccess={() => load()}
+      />
+      <UserBlockModal
+        open={blockOpen}
+        onClose={() => setBlockOpen(false)}
+        target={{ userId: data.userId, email: data.email, isBlocked: data.isBlocked }}
         onSuccess={() => load()}
       />
     </div>
