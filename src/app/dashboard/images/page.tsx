@@ -5,9 +5,10 @@ import { Topbar } from "@/components/layout/Topbar";
 import {
   Wand2, Download, RefreshCw, Crop, Layers, Sparkles,
   Maximize2, ChevronRight, Plus, MoreHorizontal, Zap, Loader2, AlertCircle,
-  ImagePlus, X, Ratio, Lock,
+  ImagePlus, X, Ratio, Lock, Clock,
 } from "lucide-react";
 import { calculateCost, isModelAllowedForPlan, PLAN_MODEL_ACCESS } from "@/lib/credits";
+import { savePendingTask, getPendingTasks, removePendingTask, type PendingTask } from "@/lib/pending-tasks";
 
 const TAGS = ["Todos", "Realista", "Cinemático", "Anime", "Render 3D", "Pintura a Óleo", "Esboço", "Neon"];
 
@@ -78,6 +79,8 @@ export default function GenerateImagesPage() {
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [userPlan, setUserPlan] = useState<string>("free");
+  const [pending, setPending] = useState<PendingTask[]>([]);
+  const [recovering, setRecovering] = useState(false);
 
   // Flux Kontext reference image (hosted URL)
   const [refImageUrl, setRefImageUrl] = useState<string | null>(null);
@@ -106,6 +109,47 @@ export default function GenerateImagesPage() {
       .then((d) => { if (d?.subscription?.plan) setUserPlan(d.subscription.plan); })
       .catch(() => {/* mantém "free" como fallback seguro */});
   }, []);
+
+  // Carrega pending tasks do localStorage (gerações que estouraram timeout)
+  useEffect(() => {
+    setPending(getPendingTasks("images"));
+  }, []);
+
+  async function recoverPendingTasks() {
+    if (recovering || pending.length === 0) return;
+    setRecovering(true);
+    let recoveredCount = 0;
+    for (const task of pending) {
+      try {
+        const res = await fetch(`/api/generate/status?taskId=${encodeURIComponent(task.taskId)}`);
+        const data = await res.json();
+        if (data.state === "success" && data.imageUrl) {
+          await fetch("/api/gallery/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: task.type, prompt: task.prompt,
+              model: task.model, externalUrl: data.imageUrl,
+            }),
+          }).catch(() => {});
+          removePendingTask(task.taskId);
+          recoveredCount++;
+        } else if (data.state === "fail") {
+          removePendingTask(task.taskId);
+        }
+      } catch {
+        // Mantém pra próxima tentativa
+      }
+    }
+    setPending(getPendingTasks("images"));
+    setRecovering(false);
+    if (recoveredCount > 0) showToast(`✓ ${recoveredCount} ${recoveredCount === 1 ? "imagem recuperada" : "imagens recuperadas"}`);
+  }
+
+  function dismissPending(taskId: string) {
+    removePendingTask(taskId);
+    setPending(getPendingTasks("images"));
+  }
 
   // Load prompt from template (set by /dashboard/templates)
   useEffect(() => {
@@ -141,12 +185,24 @@ export default function GenerateImagesPage() {
 
   const pollTask = useCallback((taskId: string, index: number) => {
     let ticks = 0;
-    const MAX_TICKS = 60; // ~3min @ 3s
+    const MAX_TICKS = 120; // ~6min @ 3s (aumentado de 60 — Flux Pro/Kontext podem ser lentos)
     const interval = setInterval(async () => {
       if (++ticks > MAX_TICKS) {
         clearInterval(interval);
+        savePendingTask({
+          taskId,
+          source: "images",
+          type: "image",
+          model: modelRef.current,
+          prompt: promptRef.current.slice(0, 300),
+          createdAt: Date.now(),
+        });
         setImages((prev) => prev.map((img, i) =>
-          i === index ? { ...img, state: "fail", error: "Tempo limite excedido" } : img
+          i === index ? {
+            ...img,
+            state: "fail",
+            error: "Tempo limite do navegador — geração salva pra recuperar depois",
+          } : img
         ));
         return;
       }
@@ -155,6 +211,7 @@ export default function GenerateImagesPage() {
         const data = await res.json();
         if (data.state === "success") {
           clearInterval(interval);
+          removePendingTask(taskId);
           setImages((prev) => prev.map((img, i) =>
             i === index ? { ...img, state: "success", imageUrl: data.imageUrl } : img
           ));
@@ -170,6 +227,7 @@ export default function GenerateImagesPage() {
           }
         } else if (data.state === "fail") {
           clearInterval(interval);
+          removePendingTask(taskId);
           setImages((prev) => prev.map((img, i) =>
             i === index ? { ...img, state: "fail", error: data.error } : img
           ));
@@ -293,6 +351,45 @@ export default function GenerateImagesPage() {
   return (
     <>
       <Topbar title="Gerar Imagens" />
+
+      {/* Banner de gerações pendentes */}
+      {pending.length > 0 && (
+        <div className="px-5 pt-3">
+          <div className="flex items-start gap-3 p-3 rounded-[10px] bg-orange-500/5 border border-orange-500/20">
+            <Clock size={14} className="text-orange-400 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-semibold text-orange-300 mb-0.5">
+                {pending.length} {pending.length === 1 ? "geração pendente" : "gerações pendentes"} de recuperação
+              </div>
+              <div className="text-[11.5px] text-orange-200/80 leading-relaxed">
+                Estouraram o tempo limite do navegador mas podem ter completado na KIE. Click recuperar.
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                {pending.slice(0, 3).map((t) => (
+                  <div key={t.taskId} className="flex items-center gap-1.5 px-2 py-1 rounded-[6px] bg-card2 border border-b1 text-[10.5px] text-t2">
+                    <span className="font-mono text-t4">{t.taskId.slice(0, 8)}…</span>
+                    <span>{t.model}</span>
+                    <button onClick={() => dismissPending(t.taskId)} className="text-t4 hover:text-red-400 ml-1">
+                      <X size={9} />
+                    </button>
+                  </div>
+                ))}
+                {pending.length > 3 && (
+                  <span className="text-[10.5px] text-t4">+ {pending.length - 3}</span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={recoverPendingTasks}
+              disabled={recovering}
+              className="px-3 py-2 rounded-[8px] bg-orange-500 text-white text-[12px] font-bold hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+            >
+              {recovering ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+              Recuperar
+            </button>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-[10px] text-[13px] font-medium text-white bg-[#1a1a1a] border border-white/10 shadow-xl">

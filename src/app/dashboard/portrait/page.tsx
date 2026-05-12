@@ -5,8 +5,9 @@ import { Topbar } from "@/components/layout/Topbar";
 import {
   Camera, Download, RefreshCw, Maximize2, Layers,
   Loader2, AlertCircle, ImagePlus, X, ChevronDown, ChevronUp, Pencil, Languages, Lock,
-  Info, Plus, Shirt, User as UserIcon,
+  Info, Plus, Shirt, User as UserIcon, Clock,
 } from "lucide-react";
+import { savePendingTask, getPendingTasks, removePendingTask, type PendingTask } from "@/lib/pending-tasks";
 import { calculateCost, isModelAllowedForPlan, PLAN_MODEL_ACCESS } from "@/lib/credits";
 
 // ─── Opções dos campos guiados ──────────────────────────────────────────────
@@ -296,6 +297,10 @@ export default function PortraitPage() {
   // Plano do usuário para UI lock de modelos
   const [userPlan, setUserPlan] = useState<string>("free");
 
+  // Gerações pendentes (timeout no polling) — exibidas em banner pra recuperar
+  const [pending, setPending] = useState<PendingTask[]>([]);
+  const [recovering, setRecovering] = useState(false);
+
   // Campos "outro" — texto livre PT + tradução EN
   const [outroTexts, setOutroTexts] = useState<Record<string, string>>({
     tipo: "", style: "", cenario: "", lighting: "", framing: "",
@@ -311,6 +316,65 @@ export default function PortraitPage() {
   useEffect(() => {
     return () => { pollingRef.current.forEach(clearInterval); pollingRef.current = []; };
   }, []);
+
+  // Carrega pending tasks do localStorage ao montar (filtra apenas portrait)
+  useEffect(() => {
+    setPending(getPendingTasks("portrait"));
+  }, []);
+
+  /** Recupera tasks pendentes: checa status na KIE e salva na gallery se sucesso. */
+  async function recoverPendingTasks() {
+    if (recovering || pending.length === 0) return;
+    setRecovering(true);
+    let recoveredCount = 0;
+    let stillPendingCount = 0;
+    let failedCount = 0;
+
+    for (const task of pending) {
+      try {
+        const res = await fetch(`/api/generate/status?taskId=${encodeURIComponent(task.taskId)}`);
+        const data = await res.json();
+        if (data.state === "success" && data.imageUrl) {
+          // Salva na gallery
+          await fetch("/api/gallery/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: task.type, prompt: task.prompt,
+              model: task.model, externalUrl: data.imageUrl,
+            }),
+          }).catch(() => {});
+          removePendingTask(task.taskId);
+          recoveredCount++;
+        } else if (data.state === "fail") {
+          removePendingTask(task.taskId);
+          failedCount++;
+        } else {
+          // Ainda processando — mantém na lista
+          stillPendingCount++;
+        }
+      } catch {
+        // Erro de rede — mantém pra tentar de novo
+        stillPendingCount++;
+      }
+    }
+
+    setPending(getPendingTasks("portrait"));
+    setRecovering(false);
+
+    if (recoveredCount > 0) {
+      showToast(`✓ ${recoveredCount} ${recoveredCount === 1 ? "imagem recuperada" : "imagens recuperadas"} pra galeria`);
+    } else if (failedCount > 0 && stillPendingCount === 0) {
+      showToast(`${failedCount} ${failedCount === 1 ? "geração falhou" : "gerações falharam"} na KIE`);
+    } else if (stillPendingCount > 0) {
+      showToast(`${stillPendingCount} ainda processando — tente em alguns minutos`);
+    }
+  }
+
+  function dismissPending(taskId: string) {
+    removePendingTask(taskId);
+    setPending(getPendingTasks("portrait"));
+  }
 
   // Busca plano do usuário; auto-troca para Nano Banana se modelo padrão for locked
   useEffect(() => {
@@ -463,15 +527,29 @@ export default function PortraitPage() {
     setOutfitRefUrls((prev) => prev.filter((_, i) => i !== idx));
   }
 
-  // Polling
+  // Polling — timeout aumentado pra 6min (Flux Kontext é mais lento).
+  // No timeout, salva no localStorage pra usuário recuperar depois.
   const pollTask = useCallback((taskId: string, index: number) => {
     let ticks = 0;
-    const MAX_TICKS = 60;
+    const MAX_TICKS = 120; // ~6min @ 3s — antes era 60 (3min) e estourava em Flux Kontext
     const interval = setInterval(async () => {
       if (++ticks > MAX_TICKS) {
         clearInterval(interval);
+        // Salva no localStorage — usuário pode recuperar depois via banner
+        savePendingTask({
+          taskId,
+          source: "portrait",
+          type: "image",
+          model: modelRef.current,
+          prompt: promptRef.current.slice(0, 300),
+          createdAt: Date.now(),
+        });
         setImages((prev) => prev.map((img, i) =>
-          i === index ? { ...img, state: "fail", error: "Tempo limite excedido" } : img
+          i === index ? {
+            ...img,
+            state: "fail",
+            error: "Tempo limite do navegador — geração salva pra recuperar depois",
+          } : img
         ));
         return;
       }
@@ -480,6 +558,8 @@ export default function PortraitPage() {
         const data = await res.json();
         if (data.state === "success") {
           clearInterval(interval);
+          // Remove de pending se estava lá
+          removePendingTask(taskId);
           setImages((prev) => prev.map((img, i) =>
             i === index ? { ...img, state: "success", imageUrl: data.imageUrl } : img
           ));
@@ -495,6 +575,7 @@ export default function PortraitPage() {
           }
         } else if (data.state === "fail") {
           clearInterval(interval);
+          removePendingTask(taskId);
           setImages((prev) => prev.map((img, i) =>
             i === index ? { ...img, state: "fail", error: data.error } : img
           ));
@@ -572,6 +653,51 @@ export default function PortraitPage() {
   return (
     <>
       <Topbar title="Ensaio Fotográfico" />
+
+      {/* Banner de gerações pendentes (timeout no polling) */}
+      {pending.length > 0 && (
+        <div className="px-5 pt-3">
+          <div className="flex items-start gap-3 p-3 rounded-[10px] bg-orange-500/5 border border-orange-500/20">
+            <Clock size={14} className="text-orange-400 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-semibold text-orange-300 mb-0.5">
+                {pending.length} {pending.length === 1 ? "geração pendente" : "gerações pendentes"} de recuperação
+              </div>
+              <div className="text-[11.5px] text-orange-200/80 leading-relaxed">
+                Gerações que estouraram o tempo limite do navegador mas podem ter completado na KIE.
+                Click <strong>Recuperar</strong> pra checar status e salvar as que terminaram.
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                {pending.slice(0, 3).map((t) => (
+                  <div key={t.taskId} className="flex items-center gap-1.5 px-2 py-1 rounded-[6px] bg-card2 border border-b1 text-[10.5px] text-t2">
+                    <span className="font-mono text-t4">{t.taskId.slice(0, 8)}…</span>
+                    <span className="text-t3">·</span>
+                    <span>{t.model}</span>
+                    <button
+                      onClick={() => dismissPending(t.taskId)}
+                      className="text-t4 hover:text-red-400 ml-1"
+                      title="Descartar"
+                    >
+                      <X size={9} />
+                    </button>
+                  </div>
+                ))}
+                {pending.length > 3 && (
+                  <span className="text-[10.5px] text-t4">+ {pending.length - 3}</span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={recoverPendingTasks}
+              disabled={recovering}
+              className="px-3 py-2 rounded-[8px] bg-orange-500 text-white text-[12px] font-bold hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+            >
+              {recovering ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+              Recuperar
+            </button>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-[10px] text-[13px] font-medium text-white bg-[#1a1a1a] border border-white/10 shadow-xl">
