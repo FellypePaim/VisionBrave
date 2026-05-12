@@ -5,7 +5,7 @@ import { Topbar } from "@/components/layout/Topbar";
 import {
   Camera, Download, RefreshCw, Maximize2, Layers,
   Loader2, AlertCircle, ImagePlus, X, ChevronDown, ChevronUp, Pencil, Languages, Lock,
-  Info, Plus,
+  Info, Plus, Shirt, User as UserIcon,
 } from "lucide-react";
 import { calculateCost, isModelAllowedForPlan, PLAN_MODEL_ACCESS } from "@/lib/credits";
 
@@ -62,11 +62,22 @@ const MODEL_RESOLUTIONS: Record<string, Array<"1K" | "2K" | "4K">> = {
   "Flux Kontext":     ["1K", "2K", "4K"],
 };
 
-// Quantas imagens de referência cada modelo aceita
-const MAX_REF_IMAGES: Record<string, number> = {
-  "Nano Banana":      4,   // KIE aceita até 14, limitamos a 4 pra UX
+// Quantas imagens de referência do MODELO (pessoa) cada modelo de IA aceita
+const MAX_MODEL_REF_IMAGES: Record<string, number> = {
+  "Nano Banana":      8,   // KIE aceita até 14, deixamos 8 pra balancear UX e custo
   "Flux Kontext":     1,   // edita 1 imagem específica
 };
+
+// Quantas imagens de referência de VESTUÁRIO cada modelo aceita
+const MAX_OUTFIT_REF_IMAGES: Record<string, number> = {
+  "Nano Banana":      3,
+  "Flux Kontext":     0,   // não suporta múltiplas imagens
+};
+
+/** Total combinado de refs que vai pro KIE image_input array */
+function totalRefImagesAllowed(model: string): number {
+  return (MAX_MODEL_REF_IMAGES[model] ?? 0) + (MAX_OUTFIT_REF_IMAGES[model] ?? 0);
+}
 
 // ─── Composição do prompt ───────────────────────────────────────────────────
 
@@ -87,7 +98,13 @@ function buildPortraitPrompt(fields: {
   setting: string;
   lighting: string;
   framing: string;
-  hasReference?: boolean;
+  /** Tem ao menos 1 imagem do modelo (pessoa)? */
+  hasModelRef?: boolean;
+  /** Tem ao menos 1 imagem de vestuário? */
+  hasOutfitRef?: boolean;
+  /** Quantidade de cada tipo (pra prompt explícito com Gemini Image) */
+  modelRefCount?: number;
+  outfitRefCount?: number;
 }): string {
   // Presets → EN photography terminology
   // Se o valor não estiver no map, assume texto EN customizado (campo "outro" traduzido)
@@ -142,12 +159,29 @@ function buildPortraitPrompt(fields: {
 
   // Fidelidade à referência — instrução de maior prioridade para o modelo.
   // Texto reforçado em duas frases pra modelos diffusion-based dar mais peso.
-  if (fields.hasReference) {
+  if (fields.hasModelRef) {
     sentences.push(
       "The subject's face, hairstyle, skin tone, and overall identity must match exactly the reference image(s) provided — same person, no facial alterations."
     );
     sentences.push(
       "Maintain consistent facial structure, eye shape, nose, lips, and jawline from the reference."
+    );
+  }
+
+  // Quando há referência de vestuário separada, instrui o modelo a combinar:
+  // as primeiras N imagens são a pessoa, as últimas M são a roupa.
+  // Funciona melhor com modelos multimodais (Gemini Image / Nano Banana 2).
+  if (fields.hasOutfitRef && fields.hasModelRef) {
+    const n = fields.modelRefCount ?? 1;
+    const m = fields.outfitRefCount ?? 1;
+    const totalNum = n + m;
+    sentences.push(
+      `Important: among the ${totalNum} reference images provided, the first ${n} ${n === 1 ? "image shows" : "images show"} the model's identity (face, hair, body) and must be preserved. The remaining ${m} ${m === 1 ? "image shows" : "images show"} the desired clothing/outfit — replicate this clothing style and design on the model.`
+    );
+  } else if (fields.hasOutfitRef && !fields.hasModelRef) {
+    // Só referência de roupa — instrui só sobre vestuário
+    sentences.push(
+      "The reference image(s) show the desired clothing/outfit style to be worn by the model."
     );
   }
 
@@ -239,10 +273,15 @@ export default function PortraitPage() {
   const [outfitEn, setOutfitEn]           = useState("");
   const [isTranslating, setIsTranslating] = useState(false);
 
-  // Referência de aparência (opcional, múltiplas imagens pra melhor fidelidade)
+  // Referências do MODELO (rosto/corpo da pessoa) — múltiplas pra fidelidade
   const [refImageUrls, setRefImageUrls]   = useState<string[]>([]);
   const [isUploadingRef, setIsUploadingRef] = useState(false);
   const refFileRef = useRef<HTMLInputElement>(null);
+
+  // Referências de VESTUÁRIO (peças de roupa que devem ser usadas)
+  const [outfitRefUrls, setOutfitRefUrls] = useState<string[]>([]);
+  const [isUploadingOutfit, setIsUploadingOutfit] = useState(false);
+  const outfitRefFileRef = useRef<HTMLInputElement>(null);
 
   // Estado de geração
   const [images, setImages]               = useState<GeneratedImage[]>([]);
@@ -350,14 +389,17 @@ export default function PortraitPage() {
       setting:      resolve(setting,      "cenario"),
       lighting:     resolve(lighting,     "lighting"),
       framing:      resolve(framing,      "framing"),
-      hasReference: refImageUrls.length > 0,
+      hasModelRef:  refImageUrls.length > 0,
+      hasOutfitRef: outfitRefUrls.length > 0,
+      modelRefCount:  refImageUrls.length,
+      outfitRefCount: outfitRefUrls.length,
     });
-  }, [portraitType, shootStyle, outfit, outfitEn, setting, lighting, framing, outroTexts, outroTextsEn, refImageUrls]);
+  }, [portraitType, shootStyle, outfit, outfitEn, setting, lighting, framing, outroTexts, outroTextsEn, refImageUrls, outfitRefUrls]);
 
   // Quando qualquer campo muda, limpa o override manual do prompt
   useEffect(() => {
     setPromptOverride(null);
-  }, [portraitType, shootStyle, outfit, outfitEn, setting, lighting, framing, outroTexts, outroTextsEn]);
+  }, [portraitType, shootStyle, outfit, outfitEn, setting, lighting, framing, outroTexts, outroTextsEn, refImageUrls, outfitRefUrls]);
 
   const activePrompt = promptOverride ?? composedPrompt;
   promptRef.current  = activePrompt;
@@ -373,13 +415,13 @@ export default function PortraitPage() {
     setTimeout(() => setToast(null), 2500);
   }
 
-  // Upload de referência — múltiplas imagens, limita ao MAX_REF_IMAGES do modelo
+  // Upload de referência do MODELO (rosto/corpo) — múltiplas imagens
   async function handleRefUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const maxForModel = MAX_REF_IMAGES[activeModel] ?? 1;
+    const maxForModel = MAX_MODEL_REF_IMAGES[activeModel] ?? 1;
     if (refImageUrls.length >= maxForModel) {
-      showToast(`Limite de ${maxForModel} ${maxForModel === 1 ? "imagem" : "imagens"} para ${activeModel}`);
+      showToast(`Limite de ${maxForModel} ${maxForModel === 1 ? "imagem" : "imagens"} de modelo para ${activeModel}`);
       return;
     }
     setIsUploadingRef(true);
@@ -395,6 +437,30 @@ export default function PortraitPage() {
 
   function removeRefImage(idx: number) {
     setRefImageUrls((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  // Upload de referência de VESTUÁRIO — múltiplas imagens
+  async function handleOutfitRefUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const maxOutfit = MAX_OUTFIT_REF_IMAGES[activeModel] ?? 0;
+    if (outfitRefUrls.length >= maxOutfit) {
+      showToast(`Limite de ${maxOutfit} ${maxOutfit === 1 ? "imagem" : "imagens"} de vestuário para ${activeModel}`);
+      return;
+    }
+    setIsUploadingOutfit(true);
+    try {
+      const url = await uploadReferenceFile(file);
+      if (url) setOutfitRefUrls((prev) => [...prev, url]);
+      else showToast("Falha no upload — tente novamente");
+    } finally {
+      setIsUploadingOutfit(false);
+      if (e.target) e.target.value = "";
+    }
+  }
+
+  function removeOutfitRefImage(idx: number) {
+    setOutfitRefUrls((prev) => prev.filter((_, i) => i !== idx));
   }
 
   // Polling
@@ -456,11 +522,15 @@ export default function PortraitPage() {
     pollingRef.current = [];
 
     try {
-      // Mapeia upload pra parâmetro certo conforme o modelo:
-      //  - Nano Banana / Pro → referenceImages (array, KIE aceita até 14)
-      //  - Flux Kontext       → inputImage (única imagem)
+      // Mapeia uploads pro parâmetro certo conforme o modelo:
+      //  - Nano Banana → referenceImages (array, KIE aceita até 14). Concatenamos
+      //    [...modelo, ...vestuário] nessa ordem — o prompt diz ao Gemini Image
+      //    "as primeiras N são modelo, as últimas M são roupa".
+      //  - Flux Kontext → inputImage (única imagem, sem suporte a vestuário separado)
       const isNanoFamily = activeModel === "Nano Banana" || activeModel === "Nano Banana Pro";
       const isFluxKontext = activeModel === "Flux Kontext";
+
+      const combinedRefs = [...refImageUrls, ...outfitRefUrls];
 
       const res = await fetch("/api/generate/image", {
         method: "POST",
@@ -472,7 +542,7 @@ export default function PortraitPage() {
           resolution,
           aspectRatio: "2:3",   // Proporção retrato (padrão para ensaios)
           referenceImages:
-            isNanoFamily && refImageUrls.length > 0 ? refImageUrls : undefined,
+            isNanoFamily && combinedRefs.length > 0 ? combinedRefs : undefined,
           inputImage:
             isFluxKontext && refImageUrls.length > 0 ? refImageUrls[0] : undefined,
         }),
@@ -862,36 +932,36 @@ export default function PortraitPage() {
             )}
           </div>
 
-          {/* Referência visual (opcional, múltiplas) */}
+          {/* Referência do MODELO (rosto/corpo da pessoa) */}
           <div className="bg-card border border-b1 rounded-[11px] p-3.5">
             <div className="flex items-center gap-2 mb-2">
-              <p className="text-[12px] font-semibold text-t3 uppercase tracking-wider flex-1">Referência Visual</p>
+              <UserIcon size={12} className="text-y" />
+              <p className="text-[12px] font-semibold text-t3 uppercase tracking-wider flex-1">Referência do Modelo</p>
               <span className="text-[10.5px] text-t4">
-                {refImageUrls.length}/{MAX_REF_IMAGES[activeModel] ?? 1}
+                {refImageUrls.length}/{MAX_MODEL_REF_IMAGES[activeModel] ?? 1}
               </span>
             </div>
 
-            {/* Dica de boas práticas */}
+            {/* Dica contextual */}
             <div className="flex items-start gap-1.5 mb-2.5 p-2 rounded-[8px] bg-y/5 border border-y/15">
               <Info size={11} className="text-y shrink-0 mt-0.5" />
               <p className="text-[10.5px] text-t2 leading-[1.45]">
                 {activeModel === "Flux Kontext" ? (
-                  <>Envie <strong className="text-white">1 foto</strong> do rosto/corpo — o modelo edita essa imagem aplicando o estilo escolhido.</>
+                  <>Envie <strong className="text-white">1 foto</strong> do rosto/corpo — o modelo edita essa imagem aplicando o estilo.</>
                 ) : (
-                  <>Pra fidelidade máxima, envie <strong className="text-white">2-4 fotos</strong> de ângulos diferentes (frontal, 3/4, perfil, sorrindo).</>
+                  <>Pra fidelidade máxima, envie <strong className="text-white">3-8 fotos</strong> de ângulos diferentes (frontal, 3/4, perfil, sorrindo, sério).</>
                 )}
               </p>
             </div>
 
             <input ref={refFileRef} type="file" accept="image/*" className="hidden" onChange={handleRefUpload} />
 
-            {/* Grid de referências */}
             {refImageUrls.length > 0 && (
-              <div className="grid grid-cols-3 gap-1.5 mb-2">
+              <div className="grid grid-cols-4 gap-1.5 mb-2">
                 {refImageUrls.map((url, i) => (
                   <div key={url + i} className="relative rounded-[8px] overflow-hidden border border-b1 aspect-square">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={url} alt={`Ref ${i + 1}`} className="w-full h-full object-cover" />
+                    <img src={url} alt={`Ref modelo ${i + 1}`} className="w-full h-full object-cover" />
                     <button
                       onClick={() => removeRefImage(i)}
                       className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 flex items-center justify-center text-white hover:bg-black/90"
@@ -903,28 +973,87 @@ export default function PortraitPage() {
               </div>
             )}
 
-            {/* Botão de upload */}
             {isUploadingRef ? (
               <div className="w-full border border-dashed border-b2 rounded-[10px] py-4 flex items-center justify-center gap-2 text-t3">
                 <Loader2 size={13} className="animate-spin text-y" />
                 <span className="text-[12px]">Enviando...</span>
               </div>
-            ) : refImageUrls.length < (MAX_REF_IMAGES[activeModel] ?? 1) ? (
+            ) : refImageUrls.length < (MAX_MODEL_REF_IMAGES[activeModel] ?? 1) ? (
               <button
                 onClick={() => refFileRef.current?.click()}
                 className="w-full border border-dashed border-b2 rounded-[10px] py-3 flex items-center justify-center gap-2 text-t3 hover:text-white hover:border-b2 transition-colors"
               >
                 {refImageUrls.length === 0 ? <ImagePlus size={14} /> : <Plus size={13} />}
                 <span className="text-[12px]">
-                  {refImageUrls.length === 0 ? "Adicionar referência" : "Adicionar mais"}
+                  {refImageUrls.length === 0 ? "Adicionar foto do modelo" : "Adicionar mais"}
                 </span>
               </button>
             ) : (
               <p className="text-[11px] text-t4 text-center py-2">
-                Limite de {MAX_REF_IMAGES[activeModel]} {MAX_REF_IMAGES[activeModel] === 1 ? "imagem" : "imagens"} atingido para {activeModel}
+                Limite de {MAX_MODEL_REF_IMAGES[activeModel]} {MAX_MODEL_REF_IMAGES[activeModel] === 1 ? "imagem" : "imagens"} atingido
               </p>
             )}
           </div>
+
+          {/* Referência de VESTUÁRIO — só pra modelos que suportam múltiplas imagens */}
+          {(MAX_OUTFIT_REF_IMAGES[activeModel] ?? 0) > 0 && (
+            <div className="bg-card border border-b1 rounded-[11px] p-3.5">
+              <div className="flex items-center gap-2 mb-2">
+                <Shirt size={12} className="text-y" />
+                <p className="text-[12px] font-semibold text-t3 uppercase tracking-wider flex-1">Referência de Vestuário</p>
+                <span className="text-[10.5px] text-t4">
+                  {outfitRefUrls.length}/{MAX_OUTFIT_REF_IMAGES[activeModel]}
+                </span>
+              </div>
+
+              <div className="flex items-start gap-1.5 mb-2.5 p-2 rounded-[8px] bg-y/5 border border-y/15">
+                <Info size={11} className="text-y shrink-0 mt-0.5" />
+                <p className="text-[10.5px] text-t2 leading-[1.45]">
+                  Envie até <strong className="text-white">3 fotos de roupas</strong> (camisa, calça, vestido…). O modelo de IA combina a pessoa da referência acima com essas peças. <strong className="text-white">Complementa</strong> o campo de texto Vestuário — pode usar os dois.
+                </p>
+              </div>
+
+              <input ref={outfitRefFileRef} type="file" accept="image/*" className="hidden" onChange={handleOutfitRefUpload} />
+
+              {outfitRefUrls.length > 0 && (
+                <div className="grid grid-cols-3 gap-1.5 mb-2">
+                  {outfitRefUrls.map((url, i) => (
+                    <div key={url + i} className="relative rounded-[8px] overflow-hidden border border-b1 aspect-square">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt={`Ref vestuário ${i + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => removeOutfitRefImage(i)}
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 flex items-center justify-center text-white hover:bg-black/90"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {isUploadingOutfit ? (
+                <div className="w-full border border-dashed border-b2 rounded-[10px] py-4 flex items-center justify-center gap-2 text-t3">
+                  <Loader2 size={13} className="animate-spin text-y" />
+                  <span className="text-[12px]">Enviando...</span>
+                </div>
+              ) : outfitRefUrls.length < (MAX_OUTFIT_REF_IMAGES[activeModel] ?? 0) ? (
+                <button
+                  onClick={() => outfitRefFileRef.current?.click()}
+                  className="w-full border border-dashed border-b2 rounded-[10px] py-3 flex items-center justify-center gap-2 text-t3 hover:text-white hover:border-b2 transition-colors"
+                >
+                  {outfitRefUrls.length === 0 ? <Shirt size={14} /> : <Plus size={13} />}
+                  <span className="text-[12px]">
+                    {outfitRefUrls.length === 0 ? "Adicionar foto de roupa" : "Adicionar mais"}
+                  </span>
+                </button>
+              ) : (
+                <p className="text-[11px] text-t4 text-center py-2">
+                  Limite de {MAX_OUTFIT_REF_IMAGES[activeModel]} imagens de vestuário atingido
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Prompt gerado (expansível / editável) */}
           <div className="bg-card border border-b1 rounded-[11px] p-3.5">
@@ -980,10 +1109,14 @@ export default function PortraitPage() {
                       setActiveModel(m);
                       const opts = MODEL_RESOLUTIONS[m] ?? ["1K", "2K", "4K"];
                       if (!opts.includes(resolution)) setResolution(opts[0]);
-                      // Recorta refImageUrls se exceder o limite do novo modelo
-                      const maxNew = MAX_REF_IMAGES[m] ?? 1;
-                      if (refImageUrls.length > maxNew) {
-                        setRefImageUrls((prev) => prev.slice(0, maxNew));
+                      // Recorta arrays se excederem os novos limites
+                      const maxModel = MAX_MODEL_REF_IMAGES[m] ?? 1;
+                      if (refImageUrls.length > maxModel) {
+                        setRefImageUrls((prev) => prev.slice(0, maxModel));
+                      }
+                      const maxOutfit = MAX_OUTFIT_REF_IMAGES[m] ?? 0;
+                      if (outfitRefUrls.length > maxOutfit) {
+                        setOutfitRefUrls((prev) => prev.slice(0, maxOutfit));
                       }
                     }}
                     title={locked ? `Disponível a partir do plano ${minPlan}` : undefined}
