@@ -3,8 +3,8 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Topbar } from "@/components/layout/Topbar";
 import {
-  Camera, Download, RefreshCw, Maximize2, Layers, Zap,
-  Loader2, AlertCircle, ImagePlus, X, ChevronDown, ChevronUp, Pencil,
+  Camera, Download, RefreshCw, Maximize2, Layers,
+  Loader2, AlertCircle, ImagePlus, X, ChevronDown, ChevronUp, Pencil, Languages,
 } from "lucide-react";
 import { calculateCost } from "@/lib/credits";
 
@@ -194,6 +194,10 @@ export default function PortraitPage() {
   const [resolution, setResolution]       = useState<"1K" | "2K" | "4K">("1K");
   const [activeCount, setActiveCount]     = useState(1);
 
+  // Tradução automática do vestuário (PT → EN, debounced)
+  const [outfitEn, setOutfitEn]           = useState("");
+  const [isTranslating, setIsTranslating] = useState(false);
+
   // Referência de aparência (opcional)
   const [refImageUrl, setRefImageUrl]     = useState<string | null>(null);
   const [isUploadingRef, setIsUploadingRef] = useState(false);
@@ -218,14 +222,36 @@ export default function PortraitPage() {
     return () => { pollingRef.current.forEach(clearInterval); pollingRef.current = []; };
   }, []);
 
-  // Prompt composto (campos → string) — usado se não houver override
+  // Tradução automática do vestuário: debounce 600ms após o user parar de digitar
+  useEffect(() => {
+    if (!outfit.trim()) { setOutfitEn(""); return; }
+    setIsTranslating(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res  = await fetch("/api/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: outfit }),
+        });
+        const data = await res.json();
+        setOutfitEn(data.translated ?? outfit);
+      } catch {
+        setOutfitEn(outfit); // fallback silencioso
+      } finally {
+        setIsTranslating(false);
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [outfit]);
+
+  // Prompt composto (campos → string) — usa versão em inglês do vestuário
   const composedPrompt = useMemo(
-    () => buildPortraitPrompt({ type: portraitType, style: shootStyle, outfit, setting, lighting, framing }),
-    [portraitType, shootStyle, outfit, setting, lighting, framing]
+    () => buildPortraitPrompt({ type: portraitType, style: shootStyle, outfit: outfitEn || outfit, setting, lighting, framing }),
+    [portraitType, shootStyle, outfit, outfitEn, setting, lighting, framing]
   );
 
   // Quando os campos mudam e o user não editou manualmente, limpa o override
-  useEffect(() => { setPromptOverride(null); }, [portraitType, shootStyle, outfit, setting, lighting, framing]);
+  useEffect(() => { setPromptOverride(null); }, [portraitType, shootStyle, outfit, outfitEn, setting, lighting, framing]);
 
   const activePrompt = promptOverride ?? composedPrompt;
   promptRef.current  = activePrompt;
@@ -494,15 +520,38 @@ export default function PortraitPage() {
 
           {/* Vestuário */}
           <div className="bg-card border border-b1 rounded-[11px] p-3.5">
-            <p className="text-[12px] font-semibold text-t3 uppercase tracking-wider mb-2">Vestuário</p>
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-[12px] font-semibold text-t3 uppercase tracking-wider flex-1">Vestuário</p>
+              <div className="flex items-center gap-1 text-[10.5px] text-t4">
+                <Languages size={11} />
+                <span>Escreva em português</span>
+              </div>
+            </div>
             <input
               type="text"
               value={outfit}
               onChange={(e) => setOutfit(e.target.value)}
-              placeholder="ex: vestido midi preto, terno azul navy..."
+              placeholder="ex: terno azul marinho, vestido vermelho de seda..."
               maxLength={120}
               className="w-full bg-card2 border border-b1 rounded-[8px] px-3 py-2.5 text-[12.5px] text-[#c0c0c0] placeholder-t4 outline-none focus:border-b2 transition-colors"
             />
+            {/* Preview da tradução */}
+            {outfit.trim() && (
+              <div className="mt-2 flex items-center gap-1.5 min-h-[18px]">
+                {isTranslating ? (
+                  <Loader2 size={11} className="animate-spin text-t4 shrink-0" />
+                ) : (
+                  <Languages size={11} className="text-y shrink-0" />
+                )}
+                <span className="text-[11px] text-t3">
+                  {isTranslating
+                    ? "Traduzindo..."
+                    : outfitEn
+                    ? <><span className="text-t4">em inglês: </span><span className="text-[#c8a84b] italic">{outfitEn}</span></>
+                    : null}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Cenário */}
