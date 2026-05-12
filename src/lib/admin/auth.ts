@@ -52,11 +52,8 @@ export async function requireAdmin(
   }
 
   // Consulta admin_users via service role (RLS deny-all impede leitura via anon).
-  // Cast `any` aqui é workaround até `database.types.ts` ser regenerado pós-migration —
-  // a tabela `admin_users` ainda não está no schema gerado.
   const admin = createAdminClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: row, error } = await (admin as any)
+  const { data: row, error } = await admin
     .from("admin_users")
     .select("role, permissions, is_active")
     .eq("user_id", user.id)

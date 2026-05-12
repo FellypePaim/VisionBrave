@@ -179,6 +179,105 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_users: {
+        Row: {
+          id: string
+          user_id: string
+          role: string
+          permissions: Json
+          is_active: boolean
+          created_at: string
+          created_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          role?: string
+          permissions?: Json
+          is_active?: boolean
+          created_at?: string
+          created_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          role?: string
+          permissions?: Json
+          is_active?: boolean
+          created_at?: string
+          created_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      admin_audit_logs: {
+        Row: {
+          id: string
+          admin_user_id: string | null
+          target_user_id: string | null
+          action: string
+          entity_type: string
+          entity_id: string | null
+          before: Json | null
+          after: Json | null
+          metadata: Json
+          ip_address: string | null
+          user_agent: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          admin_user_id?: string | null
+          target_user_id?: string | null
+          action: string
+          entity_type: string
+          entity_id?: string | null
+          before?: Json | null
+          after?: Json | null
+          metadata?: Json
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          admin_user_id?: string | null
+          target_user_id?: string | null
+          action?: string
+          entity_type?: string
+          entity_id?: string | null
+          before?: Json | null
+          after?: Json | null
+          metadata?: Json
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      system_settings: {
+        Row: {
+          key: string
+          value: Json
+          updated_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          key: string
+          value: Json
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          key?: string
+          value?: Json
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

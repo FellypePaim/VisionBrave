@@ -9,6 +9,7 @@
  */
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { Database } from "@/lib/supabase/database.types";
 
 export interface AdminAuditLogInput {
   adminUserId: string;
@@ -36,18 +37,15 @@ function extractIp(req?: Request): string | null {
 export async function createAdminAuditLog(input: AdminAuditLogInput): Promise<void> {
   try {
     const sb = createAdminClient();
-    // Cast `any` aqui é workaround até `database.types.ts` ser regenerado pós-migration —
-    // a tabela `admin_audit_logs` ainda não está no schema gerado.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (sb as any).from("admin_audit_logs").insert({
+    const { error } = await sb.from("admin_audit_logs").insert({
       admin_user_id: input.adminUserId,
       target_user_id: input.targetUserId ?? null,
       action: input.action,
       entity_type: input.entityType,
       entity_id: input.entityId ?? null,
-      before: input.before ?? null,
-      after: input.after ?? null,
-      metadata: input.metadata ?? {},
+      before: (input.before ?? null) as Database["public"]["Tables"]["admin_audit_logs"]["Insert"]["before"],
+      after: (input.after ?? null) as Database["public"]["Tables"]["admin_audit_logs"]["Insert"]["after"],
+      metadata: (input.metadata ?? {}) as Database["public"]["Tables"]["admin_audit_logs"]["Insert"]["metadata"],
       ip_address: extractIp(input.request),
       user_agent: input.request?.headers.get("user-agent") ?? null,
     });
