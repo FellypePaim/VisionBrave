@@ -14,6 +14,126 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_logs: {
+        Row: {
+          action: string
+          admin_user_id: string | null
+          after: Json | null
+          before: Json | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json
+          target_user_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      admin_users: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          permissions: Json
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          permissions?: Json
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          permissions?: Json
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      app_error_logs: {
+        Row: {
+          action: string | null
+          created_at: string
+          error_code: string | null
+          error_message: string
+          id: string
+          metadata: Json
+          model: string | null
+          provider: string | null
+          route: string | null
+          stack: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message: string
+          id?: string
+          metadata?: Json
+          model?: string | null
+          provider?: string | null
+          route?: string | null
+          stack?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string
+          id?: string
+          metadata?: Json
+          model?: string | null
+          provider?: string | null
+          route?: string | null
+          stack?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       credit_transactions: {
         Row: {
           amount: number
@@ -74,6 +194,9 @@ export type Database = {
       generations: {
         Row: {
           created_at: string
+          delete_reason: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           external_url: string | null
           id: string
           metadata: Json | null
@@ -83,12 +206,12 @@ export type Database = {
           storage_path: string | null
           type: string
           user_id: string
-          deleted_at: string | null
-          deleted_by: string | null
-          delete_reason: string | null
         }
         Insert: {
           created_at?: string
+          delete_reason?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           external_url?: string | null
           id?: string
           metadata?: Json | null
@@ -98,12 +221,12 @@ export type Database = {
           storage_path?: string | null
           type: string
           user_id: string
-          deleted_at?: string | null
-          deleted_by?: string | null
-          delete_reason?: string | null
         }
         Update: {
           created_at?: string
+          delete_reason?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           external_url?: string | null
           id?: string
           metadata?: Json | null
@@ -113,9 +236,6 @@ export type Database = {
           storage_path?: string | null
           type?: string
           user_id?: string
-          deleted_at?: string | null
-          deleted_by?: string | null
-          delete_reason?: string | null
         }
         Relationships: []
       }
@@ -143,6 +263,63 @@ export type Database = {
           total_brl?: number
           total_requests?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      pending_generations: {
+        Row: {
+          actual_cost_usd: number | null
+          completed_at: string | null
+          cost_credits: number
+          created_at: string
+          endpoint: string
+          error: string | null
+          estimated_cost_brl: number | null
+          kind: string
+          metadata: Json
+          model: string
+          prompt: string | null
+          provider: string
+          result_urls: string[] | null
+          status: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          actual_cost_usd?: number | null
+          completed_at?: string | null
+          cost_credits?: number
+          created_at?: string
+          endpoint: string
+          error?: string | null
+          estimated_cost_brl?: number | null
+          kind: string
+          metadata?: Json
+          model: string
+          prompt?: string | null
+          provider?: string
+          result_urls?: string[] | null
+          status?: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          actual_cost_usd?: number | null
+          completed_at?: string | null
+          cost_credits?: number
+          created_at?: string
+          endpoint?: string
+          error?: string | null
+          estimated_cost_brl?: number | null
+          kind?: string
+          metadata?: Json
+          model?: string
+          prompt?: string | null
+          provider?: string
+          result_urls?: string[] | null
+          status?: string
+          task_id?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -188,144 +365,24 @@ export type Database = {
         }
         Relationships: []
       }
-      admin_users: {
-        Row: {
-          id: string
-          user_id: string
-          role: string
-          permissions: Json
-          is_active: boolean
-          created_at: string
-          created_by: string | null
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          role?: string
-          permissions?: Json
-          is_active?: boolean
-          created_at?: string
-          created_by?: string | null
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          role?: string
-          permissions?: Json
-          is_active?: boolean
-          created_at?: string
-          created_by?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      admin_audit_logs: {
-        Row: {
-          id: string
-          admin_user_id: string | null
-          target_user_id: string | null
-          action: string
-          entity_type: string
-          entity_id: string | null
-          before: Json | null
-          after: Json | null
-          metadata: Json
-          ip_address: string | null
-          user_agent: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          admin_user_id?: string | null
-          target_user_id?: string | null
-          action: string
-          entity_type: string
-          entity_id?: string | null
-          before?: Json | null
-          after?: Json | null
-          metadata?: Json
-          ip_address?: string | null
-          user_agent?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          admin_user_id?: string | null
-          target_user_id?: string | null
-          action?: string
-          entity_type?: string
-          entity_id?: string | null
-          before?: Json | null
-          after?: Json | null
-          metadata?: Json
-          ip_address?: string | null
-          user_agent?: string | null
-          created_at?: string
-        }
-        Relationships: []
-      }
       system_settings: {
         Row: {
           key: string
-          value: Json
-          updated_by: string | null
           updated_at: string
+          updated_by: string | null
+          value: Json
         }
         Insert: {
           key: string
-          value: Json
-          updated_by?: string | null
           updated_at?: string
+          updated_by?: string | null
+          value: Json
         }
         Update: {
           key?: string
-          value?: Json
-          updated_by?: string | null
           updated_at?: string
-        }
-        Relationships: []
-      }
-      app_error_logs: {
-        Row: {
-          id: string
-          user_id: string | null
-          route: string | null
-          action: string | null
-          provider: string | null
-          model: string | null
-          error_code: string | null
-          error_message: string
-          stack: string | null
-          metadata: Json
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id?: string | null
-          route?: string | null
-          action?: string | null
-          provider?: string | null
-          model?: string | null
-          error_code?: string | null
-          error_message: string
-          stack?: string | null
-          metadata?: Json
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string | null
-          route?: string | null
-          action?: string | null
-          provider?: string | null
-          model?: string | null
-          error_code?: string | null
-          error_message?: string
-          stack?: string | null
-          metadata?: Json
-          created_at?: string
+          updated_by?: string | null
+          value?: Json
         }
         Relationships: []
       }
@@ -526,4 +583,3 @@ export const Constants = {
     },
   },
 } as const
-

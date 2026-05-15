@@ -1,17 +1,24 @@
 /**
- * Sistema de créditos VisionBrave — pricing v2 (2026-05-11).
+ * Sistema de créditos VisionBrave.
  *
- * Modelo "Magnific-look" mas conservador:
- *   1 crédito ≈ R$ 0,0061 (Premium) a R$ 0,0045 (Pro)
- *   Markup 2,8x sobre custo KIE.AI real (USD × R$5,40 × 2,8 ÷ R$0,0061)
+ * Migração 2026-05-12: KIE → MuAPI como provider único.
  *
- * Planos:
- *   Free        — 200 créd/mês  — só imagem básica + Suno V4 (cap 3 imagens/dia)
- *   Premium     — 8.000 créd/mês — tudo exceto Veo Quality / Seedance 1080p / Kling Pro
- *   Premium+    — 25.000 créd/mês — idem Premium + mais volume
- *   Pro         — 100.000 créd/mês — tudo liberado
+ * Convenção atual (preço de CUSTO, sem markup — calibração inicial):
+ *   1 crédito ≈ $0.01 USD ≈ R$0.054 (com USD_TO_BRL = 5.4)
  *
- * Ver `arquitetura-visionbrave.md` no vault PAIM para detalhes de pricing.
+ * Custos em créditos = ceil(custoMuapiUSD * 100), mínimo 1 crédito.
+ *
+ * Planos (créditos mensais incluídos):
+ *   Free        — 200 créd/mês ≈ $2.00 em custo MuAPI
+ *   Premium     — 8.000 créd/mês ≈ $80
+ *   Premium+    — 25.000 créd/mês ≈ $250
+ *   Pro         — 100.000 créd/mês ≈ $1.000
+ *
+ * IMPORTANTE: precificação dos planos (R$49, R$129, R$449) NÃO foi
+ * recalibrada. Hoje os planos podem dar prejuízo se user gastar muito.
+ * Recalibração ficou pra depois (decisão do user: ver dados reais primeiro).
+ *
+ * Ver `arquitetura-visionbrave.md` no vault PAIM para detalhes.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -20,79 +27,126 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // 1. Tabela de custos (créditos cobrados do user)
 // ═════════════════════════════════════════════════════════════════════
 
+/**
+ * Custos em créditos por modelo (sem markup — preço de custo MuAPI puro).
+ * Fórmula: ceil(custoMuapiUSD * 100), mínimo 1.
+ *
+ * Calibração 2026-05-12 baseada em muapi.ai/playground.
+ */
 export const CREDIT_COSTS = {
-  // ── Imagem (custo KIE × 2,8 markup ÷ R$0,0061)
-  "Nano Banana": 50,            // 1K. 4K usa multiplier ×2 = 100
-  "Nano Banana Pro": 325,       // Gemini 3 Pro 4K
-  "GPT Image 2": 100,
-  "Flux Pro": 125,
-  "Flux Kontext": 100,          // pro
-  "Flux Kontext Max": 200,
-  // ── Vídeo — base 5s, 720p (multiplier por duration/5 e ×1.5 se 1080p, ×2 se 4K)
-  "Seedance 2 Fast": 750,       // 720p ($0.30/5s)
-  "Veo 3 Fast": 1000,           // 8s ($0.40 — fixo, sem multiplier de duração)
-  "Kling 2.1": 1000,            // i2v ($0.40/5s)
-  "Seedance 2": 1700,           // 720p i2v ($0.625/5s) — só Premium+/Pro
-  "Kling 3.0": 1575,            // std 720p ($0.63/5s) — só Premium+/Pro
-  "Kling 3.0 Pro": 2270,        // 1080p ($0.84/5s) — só Pro
-  "Veo 3": 5000,                // quality 8s ($2.00) — só Pro
-  // ── Áudio Suno
-  "V4": 125,
-  "V4_5": 125,
-  "V4_5PLUS": 175,
-  "V4_5ALL": 200,
-  "V5": 200,
-  "V5_5": 200,
+  // ── Imagem ─────────────────────────────────────────────
+  "Flux Schnell":     1,    // $0.003 → 1 (mínimo)
+  "Flux Dev":         2,    // $0.015
+  "Flux Pro":         4,    // $0.032
+  "Flux Kontext Pro": 3,    // $0.030 (renomeado de "Flux Kontext")
+  "Flux Kontext Max": 6,    // $0.060
+  "Nano Banana":      3,    // $0.030 (era 50 com markup; agora preço puro)
+  "Nano Banana Pro":  12,   // $0.120
+  "GPT Image 2":      9,    // $0.090
+  "Seedream 5.0":     4,    // $0.033
+  "Midjourney v8":    10,   // $0.100
+
+  // ── Vídeo ──────────────────────────────────────────────
+  "Kling 2.1 Standard":  23,   // $0.225
+  "Kling 2.1 Pro":       40,   // $0.400
+  "Kling 3.0 Pro":       72,   // $0.720
+  "Veo 3.1 Fast":        60,   // $0.600
+  "Veo 3.1":             250,  // $2.500
+  "Seedance 2 Fast":     75,   // $0.750
+  "Seedance 2":          125,  // $1.250
+  "Hailuo 02 Pro":       60,   // $0.600
+  "Sora 2":              80,   // $0.800
+  "Sora 2 Pro":          240,  // $2.400
+
+  // ── Áudio Suno ─────────────────────────────────────────
+  "Suno Create Music":     9,  // $0.090
+  "Suno Extend Music":     9,  // $0.090
+  "Suno Generate Sounds":  2,  // $0.020
+  "Suno Remix Music":      9,  // $0.090
 } as const;
 
+/**
+ * ALIASES de compatibilidade — mapeia nomes legados (KIE) → nomes MuAPI.
+ * Durante a migração, código antigo pode passar "Flux Kontext" e funcionar.
+ * Remover na Fase C.
+ */
+export const MODEL_ALIASES: Record<string, keyof typeof CREDIT_COSTS> = {
+  "Flux Kontext": "Flux Kontext Pro",
+  "Veo 3 Fast":   "Veo 3.1 Fast",
+  "Veo 3":        "Veo 3.1",
+  "Kling 2.1":    "Kling 2.1 Pro",
+  "Kling 3.0":    "Kling 3.0 Pro",
+  "V4":           "Suno Create Music",
+  "V4_5":         "Suno Create Music",
+  "V4_5PLUS":     "Suno Create Music",
+  "V4_5ALL":      "Suno Create Music",
+  "V5":           "Suno Create Music",
+  "V5_5":         "Suno Create Music",
+};
+
+/** Normaliza nome possivelmente legado para o atual */
+export function normalizeModelName(name: string): string {
+  return MODEL_ALIASES[name] ?? name;
+}
+
 // ═════════════════════════════════════════════════════════════════════
-// 2. Tabela de custo KIE em R$ (para tracking de cap mensal)
-//    Usado por checkAndLogKieCost — NUNCA exibido ao user.
+// 2. Tabela de custo MuAPI em USD (para tracking de cap mensal)
+//    Usado por checkMuapiCap — NUNCA exibido ao user.
+//    Custos reais finais vêm da MuAPI no response (cost.amount_usd).
 // ═════════════════════════════════════════════════════════════════════
 
 const USD_TO_BRL = 5.4;  // taxa fixa pra evitar volatilidade
 
-const KIE_COST_USD: Record<string, number> = {
+const MUAPI_COST_USD: Record<string, number> = {
   // Imagem
-  "Nano Banana": 0.04,
-  "Nano Banana Pro": 0.12,
-  "GPT Image 2": 0.04,
-  "Flux Pro": 0.05,
-  "Flux Kontext": 0.04,
-  "Flux Kontext Max": 0.08,
-  // Vídeo (5s base 720p, exceto Veo Fast/Quality que são 8s fixo)
-  "Seedance 2 Fast": 0.30,
-  "Veo 3 Fast": 0.40,           // 8s c/ áudio
-  "Kling 2.1": 0.40,
-  "Seedance 2": 0.625,
-  "Kling 3.0": 0.63,
-  "Kling 3.0 Pro": 0.84,
-  "Veo 3": 2.00,
+  "Flux Schnell":     0.003,
+  "Flux Dev":         0.015,
+  "Flux Pro":         0.032,
+  "Flux Kontext Pro": 0.030,
+  "Flux Kontext Max": 0.060,
+  "Nano Banana":      0.030,
+  "Nano Banana Pro":  0.120,
+  "GPT Image 2":      0.090,
+  "Seedream 5.0":     0.033,
+  "Midjourney v8":    0.100,
+  // Vídeo (preço base — multipliers via opção `durationSeconds`)
+  "Kling 2.1 Standard": 0.225,
+  "Kling 2.1 Pro":      0.400,
+  "Kling 3.0 Pro":      0.720,
+  "Veo 3.1 Fast":       0.600,
+  "Veo 3.1":            2.500,
+  "Seedance 2 Fast":    0.750,
+  "Seedance 2":         1.250,
+  "Hailuo 02 Pro":      0.600,
+  "Sora 2":             0.800,
+  "Sora 2 Pro":         2.400,
   // Áudio
-  "V4": 0.05,
-  "V4_5": 0.05,
-  "V4_5PLUS": 0.06,
-  "V4_5ALL": 0.07,
-  "V5": 0.08,
-  "V5_5": 0.08,
+  "Suno Create Music":     0.090,
+  "Suno Extend Music":     0.090,
+  "Suno Generate Sounds":  0.020,
+  "Suno Remix Music":      0.090,
 };
 
 /**
- * Calcula custo KIE estimado em R$ (para tracking de cap mensal).
+ * Calcula custo MuAPI estimado em R$ (para tracking de cap mensal).
  * Mesmo multiplier do calculateCost — assim o cap acompanha proporcionalmente.
  */
-export function estimateKieCostBRL(
+export function estimateMuapiCostBRL(
   model: string,
   options?: { count?: number; durationSeconds?: number; resolution?: string },
 ): number {
-  const baseUSD = KIE_COST_USD[model] ?? 0.05;
+  const normalized = normalizeModelName(model);
+  const baseUSD = MUAPI_COST_USD[normalized] ?? 0.05;
   let multiplier = 1;
   if (options?.count && options.count > 1) multiplier *= options.count;
   if (options?.durationSeconds && options.durationSeconds > 5) multiplier *= options.durationSeconds / 5;
   if (options?.resolution === "4K" || options?.resolution === "4k") multiplier *= 2;
-  else if (options?.resolution === "1080p") multiplier *= 1.5;
+  else if (options?.resolution === "1080p" || options?.resolution === "2K") multiplier *= 1.5;
   return Math.round(baseUSD * multiplier * USD_TO_BRL * 100) / 100;
 }
+
+/** @deprecated use `estimateMuapiCostBRL` — alias temporário pra não quebrar callers */
+export const estimateKieCostBRL = estimateMuapiCostBRL;
 
 // ═════════════════════════════════════════════════════════════════════
 // 3. Acesso por plano
@@ -102,39 +156,50 @@ export type PlanKey = "free" | "premium" | "premiumplus" | "pro" | "enterprise";
 
 export const PLAN_MODEL_ACCESS: Record<PlanKey, string[]> = {
   free: [
-    // só básico — sem vídeo, sem premium audio
-    "Nano Banana", "Flux Kontext",
-    "V4", "V4_5",
+    // Imagem básica + Flux Schnell ultra-barato + Suno básico
+    "Flux Schnell", "Flux Dev", "Flux Kontext Pro",
+    "Nano Banana", "Seedream 5.0",
+    "Suno Create Music", "Suno Generate Sounds",
   ],
   premium: [
-    // tudo exceto vídeo premium e Suno top
-    "Nano Banana", "Nano Banana Pro", "GPT Image 2", "Flux Pro", "Flux Kontext", "Flux Kontext Max",
-    "Seedance 2 Fast", "Veo 3 Fast", "Kling 2.1",
-    "V4", "V4_5", "V4_5PLUS",
+    // + Imagem premium + vídeos rápidos + áudio premium
+    "Flux Schnell", "Flux Dev", "Flux Pro", "Flux Kontext Pro", "Flux Kontext Max",
+    "Nano Banana", "Nano Banana Pro", "GPT Image 2", "Seedream 5.0",
+    "Kling 2.1 Standard", "Kling 2.1 Pro", "Veo 3.1 Fast", "Hailuo 02 Pro", "Seedance 2 Fast",
+    "Suno Create Music", "Suno Extend Music", "Suno Generate Sounds", "Suno Remix Music",
   ],
   premiumplus: [
-    // Premium + vídeos médios + áudio top
-    "Nano Banana", "Nano Banana Pro", "GPT Image 2", "Flux Pro", "Flux Kontext", "Flux Kontext Max",
-    "Seedance 2 Fast", "Seedance 2", "Veo 3 Fast", "Kling 2.1", "Kling 3.0",
-    "V4", "V4_5", "V4_5PLUS", "V4_5ALL", "V5", "V5_5",
+    // + Midjourney + vídeos médios
+    "Flux Schnell", "Flux Dev", "Flux Pro", "Flux Kontext Pro", "Flux Kontext Max",
+    "Nano Banana", "Nano Banana Pro", "GPT Image 2", "Seedream 5.0", "Midjourney v8",
+    "Kling 2.1 Standard", "Kling 2.1 Pro", "Kling 3.0 Pro",
+    "Veo 3.1 Fast", "Hailuo 02 Pro", "Seedance 2 Fast", "Seedance 2",
+    "Suno Create Music", "Suno Extend Music", "Suno Generate Sounds", "Suno Remix Music",
   ],
   pro: [
-    // tudo
-    "Nano Banana", "Nano Banana Pro", "GPT Image 2", "Flux Pro", "Flux Kontext", "Flux Kontext Max",
-    "Seedance 2 Fast", "Seedance 2", "Veo 3 Fast", "Veo 3", "Kling 2.1", "Kling 3.0", "Kling 3.0 Pro",
-    "V4", "V4_5", "V4_5PLUS", "V4_5ALL", "V5", "V5_5",
+    // Tudo, incluindo Sora 2 e Veo 3.1 full quality
+    "Flux Schnell", "Flux Dev", "Flux Pro", "Flux Kontext Pro", "Flux Kontext Max",
+    "Nano Banana", "Nano Banana Pro", "GPT Image 2", "Seedream 5.0", "Midjourney v8",
+    "Kling 2.1 Standard", "Kling 2.1 Pro", "Kling 3.0 Pro",
+    "Veo 3.1 Fast", "Veo 3.1", "Hailuo 02 Pro", "Seedance 2 Fast", "Seedance 2",
+    "Sora 2", "Sora 2 Pro",
+    "Suno Create Music", "Suno Extend Music", "Suno Generate Sounds", "Suno Remix Music",
   ],
   enterprise: [
     // alias de Pro (até existir tier corporativo)
-    "Nano Banana", "Nano Banana Pro", "GPT Image 2", "Flux Pro", "Flux Kontext", "Flux Kontext Max",
-    "Seedance 2 Fast", "Seedance 2", "Veo 3 Fast", "Veo 3", "Kling 2.1", "Kling 3.0", "Kling 3.0 Pro",
-    "V4", "V4_5", "V4_5PLUS", "V4_5ALL", "V5", "V5_5",
+    "Flux Schnell", "Flux Dev", "Flux Pro", "Flux Kontext Pro", "Flux Kontext Max",
+    "Nano Banana", "Nano Banana Pro", "GPT Image 2", "Seedream 5.0", "Midjourney v8",
+    "Kling 2.1 Standard", "Kling 2.1 Pro", "Kling 3.0 Pro",
+    "Veo 3.1 Fast", "Veo 3.1", "Hailuo 02 Pro", "Seedance 2 Fast", "Seedance 2",
+    "Sora 2", "Sora 2 Pro",
+    "Suno Create Music", "Suno Extend Music", "Suno Generate Sounds", "Suno Remix Music",
   ],
 };
 
 export function isModelAllowedForPlan(plan: string, model: string): boolean {
   const list = PLAN_MODEL_ACCESS[(plan as PlanKey)] ?? PLAN_MODEL_ACCESS.free;
-  return list.includes(model);
+  // Suporta nome legado via alias
+  return list.includes(normalizeModelName(model));
 }
 
 // ═════════════════════════════════════════════════════════════════════
@@ -163,12 +228,13 @@ export function calculateCost(
   model: string,
   options?: { count?: number; durationSeconds?: number; resolution?: string },
 ): number {
-  const baseCost = (CREDIT_COSTS as Record<string, number>)[model] ?? 100;
+  const normalized = normalizeModelName(model);
+  const baseCost = (CREDIT_COSTS as Record<string, number>)[normalized] ?? 100;
   let multiplier = 1;
   if (options?.count && options.count > 1) multiplier *= options.count;
   if (options?.durationSeconds && options.durationSeconds > 5) multiplier *= options.durationSeconds / 5;
   if (options?.resolution === "4K" || options?.resolution === "4k") multiplier *= 2;
-  else if (options?.resolution === "1080p") multiplier *= 1.5;
+  else if (options?.resolution === "1080p" || options?.resolution === "2K") multiplier *= 1.5;
   return Math.max(1, Math.ceil(baseCost * multiplier));
 }
 
@@ -254,17 +320,17 @@ export async function refundCredits(
 }
 
 // ═════════════════════════════════════════════════════════════════════
-// 7. Cap KIE global mensal — proteção catastrófica
+// 7. Cap mensal de gasto com provider — proteção catastrófica
 // ═════════════════════════════════════════════════════════════════════
 
 /**
- * Verifica se a chamada cabe no cap mensal de gasto KIE.
+ * Verifica se a chamada cabe no cap mensal de gasto com provider (MuAPI).
  * Se exceder, bloqueia. Se passar de 75% pela primeira vez, dispara alerta.
  *
  * @returns { allowed: true, remaining_brl } se ok
  * @returns { allowed: false, reason } se cap atingido (HTTP 503 no caller)
  */
-export interface KieCapCheckResult {
+export interface ProviderCapCheckResult {
   allowed: boolean;
   estimated_brl: number;
   current_total_brl: number;
@@ -273,8 +339,14 @@ export interface KieCapCheckResult {
   reason?: string;
 }
 
-export async function checkKieCap(estimatedBRL: number): Promise<KieCapCheckResult> {
-  const defaultCap = Number(process.env.KIE_MONTHLY_CAP_BRL ?? 200);
+/** @deprecated use ProviderCapCheckResult */
+export type KieCapCheckResult = ProviderCapCheckResult;
+
+export async function checkProviderCap(estimatedBRL: number): Promise<ProviderCapCheckResult> {
+  // Aceita tanto MUAPI_MONTHLY_CAP_BRL (novo) quanto KIE_MONTHLY_CAP_BRL (legado)
+  const defaultCap = Number(
+    process.env.MUAPI_MONTHLY_CAP_BRL ?? process.env.KIE_MONTHLY_CAP_BRL ?? 200
+  );
   const sb = serviceClient();
 
   // Sem service role: degrada gracefully (permite mas loga). Melhor liberar do que travar tudo por config errada.
@@ -313,28 +385,35 @@ export async function checkKieCap(estimatedBRL: number): Promise<KieCapCheckResu
 }
 
 /**
- * Registra gasto KIE real após sucesso da chamada.
+ * Registra gasto real do provider após sucesso da chamada.
  * Dispara alerta 75% se for o primeiro request a cruzar esse threshold.
  */
-export async function logKieUsage(actualBRL: number): Promise<void> {
+export async function logProviderUsage(actualBRL: number): Promise<void> {
   if (actualBRL <= 0) return;
   const sb = serviceClient();
   if (!sb) return;
 
   try {
     const { data: newTotal } = await sb.rpc("add_kie_usage", { p_brl: actualBRL });
-    const cap = Number(process.env.KIE_MONTHLY_CAP_BRL ?? 200);
+    const cap = Number(
+      process.env.MUAPI_MONTHLY_CAP_BRL ?? process.env.KIE_MONTHLY_CAP_BRL ?? 200
+    );
     if (typeof newTotal === "number" && newTotal >= cap * 0.75) {
       const { data: justMarked } = await sb.rpc("mark_kie_alert_75pct");
       if (justMarked === true) {
         // TODO: enviar email para o admin (Resend / nodemailer)
-        console.warn("[kieCap] 🚨 ALERTA 75%: gasto KIE chegou em R$", newTotal, "/ R$", cap, "— enviar email ao admin");
+        console.warn("[providerCap] 🚨 ALERTA 75%: gasto chegou em R$", newTotal, "/ R$", cap);
       }
     }
   } catch (e) {
-    console.error("[kieUsage] log falhou:", e);
+    console.error("[providerUsage] log falhou:", e);
   }
 }
+
+/** @deprecated use `checkProviderCap` — alias temporário */
+export const checkKieCap = checkProviderCap;
+/** @deprecated use `logProviderUsage` — alias temporário */
+export const logKieUsage = logProviderUsage;
 
 // ═════════════════════════════════════════════════════════════════════
 // 8. Cap diário Free
