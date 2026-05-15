@@ -142,8 +142,8 @@ export default function AdminCostsPage() {
         <Info size={14} className="text-orange-400 shrink-0 mt-0.5" />
         <div className="text-[12px] text-orange-200 leading-relaxed">
           <strong className="text-orange-300">Todos os valores são estimativas.</strong> MRR é teórico
-          (gateway de pagamento ainda não integrado). Custo KIE é estimado via tabela <code className="text-y">KIE_COST_USD × R$5,40</code>,
-          não o real cobrado pela KIE.AI. Use pra trend e priorização — não pra contabilidade.
+          (gateway de pagamento ainda não integrado). Custo MuAPI é estimado via tabela <code className="text-y">MUAPI_COST_USD × R$5,40</code>.
+          Custo real exato vem no response da MuAPI (cost.amount_usd) e fica em metadata. Use pra trend e priorização.
         </div>
       </div>
 
@@ -158,7 +158,7 @@ export default function AdminCostsPage() {
         />
         <BigCard
           icon={TrendingDown}
-          label={`Custo KIE estimado (${data.kieCost.monthKey})`}
+          label={`Custo MuAPI estimado (${data.kieCost.monthKey})`}
           value={`R$ ${data.kieCost.estimatedBRL.toFixed(2)}`}
           hint={`Cap mensal: R$ ${data.kieCost.capBRL.toFixed(2)}`}
           tone="warning"
@@ -242,7 +242,7 @@ export default function AdminCostsPage() {
         )}
       </div>
 
-      {/* Custo KIE por modelo */}
+      {/* Custo MuAPI por modelo */}
       <SectionTitle>Top 10 modelos — custo KIE estimado</SectionTitle>
       <div className="bg-card border border-b1 rounded-[12px] overflow-hidden mb-5">
         {data.byModel.length === 0 ? (
@@ -257,7 +257,7 @@ export default function AdminCostsPage() {
                 <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-[10.5px]">Modelo</th>
                 <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-[10.5px] text-right">Gerações</th>
                 <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-[10.5px] text-right">Créditos cobrados</th>
-                <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-[10.5px] text-right">Custo KIE est.</th>
+                <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-[10.5px] text-right">Custo MuAPI est.</th>
                 <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-[10.5px]">Distribuição</th>
               </tr>
             </thead>
@@ -300,7 +300,7 @@ export default function AdminCostsPage() {
                 <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-[10.5px]">Usuário</th>
                 <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-[10.5px] text-right">Gerações</th>
                 <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-[10.5px] text-right">Créditos gastos</th>
-                <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-[10.5px] text-right">Custo KIE est.</th>
+                <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-[10.5px] text-right">Custo MuAPI est.</th>
                 <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-[10.5px] text-right"></th>
               </tr>
             </thead>

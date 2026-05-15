@@ -10,12 +10,16 @@ import {
 import { calculateCost } from "@/lib/credits";
 
 const MODELS = [
-  { id: "Seedance 2",      label: "Seedance 2",      badge: "Popular" },
-  { id: "Seedance 2 Fast", label: "Seedance 2 Fast",  badge: "Rápido" },
-  { id: "Veo 3 Fast",      label: "Veo 3 Fast",       badge: null },
-  { id: "Veo 3",           label: "Veo 3",            badge: "Qualidade" },
-  { id: "Kling 2.1",       label: "Kling 2.1",        badge: "Img→Vídeo" },
-  { id: "Kling 3.0",       label: "Kling 3.0",        badge: "Novo" },
+  { id: "Kling 2.1 Standard", label: "Kling 2.1 Std",  badge: "Free" },
+  { id: "Kling 2.1 Pro",      label: "Kling 2.1 Pro",  badge: "Img→Vídeo" },
+  { id: "Hailuo 02 Pro",      label: "Hailuo 02 Pro",  badge: "Popular" },
+  { id: "Veo 3.1 Fast",       label: "Veo 3.1 Fast",   badge: "Rápido" },
+  { id: "Seedance 2 Fast",    label: "Seedance Fast",  badge: null },
+  { id: "Seedance 2",         label: "Seedance 2",     badge: null },
+  { id: "Kling 3.0 Pro",      label: "Kling 3.0 Pro",  badge: "Premium+" },
+  { id: "Veo 3.1",            label: "Veo 3.1",        badge: "Qualidade" },
+  { id: "Sora 2",             label: "Sora 2",         badge: "Novo · Pro" },
+  { id: "Sora 2 Pro",         label: "Sora 2 Pro",     badge: "Top · Pro" },
 ];
 
 const RATIOS = ["16:9", "9:16", "1:1", "4:3"];
@@ -33,10 +37,16 @@ const VIDEO_STYLE_TO_API: Record<string, string> = {
 };
 
 const RESOLUTIONS: Record<string, string[]> = {
-  "Seedance 2":      ["480p", "720p", "1080p"],
-  "Seedance 2 Fast": ["480p", "720p"],
-  "Veo 3 Fast":      ["720p", "1080p", "4k"],
-  "Veo 3":           ["720p", "1080p", "4k"],
+  "Seedance 2":           ["480p", "720p", "1080p"],
+  "Seedance 2 Fast":      ["480p", "720p"],
+  "Veo 3.1 Fast":         ["720p", "1080p"],
+  "Veo 3.1":              ["720p", "1080p", "4k"],
+  "Kling 2.1 Standard":   ["720p"],
+  "Kling 2.1 Pro":        ["1080p"],
+  "Kling 3.0 Pro":        ["1080p"],
+  "Hailuo 02 Pro":        ["720p"],
+  "Sora 2":               ["720p"],
+  "Sora 2 Pro":           ["1080p"],
 };
 
 const KLING3_MODES = [
@@ -68,14 +78,16 @@ async function uploadReferenceFile(file: File): Promise<string | null> {
 }
 
 function getDurations(model: string): number[] {
-  if (model === "Kling 2.1") return [5, 10];
-  if (model === "Kling 3.0") return [5, 8, 10, 15];
-  if (model === "Veo 3" || model === "Veo 3 Fast") return [];
+  if (model.startsWith("Kling 2.1")) return [5, 10];
+  if (model.startsWith("Kling 3.0")) return [5, 8, 10];
+  if (model.startsWith("Veo ")) return [];     // duração fixa (8s)
+  if (model.startsWith("Hailuo ")) return [6];
+  if (model.startsWith("Sora ")) return [];
   return [5, 8, 10, 15]; // Seedance
 }
 
 export default function GenerateVideosPage() {
-  const [activeModel, setActiveModel] = useState("Seedance 2");
+  const [activeModel, setActiveModel] = useState("Kling 2.1 Standard");
   const [activeRatio, setActiveRatio] = useState("16:9");
   const [activeDuration, setActiveDuration] = useState(5);
   const [activeStyle, setActiveStyle] = useState("Cinemático");
@@ -269,7 +281,7 @@ export default function GenerateVideosPage() {
 
   async function handleGenerate() {
     if (!prompt.trim() || isGenerating) return;
-    if (activeModel === "Kling 2.1" && !firstFrameUrl) {
+    if (activeModel.startsWith("Kling 2.1") && !firstFrameUrl) {
       setError("Kling 2.1 requer uma imagem de referência");
       return;
     }
@@ -333,7 +345,7 @@ export default function GenerateVideosPage() {
     video?.state === "queuing"    ? "Na fila..." : "Aguardando...";
 
   const durations = getDurations(activeModel);
-  const showRatios = activeModel === "Veo 3" || activeModel === "Veo 3 Fast"
+  const showRatios = activeModel === "Veo 3.1" || activeModel === "Veo 3.1 Fast"
     ? VEO_RATIOS
     : RATIOS;
 
@@ -345,7 +357,7 @@ export default function GenerateVideosPage() {
   // Whether first frame upload should be shown
   const showFirstFrame =
     activeModel === "Seedance 2" || activeModel === "Seedance 2 Fast" ||
-    activeModel === "Kling 2.1" || activeModel === "Kling 3.0";
+    activeModel.startsWith("Kling 2.1") || activeModel === "Kling 3.0 Pro";
 
   // Whether last frame upload should be shown
   const showLastFrame =
@@ -354,7 +366,7 @@ export default function GenerateVideosPage() {
   // Whether resolution selector should be shown
   const showResolution = !!RESOLUTIONS[activeModel];
 
-  const isKling21RequiredImageMissing = activeModel === "Kling 2.1" && !firstFrameUrl;
+  const isKling21RequiredImageMissing = activeModel.startsWith("Kling 2.1") && !firstFrameUrl;
 
   return (
     <>
@@ -565,7 +577,7 @@ export default function GenerateVideosPage() {
           )}
 
           {/* ── Kling 3.0 options ── */}
-          {activeModel === "Kling 3.0" && (
+          {activeModel === "Kling 3.0 Pro" && (
             <>
               <div className="bg-card border border-b1 rounded-[11px] p-3.5 mb-2">
                 <div className="flex items-center gap-2 text-[13px] font-semibold text-[#d8d8d8] mb-2.5">
@@ -605,7 +617,7 @@ export default function GenerateVideosPage() {
           )}
 
           {/* ── Veo3 generation type ── */}
-          {(activeModel === "Veo 3" || activeModel === "Veo 3 Fast") && (
+          {(activeModel === "Veo 3.1" || activeModel === "Veo 3.1 Fast") && (
             <div className="bg-card border border-b1 rounded-[11px] p-3.5 mb-2">
               <div className="flex items-center gap-2 text-[13px] font-semibold text-[#d8d8d8] mb-2.5">
                 <Film size={14} className="text-t2" />
@@ -613,7 +625,7 @@ export default function GenerateVideosPage() {
               </div>
               <div className="flex flex-col gap-1.5">
                 {VEO_GEN_TYPES.map(({ id, label }) => {
-                  const disabled = id === "REFERENCE_2_VIDEO" && activeModel === "Veo 3";
+                  const disabled = id === "REFERENCE_2_VIDEO" && activeModel === "Veo 3.1";
                   return (
                     <button
                       key={id}
@@ -679,9 +691,9 @@ export default function GenerateVideosPage() {
             <div className="bg-card border border-b1 rounded-[11px] p-3.5 mb-2">
               <div className="flex items-center gap-2 text-[13px] font-semibold text-[#d8d8d8] mb-2.5">
                 <ImagePlus size={14} className="text-t2" />
-                {activeModel === "Kling 2.1" ? "Imagem de Referência" : "Primeiro Frame"}
-                <span className={`ml-auto text-[11px] font-normal ${activeModel === "Kling 2.1" ? "text-red-400" : "text-t4"}`}>
-                  {activeModel === "Kling 2.1" ? "Obrigatório" : "Opcional"}
+                {activeModel.startsWith("Kling 2.1") ? "Imagem de Referência" : "Primeiro Frame"}
+                <span className={`ml-auto text-[11px] font-normal ${activeModel.startsWith("Kling 2.1") ? "text-red-400" : "text-t4"}`}>
+                  {activeModel.startsWith("Kling 2.1") ? "Obrigatório" : "Opcional"}
                 </span>
               </div>
               <input ref={firstFrameInputRef} type="file" accept="image/*" className="hidden" onChange={handleUploadFirstFrame} />
@@ -705,12 +717,12 @@ export default function GenerateVideosPage() {
                 <button
                   onClick={() => firstFrameInputRef.current?.click()}
                   className={`w-full border border-dashed rounded-[10px] py-4 flex flex-col items-center gap-2 text-t3 hover:text-white transition-colors ${
-                    activeModel === "Kling 2.1" ? "border-red-500/40 hover:border-red-400" : "border-b2 hover:border-b2"
+                    activeModel.startsWith("Kling 2.1") ? "border-red-500/40 hover:border-red-400" : "border-b2 hover:border-b2"
                   }`}
                 >
                   <ImagePlus size={18} />
                   <span className="text-[12px]">
-                    {activeModel === "Kling 2.1" ? "Enviar imagem (obrigatório)" : "Enviar primeiro frame"}
+                    {activeModel.startsWith("Kling 2.1") ? "Enviar imagem (obrigatório)" : "Enviar primeiro frame"}
                   </span>
                 </button>
               )}
@@ -755,7 +767,7 @@ export default function GenerateVideosPage() {
           )}
 
           {/* ── Kling 2.1 extras ── */}
-          {activeModel === "Kling 2.1" && (
+          {activeModel.startsWith("Kling 2.1") && (
             <div className="bg-card border border-b1 rounded-[11px] p-3.5 mb-2">
               <div className="flex flex-col gap-2.5">
                 <div>

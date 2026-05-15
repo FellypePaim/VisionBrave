@@ -211,8 +211,8 @@ export default function AdminOverviewPage() {
         />
       </div>
 
-      {/* KIE */}
-      <SectionTitle>KIE Global ({data.kie.monthKey})</SectionTitle>
+      {/* Provider Cap */}
+      <SectionTitle>Provider (MuAPI) — {data.kie.monthKey}</SectionTitle>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <AdminStatCard
           icon={Activity}
@@ -243,8 +243,8 @@ export default function AdminOverviewPage() {
       </div>
 
       <div className="text-[11px] text-t4 text-center mt-8 pb-4">
-        Custo KIE é <strong>estimado</strong> via tabela KIE_COST_USD × R$5,40.
-        Não é o custo cobrado da KIE.AI — usar essa tela só pra trend.
+        Custo MuAPI é <strong>estimado</strong> via tabela MUAPI_COST_USD × R$5,40.
+        Custo real exato vem no response da MuAPI (cost.amount_usd) e fica em metadata.
       </div>
     </div>
   );

@@ -24,7 +24,18 @@ const TAG_TO_STYLE: Record<string, string | undefined> = {
   "Neon": "Neon",
 };
 const COUNTS = [1, 2, 3, 4];
-const MODELS = ["Nano Banana", "Flux Kontext", "GPT Image 2", "Flux Pro"];
+const MODELS = [
+  "Flux Schnell",       // $0.003 — ultra rápido e barato
+  "Flux Dev",           // $0.015
+  "Nano Banana",        // $0.030 — bom pra retratos com referência
+  "Flux Kontext Pro",   // $0.030 — edição com 1 imagem ref
+  "Seedream 5.0",       // $0.033 — ByteDance
+  "Flux Pro",           // $0.032 — qualidade
+  "Flux Kontext Max",   // $0.060
+  "GPT Image 2",        // $0.090
+  "Nano Banana Pro",    // $0.120 — Gemini 3 Pro
+  "Midjourney v8",      // $0.100 — Premium+
+];
 
 // Retorna o nome do plano mínimo para acessar um modelo
 function minPlanFor(model: string): string {
@@ -34,20 +45,32 @@ function minPlanFor(model: string): string {
   return "Pro";
 }
 
-// Resoluções disponíveis por modelo (Flux Pro max 2K per KIE docs)
+// Resoluções disponíveis por modelo
 const MODEL_RESOLUTIONS: Record<string, Array<"1K" | "2K" | "4K">> = {
-  "Nano Banana":  ["1K", "2K", "4K"],
-  "Flux Kontext": ["1K", "2K", "4K"],
-  "GPT Image 2":  ["1K", "2K", "4K"],
-  "Flux Pro":     ["1K", "2K"],
+  "Flux Schnell":      ["1K"],
+  "Flux Dev":          ["1K"],
+  "Nano Banana":       ["1K", "2K", "4K"],
+  "Flux Kontext Pro":  ["1K"],
+  "Seedream 5.0":      ["1K", "2K"],
+  "Flux Pro":          ["1K", "2K"],
+  "Flux Kontext Max":  ["1K", "2K"],
+  "GPT Image 2":       ["1K", "2K", "4K"],
+  "Nano Banana Pro":   ["1K", "2K", "4K"],
+  "Midjourney v8":     ["1K"],
 };
 
 // Common aspect ratios per model
 const ASPECT_RATIOS: Record<string, string[]> = {
-  "Nano Banana":  ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2"],
-  "Flux Kontext": ["1:1", "16:9", "9:16", "4:3", "3:4", "21:9"],
-  "GPT Image 2":  ["auto", "1:1", "16:9", "9:16", "4:3", "3:4"],
-  "Flux Pro":     ["1:1", "4:3", "3:4", "16:9", "9:16", "3:2"],
+  "Flux Schnell":      ["1:1", "16:9", "9:16", "4:3", "3:4"],
+  "Flux Dev":          ["1:1", "16:9", "9:16", "4:3", "3:4"],
+  "Nano Banana":       ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2"],
+  "Flux Kontext Pro":  ["1:1", "16:9", "9:16", "4:3", "3:4", "21:9"],
+  "Seedream 5.0":      ["1:1", "16:9", "9:16", "4:3", "3:4"],
+  "Flux Pro":          ["1:1", "4:3", "3:4", "16:9", "9:16", "3:2"],
+  "Flux Kontext Max":  ["1:1", "4:3", "3:4", "16:9", "9:16"],
+  "GPT Image 2":       ["auto", "1:1", "16:9", "9:16", "4:3", "3:4"],
+  "Nano Banana Pro":   ["1:1", "16:9", "9:16", "4:3", "3:4"],
+  "Midjourney v8":     ["1:1", "16:9", "9:16", "4:3", "3:4"],
 };
 
 interface GeneratedImage {

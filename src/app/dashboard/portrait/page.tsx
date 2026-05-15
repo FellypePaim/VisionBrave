@@ -53,26 +53,30 @@ const FRAMINGS = [
   { id: "wide",      label: "Composição Ampla" },
 ];
 
-// Modelos com suporte real a imagem de referência via KIE.
-// Removido Flux Pro (text-to-image puro, ignora qualquer imagem enviada).
-// Removido Nano Banana Pro temporariamente — modelId KIE ainda não confirmado.
-const PORTRAIT_MODELS = ["Nano Banana", "Flux Kontext"];
+// Modelos com suporte a imagem de referência via MuAPI.
+// Nano Banana (Gemini Image) é multimodal — aceita múltiplas refs.
+// Flux Kontext Pro é image-to-image — aceita 1 ref pra edição.
+// Nano Banana Pro = Gemini 3 Pro Image (mais qualidade, mais caro).
+const PORTRAIT_MODELS = ["Nano Banana", "Nano Banana Pro", "Flux Kontext Pro"];
 
 const MODEL_RESOLUTIONS: Record<string, Array<"1K" | "2K" | "4K">> = {
-  "Nano Banana":      ["1K", "2K", "4K"],
-  "Flux Kontext":     ["1K", "2K", "4K"],
+  "Nano Banana":       ["1K", "2K", "4K"],
+  "Nano Banana Pro":   ["1K", "2K", "4K"],
+  "Flux Kontext Pro":  ["1K"],
 };
 
 // Quantas imagens de referência do MODELO (pessoa) cada modelo de IA aceita
 const MAX_MODEL_REF_IMAGES: Record<string, number> = {
-  "Nano Banana":      8,   // KIE aceita até 14, deixamos 8 pra balancear UX e custo
-  "Flux Kontext":     1,   // edita 1 imagem específica
+  "Nano Banana":       8,   // multimodal, aceita até 14 — limitamos a 8 pra UX
+  "Nano Banana Pro":   8,
+  "Flux Kontext Pro":  1,   // edita 1 imagem específica
 };
 
 // Quantas imagens de referência de VESTUÁRIO cada modelo aceita
 const MAX_OUTFIT_REF_IMAGES: Record<string, number> = {
-  "Nano Banana":      3,
-  "Flux Kontext":     0,   // não suporta múltiplas imagens
+  "Nano Banana":       3,
+  "Nano Banana Pro":   3,
+  "Flux Kontext Pro":  0,   // não suporta múltiplas imagens
 };
 
 /** Total combinado de refs que vai pro KIE image_input array */

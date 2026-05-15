@@ -9,12 +9,10 @@ import {
 } from "lucide-react";
 
 const MODELS = [
-  { id: "V4_5",    label: "Suno V4.5",      badge: "Popular" },
-  { id: "V4_5PLUS",label: "Suno V4.5+",     badge: "New" },
-  { id: "V4_5ALL", label: "Suno V4.5 All",  badge: null },
-  { id: "V5",      label: "Suno V5",        badge: null },
-  { id: "V5_5",    label: "Suno V5.5",      badge: "Best" },
-  { id: "V4",      label: "Suno V4",        badge: null },
+  { id: "Suno Create Music",     label: "Criar música",     badge: "Popular" },
+  { id: "Suno Extend Music",     label: "Estender música",  badge: null },
+  { id: "Suno Remix Music",      label: "Remix",            badge: null },
+  { id: "Suno Generate Sounds",  label: "Gerar sons SFX",   badge: "Barato" },
 ];
 
 const STYLE_PRESETS = ["Pop", "Hip-Hop", "Lo-fi", "Cinematic", "Jazz", "Rock", "Electronic", "Acoustic"];
@@ -31,7 +29,7 @@ interface Track {
 type GenStatus = "idle" | "pending" | "partial" | "done" | "failed";
 
 export default function GenerateAudioPage() {
-  const [activeModel, setActiveModel] = useState("V4_5");
+  const [activeModel, setActiveModel] = useState("Suno Create Music");
   const generationCost = useMemo(() => calculateCost(activeModel), [activeModel]);
   const [prompt, setPrompt] = useState("");
   const [customMode, setCustomMode] = useState(false);

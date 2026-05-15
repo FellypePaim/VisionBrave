@@ -128,7 +128,7 @@ export default function AdminKiePage() {
         <div>
           <h1 className="text-[22px] font-bold text-white mb-1 flex items-center gap-2">
             <ServerCog size={20} className="text-y" />
-            KIE Global — {status.monthKey}
+            Provider Cap (MuAPI) — {status.monthKey}
           </h1>
           <p className="text-[13px] text-t3">
             Controle do gasto KIE.AI mensal estimado. Proteção catastrófica contra prejuízo.
@@ -197,10 +197,10 @@ export default function AdminKiePage() {
       <div className="flex items-start gap-2.5 p-3.5 rounded-[10px] bg-y/5 border border-y/20 mb-5">
         <Info size={14} className="text-y shrink-0 mt-0.5" />
         <div className="text-[12px] text-t2 leading-relaxed">
-          O custo KIE é <strong className="text-white">estimado</strong> via tabela <code className="text-y">KIE_COST_USD</code> × R$5,40,
+          O custo MuAPI é <strong className="text-white">estimado</strong> via tabela <code className="text-y">MUAPI_COST_USD</code> × R$5,40,
           não o valor real cobrado pela KIE.AI. O cap atua como <strong className="text-white">circuit breaker</strong>:
           quando o gasto estimado bate no cap, as APIs <code className="text-y">/api/generate/*</code> retornam 503.
-          Cap padrão vem da env <code className="text-y">KIE_MONTHLY_CAP_BRL</code> (atual: R$ {envDefaultCap.toFixed(2)}).
+          Cap padrão vem da env <code className="text-y">MUAPI_MONTHLY_CAP_BRL</code> (atual: R$ {envDefaultCap.toFixed(2)}).
           Override por mês via esta tela é gravado em <code className="text-y">kie_monthly_usage.cap_brl</code>.
         </div>
       </div>

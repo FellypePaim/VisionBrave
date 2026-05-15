@@ -1,9 +1,28 @@
+/**
+ * POST /api/generate/image — geração de imagem via MuAPI
+ *
+ * Fluxo:
+ *   1. Auth + 4 gates (manutenção, plano, daily limit, KIE/Muapi cap, débito)
+ *   2. Para cada imagem solicitada (count): submitTask na MuAPI
+ *   3. Grava pending_generations
+ *   4. Frontend polla via /api/generate/status até webhook completar
+ *
+ * Modelos suportados (do MUAPI_MODELS registry):
+ *   - Flux Schnell / Dev / Pro / Kontext Pro / Kontext Max
+ *   - Nano Banana / Nano Banana Pro
+ *   - GPT Image 2, Seedream 5.0, Midjourney v8
+ */
+
 import { NextRequest, NextResponse } from "next/server";
-import { createImageTask, createFluxKontextTask } from "@/lib/kie/client";
+import { submitTask } from "@/lib/muapi/client";
+import { buildMuapiBody } from "@/lib/muapi/build-body";
+import { savePending, getWebhookUrl, getModelKind } from "@/lib/muapi/pending";
+import { getModelConfig } from "@/lib/muapi/registry";
 import { createClient } from "@/lib/supabase/server";
 import {
-  calculateCost, debitCredits, refundCredits, estimateKieCostBRL,
-  checkKieCap, logKieUsage, checkDailyLimit, isModelAllowedForPlan,
+  calculateCost, debitCredits, refundCredits, estimateMuapiCostBRL,
+  checkProviderCap, logProviderUsage, checkDailyLimit, isModelAllowedForPlan,
+  normalizeModelName,
 } from "@/lib/credits";
 import { getUserPlan } from "@/lib/plan";
 import { rateLimit } from "@/lib/rate-limit";
@@ -28,10 +47,7 @@ export async function POST(req: NextRequest) {
   // ── Gate 0: modo manutenção / kill switch global ────────────────────
   const sys = await checkGenerationAllowed("image");
   if (!sys.allowed) {
-    return NextResponse.json(
-      { error: sys.reason, code: sys.code },
-      { status: 503 }
-    );
+    return NextResponse.json({ error: sys.reason, code: sys.code }, { status: 503 });
   }
 
   // ── Rate limit: 30 gerações/min/user ────────────────────────────────
@@ -46,25 +62,35 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const {
     prompt,
-    model = "Nano Banana",
+    model: modelInput = "Nano Banana",
     style,
     count = 1,
-    resolution: resolutionParam,   // novo: string direto ("1K" | "2K" | "4K")
-    detailLevel = 72,              // legado: fallback se resolution não vier
+    resolution: resolutionParam,
+    detailLevel = 72,
     aspectRatio,
-    inputImage, outputFormat, promptUpsampling,   // Flux Kontext
-    referenceImages,                              // Nano Banana
+    inputImage,              // legado: Flux Kontext single image
+    referenceImages,         // multi-image: Nano Banana / Pro
   } = body;
 
   if (!prompt?.trim()) {
     return NextResponse.json({ error: "Prompt é obrigatório" }, { status: 400 });
   }
 
+  // Normaliza nomes legados ("Flux Kontext" → "Flux Kontext Pro", etc.)
+  const model = normalizeModelName(modelInput);
+  const modelConfig = getModelConfig(model);
+  if (!modelConfig) {
+    return NextResponse.json(
+      { error: `Modelo "${modelInput}" não suportado.`, code: "model_not_found" },
+      { status: 400 }
+    );
+  }
+
   // ── Resolução (define multiplier de custo) ──────────────────────────
-  // Aceita "resolution" direto do novo frontend; fallback para cálculo por detailLevel (legado)
   const rawResolution: string =
     resolutionParam ??
     (detailLevel <= 30 ? "1K" : detailLevel <= 70 ? "2K" : "4K");
+  // Flux 2 Pro só suporta até 2K
   const resolution = model === "Flux Pro" && rawResolution === "4K" ? "2K" : rawResolution;
 
   // ── Gate 1: plano permite esse modelo? ──────────────────────────────
@@ -79,12 +105,15 @@ export async function POST(req: NextRequest) {
   // ── Gate 2: cap diário Free ─────────────────────────────────────────
   const daily = await checkDailyLimit(supabase, user.id, plan, "image");
   if (!daily.allowed) {
-    return NextResponse.json({ error: daily.reason, code: "daily_limit", count: daily.count, limit: daily.limit }, { status: 429 });
+    return NextResponse.json(
+      { error: daily.reason, code: "daily_limit", count: daily.count, limit: daily.limit },
+      { status: 429 },
+    );
   }
 
-  // ── Gate 3: cap mensal KIE global (proteção catastrófica) ───────────
-  const estimatedBRL = estimateKieCostBRL(model, { count, resolution });
-  const cap = await checkKieCap(estimatedBRL);
+  // ── Gate 3: cap mensal provider (proteção catastrófica) ─────────────
+  const estimatedBRL = estimateMuapiCostBRL(model, { count, resolution });
+  const cap = await checkProviderCap(estimatedBRL);
   if (!cap.allowed) {
     return NextResponse.json(
       { error: cap.reason, code: "service_cap", current_total_brl: cap.current_total_brl, cap_brl: cap.cap_brl },
@@ -99,7 +128,7 @@ export async function POST(req: NextRequest) {
       supabase, cost,
       `Geração de ${count} imagem${count > 1 ? "ns" : ""} (${model})`,
       undefined,
-      { model, count, style, aspectRatio, resolution, kind: "image", kie_cost_brl: estimatedBRL },
+      { model, count, style, aspectRatio, resolution, kind: "image", provider: "muapi", estimated_brl: estimatedBRL },
     );
   } catch (e) {
     if ((e as Error).message === "insufficient_credits") {
@@ -120,75 +149,93 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Erro ao debitar créditos" }, { status: 500 });
   }
 
-  // ── Construir prompt + normalizar aspect_ratio ──────────────────────
+  // ── Construir prompt + body MuAPI ────────────────────────────────────
   const fullPrompt = style && STYLE_PREFIX[style] ? STYLE_PREFIX[style] + prompt : prompt;
 
-  const requiresAspect = resolution === "2K" || resolution === "4K";
-  const normalizedAspectRatio =
-    !aspectRatio || aspectRatio === "auto"
-      ? (requiresAspect ? "1:1" : undefined)
-      : aspectRatio;
+  // Para Flux Kontext (single image) usa inputImage; para Nano Banana usa array
+  const refUrls: string[] = Array.isArray(referenceImages) && referenceImages.length > 0
+    ? referenceImages
+    : inputImage ? [inputImage] : [];
 
-  // ── Chamada KIE ─────────────────────────────────────────────────────
-  const tasks = await Promise.all(
-    Array.from({ length: count }, () => {
-      if (model === "Flux Kontext") {
-        return createFluxKontextTask({
-          prompt: fullPrompt,
-          aspectRatio: normalizedAspectRatio,
-          inputImage,
-          outputFormat,
-          promptUpsampling,
-        });
-      }
+  const muapiBody = buildMuapiBody(model, {
+    prompt: fullPrompt,
+    aspectRatio,
+    resolution,
+    imageUrl: refUrls[0],
+    imageUrls: refUrls,
+  });
 
-      const modelId =
-        model === "Nano Banana"  ? "nano-banana-2" :
-        model === "GPT Image 2"  ? "gpt-image-2-text-to-image" :
-        model === "Flux Pro"     ? "flux-2/pro-text-to-image" :
-        "nano-banana-2";
-
-      return createImageTask({
-        model: modelId,
-        prompt: fullPrompt,
-        aspect_ratio: normalizedAspectRatio,
-        resolution,
-        image_input: model === "Nano Banana" && referenceImages?.length ? referenceImages : undefined,
-      });
-    })
+  // ── Chamada MuAPI ────────────────────────────────────────────────────
+  // N submits paralelos (1 por imagem). Cada um retorna request_id próprio.
+  const webhookUrl = getWebhookUrl();
+  const submitResults = await Promise.allSettled(
+    Array.from({ length: count }, () =>
+      submitTask(modelConfig.endpoint, muapiBody, { webhookUrl })
+    )
   );
 
-  const taskIds = tasks
-    .filter((t) => t.code === 200 && t.data?.taskId)
-    .map((t) => t.data!.taskId);
+  const successful = submitResults
+    .map((r, i) => ({ idx: i, r }))
+    .filter((x): x is { idx: number; r: PromiseFulfilledResult<Awaited<ReturnType<typeof submitTask>>> } =>
+      x.r.status === "fulfilled"
+    );
 
-  // ── Falha total: refund integral ────────────────────────────────────
+  const taskIds = successful.map((x) => x.r.value.request_id);
+
+  // ── Falha total: refund integral ─────────────────────────────────────
   if (taskIds.length === 0) {
-    const firstError = tasks[0]?.msg ?? "Failed to start generation";
-    await refundCredits(user.id, cost, `Refund: falha na geração (${model})`, { error: firstError, model });
+    const firstError = submitResults
+      .filter((r): r is PromiseRejectedResult => r.status === "rejected")[0];
+    const errMsg = firstError?.reason instanceof Error
+      ? firstError.reason.message
+      : "Failed to start generation";
+
+    await refundCredits(user.id, cost, `Refund: falha na geração (${model})`, { error: errMsg, model, provider: "muapi" });
     await logAppError({
       userId: user.id,
       route: "/api/generate/image",
-      action: "kie_create_task_total_fail",
-      provider: "KIE",
+      action: "muapi_create_task_total_fail",
+      provider: "MuAPI",
       model,
-      errorCode: "kie_failed",
-      errorMessage: firstError,
-      metadata: { count, refundAmount: cost, kieResponses: tasks.map((t) => ({ code: t.code, msg: t.msg })) },
+      errorCode: "muapi_failed",
+      errorMessage: errMsg,
+      metadata: { count, refundAmount: cost, endpoint: modelConfig.endpoint },
     });
-    return NextResponse.json({ error: firstError }, { status: 500 });
+    return NextResponse.json({ error: errMsg }, { status: 500 });
   }
 
-  // ── Falha parcial: refund proporcional ──────────────────────────────
+  // ── Salva pendentes (sucesso ou parcial) ─────────────────────────────
+  await Promise.all(
+    taskIds.map((taskId) =>
+      savePending({
+        taskId,
+        userId: user.id,
+        model,
+        endpoint: modelConfig.endpoint,
+        kind: getModelKind(model),
+        prompt: fullPrompt,
+        costCredits: Math.ceil(cost / count),
+        estimatedCostBrl: estimatedBRL / count,
+        metadata: { style, aspectRatio, resolution, count, batch_index: taskIds.indexOf(taskId) },
+      })
+    )
+  );
+
+  // ── Falha parcial: refund proporcional ───────────────────────────────
   const failedCount = count - taskIds.length;
   if (failedCount > 0) {
     const refundAmount = Math.ceil((cost / count) * failedCount);
-    await refundCredits(user.id, refundAmount, `Refund parcial: ${failedCount}/${count} falharam (${model})`, { model, failedCount });
+    await refundCredits(
+      user.id,
+      refundAmount,
+      `Refund parcial: ${failedCount}/${count} falharam (${model})`,
+      { model, failedCount, provider: "muapi" },
+    );
   }
 
-  // ── Log de gasto KIE real (proporcional aos que efetivamente foram criados) ──
-  const actualKieBRL = (estimatedBRL / count) * taskIds.length;
-  await logKieUsage(actualKieBRL);
+  // ── Log de gasto provider (proporcional aos sucessos) ───────────────
+  const actualProviderBRL = (estimatedBRL / count) * taskIds.length;
+  await logProviderUsage(actualProviderBRL);
 
   return NextResponse.json({ taskIds });
 }

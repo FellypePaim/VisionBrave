@@ -30,7 +30,7 @@ const navGroups: { title: string; items: NavItem[] }[] = [
       { href: "/admin/credits",      icon: Coins,         label: "Créditos" },
       { href: "/admin/transactions", icon: ArrowLeftRight, label: "Transações" },
       { href: "/admin/costs",        icon: DollarSign,    label: "Custos & Margem" },
-      { href: "/admin/kie",          icon: ServerCog,     label: "KIE Global" },
+      { href: "/admin/kie",          icon: ServerCog,     label: "Provider (MuAPI)" },
     ],
   },
   {
